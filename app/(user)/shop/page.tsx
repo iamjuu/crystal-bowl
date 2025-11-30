@@ -3,8 +3,14 @@ import React from "react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import Image from "next/image";
-import { ArrowRight, Plus } from "lucide-react";
-import { Bucket1, Bucket2, Bucket3, FliterIcon, SortIcon } from "@/public/assets";
+import { Plus } from "lucide-react";
+import {
+  Bucket1,
+  Bucket2,
+  Bucket3,
+  FliterIcon,
+  SortIcon
+} from "@/public/assets";
 import Link from "next/link";
 const page = () => {
   const Data = [
@@ -101,38 +107,40 @@ const page = () => {
       <>
         <section className="w-full py-[40px] md:py-[68px] ">
           <div className="max-w-6xl items-center flex flex-col mx-auto px-4">
-             {/* Header */}
-          <div className="mb-8 items-center   w-full md:mb-12 flex flex-col justify-between sm:flex-row gap-4 sm:gap-8 md:gap-[62px]">
-            <div className="flex  items-center gap-[50px]">
-            <h2 className="text-black text-[28px] sm:text-[32px] md:text-[40px] font-normal">
-              Services
-            </h2>
-            <p className="text-[#1C3163] text-[14px] sm:text-[16px] md:text-[18px] font-light">
-              Private Sessions & <br/> Corporate Wellness
-            </p>
-            </div>
-     <div className="flex p-[6px] rounded-[6px] gap-4  border">
-              <button className="border-r border-r-gray-300 pr-4">
-                <Image src={FliterIcon} alt="filter" />
-              </button>
+            {/* Header */}
+            <div className="mb-8 items-center   w-full md:mb-12 flex flex-col justify-between sm:flex-row gap-4 sm:gap-8 md:gap-[62px]">
+              <div className="flex  items-center gap-[50px]">
+                <h2 className="text-black text-[28px] sm:text-[32px] md:text-[40px] font-normal">
+                  Services
+                </h2>
+                <p className="text-[#1C3163] text-[14px] sm:text-[16px] md:text-[18px] font-light">
+                  Private Sessions & <br /> Corporate Wellness
+                </p>
+              </div>
+              <div className="flex p-[6px] rounded-[6px] gap-4  border">
+                <button className="border-r border-r-gray-300 pr-4">
+                  <Image src={FliterIcon} alt="filter" />
+                </button>
 
-              <button>
-                <Image src={SortIcon} alt="sort" />
-              </button>
-
+                <button>
+                  <Image src={SortIcon} alt="sort" />
+                </button>
+              </div>
             </div>
-       
-          </div>
             <div className="flex  w-full bg-amber-100flex-col gap-12 md:gap-16 lg:gap-[80px]">
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-[18px] w-full">
                 {Data.map((item) => (
-                  <div key={item.id} className="text-black">
+                  <Link 
+                    href={`/shop/${item.id}`} 
+                    key={item.id} 
+                    className="text-black group cursor-pointer"
+                  >
                     <div className="relative w-full aspect-square">
                       <Image
                         src={item.image}
                         alt={item.title}
                         fill
-                        className="object-cover rounded-lg"
+                        className="object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
                     <div className="items-end justify-between  flex ">
@@ -153,7 +161,7 @@ const page = () => {
                         </p>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>
