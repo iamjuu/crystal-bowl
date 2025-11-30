@@ -24,6 +24,11 @@ export { default as YogaSection3 } from './images/landing/yoga6.svg';
 // JPG Images
 export { default as HeroImage } from './images/landing/pexels-vintxg-rikoz-98047923-11022713.jpg';
 
+// About Page Images
+export { default as About1 } from './images/about/about1.svg';
+export { default as About2 } from './images/about/about2.svg';
+export { default as About3 } from './images/about/about3.svg';
+
 // testimonials images
 
 export { default as TestimonialIcon } from './images/landing/testimonailsicon.svg';
