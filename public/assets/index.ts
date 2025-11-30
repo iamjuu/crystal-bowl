@@ -2,10 +2,10 @@
 export { default as AboutSection } from './images/landing/aboutsection.svg';
 export { default as AboutSection1 } from './images/landing/aboutsection1.svg';
 export { default as CryselLogo } from './images/landing/crysel logo.svg';
-export { default as Intention } from './images/landing/Intention.svg';
-export { default as LightWeight } from './images/landing/Light-Weight.svg';
-export { default as PremiumQuality } from './images/landing/Premium Quality.svg';
-export { default as UniqueToYou } from './images/landing/Unique to You.svg';
+export { default as Intention } from './images/landing/intiontion.svg';
+export { default as LightWeight } from './images/landing/light.svg';
+export { default as PremiumQuality } from './images/landing/premiumQuality1.svg';
+export { default as UniqueToYou } from './images/landing/unique.svg';
 export { default as RightArrow } from './images/landing/right arrow.svg';
 export { default as Bucket1 } from './images/landing/bucket1.svg';
 export { default as Bucket2 } from './images/landing/bucket2.svg';

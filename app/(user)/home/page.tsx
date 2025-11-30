@@ -1,6 +1,5 @@
 "use client";
 import React, { useState } from "react";
-import HeroImage from "@/public/assets/images/landing/pexels-vintxg-rikoz-98047923-11022713.jpg";
 import Navbar from "@/components/navbar";
 import Image from "next/image";
 import {
@@ -184,17 +183,21 @@ const Index = () => {
 
   return (
     <>
-      <div
-        style={{
-          backgroundImage: `url(${HeroImage.src})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          height: "100vh",
-          width: "100%"
-        }}
-      >
-        <div className="h-full flex flex-col justify-between w-full">
+      <div className="relative h-screen w-full overflow-hidden bg-black">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute top-0 left-0 w-full h-full object-cover"
+          onError={(e) => console.error("Video error:", e)}
+          onLoadedData={() => console.log("Video loaded successfully")}
+        >
+          <source src="/assets/images/landing/video/hero.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+        
+        <div className="relative z-10 h-full flex flex-col justify-between w-full">
           <Navbar />
 
           <h1 className="  text-center pb-[60px] sm:pb-[80px] md:pb-[100px] lg:pb-[120px] px-4 text-[#D5B584] text-[28px] sm:text-[32px] md:text-[40px] lg:text-[50px] italic leading-tight">
@@ -203,12 +206,15 @@ const Index = () => {
         </div>
       </div>
 
-      {/* about section  */}
-      <section className="w-full px-4 md;px-0 py-[68px]">
+
+      <div className="w-full bg-gradient-to-r from-[#FDECE2] to-[#FEC1A2]">
+{/* about section  */}
+      
+      <section className="w-full  px-4 md;px-0 py-[68px]">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col w-full">
             {/* Section Title */}
-            <h2 className="text-[24px] sm:text-[28px] md:text-[32px] lg:text-[36px] xl:text-[40px] pb-4 sm:pb-5 md:pb-6 text-[#C7A97B] font-normal">
+            <h2 className="text-[24px] sm:text-[28px] md:text-[32px] lg:text-[36px] xl:text-[40px] pb-4 sm:pb-5 md:pb-6 text-black font-normal">
               About
             </h2>
 
@@ -216,7 +222,7 @@ const Index = () => {
             <div className="flex  flex-col lg:flex-row w-full gap-8 md:gap-10 lg:gap-12">
               {/* Left side - Text Content */}
               <div className="w-full lg:w-[65%] xl:w-[70%]">
-                <div className="flex flex-col gap-4 sm:gap-5 md:gap-6 text-[14px] sm:text-[15px] md:text-[16px] lg:text-[16px] font-light text-[#1C3163] leading-relaxed sm:leading-relaxed md:leading-loose">
+                <div className="flex flex-col gap-4 sm:gap-5 md:gap-6 text-[14px] sm:text-[15px] md:text-[16px] lg:text-[16px] font-light text-black leading-relaxed sm:leading-relaxed md:leading-loose">
                   <p>
                     Crystal Bowl Studio is created and designed by master sound
                     and energy healer Francesca Wong, fulfilling her dream to
@@ -266,14 +272,15 @@ const Index = () => {
               <div className="flex pt-6 sm:pt-7 md:pt-8 lg:pt-9 items-center">
                 <a
                   href="#"
-                  className="inline-flex text-[#D5B584] items-center gap-2 text-[15px] sm:text-[16px] md:text-[17px] lg:text-[18px] font-medium hover:opacity-80 transition-opacity"
+                  className="inline-flex text-black items-center gap-2 text-[15px] sm:text-[16px] md:text-[17px] lg:text-[18px] font-medium hover:opacity-80 transition-opacity"
                 >
                   Read More
-                  <Image
+                  {/* <Image
                     className="w-4 sm:w-5 h-auto"
                     src={RightArrow}
                     alt="right arrow"
-                  />
+                  /> */}
+                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-black" />
                 </a>
               </div>
             </div>
@@ -283,24 +290,25 @@ const Index = () => {
 
       {/* collection section  */}
 
-      <section className="w-full py-[40px] md:py-[68px] bg-gradient-to-b from-[#00071A] to-[#1C3163]">
+      <section className="w-full py-[40px] md:py-[68px] ">
         <div className="max-w-6xl items-center flex flex-col mx-auto px-4">
           <div className="flex w-full items-center justify-between mb-8 md:mb-0">
-            <h2 className="text-[24px] sm:text-[28px] md:text-[32px] lg:text-[36px] xl:text-[40px] pb-4 sm:pb-5 md:pb-6 text-[#C7A97B] font-normal">
+            <h2 className="text-[24px] sm:text-[28px] md:text-[32px] lg:text-[36px] xl:text-[40px] pb-4 sm:pb-5 md:pb-6 text-black font-normal">
               Collection
             </h2>
             <Link
               href="/collection"
-              className="text-[#D5B584] flex gap-2 text-[14px] sm:text-[16px] md:text-[18px]"
+              className="text-black flex gap-2 text-[14px] sm:text-[16px] md:text-[18px]"
             >
               View All
-              <Image src={RightArrow} alt="right arrow" className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
+              {/* <Image src={RightArrow} alt="right arrow" className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" /> */}
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-black" />
             </Link>
           </div>
           <div className="flex flex-col gap-12 md:gap-16 lg:gap-[80px]">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-[18px] w-full">
               {Data.map((item) => (
-                <div key={item.id} className="text-white">
+                <div key={item.id} className="text-black">
                   <div className="relative w-full aspect-square">
                     <Image 
                       src={item.image} 
@@ -318,11 +326,11 @@ const Index = () => {
               ))}
             </div>
 
-            <div className="w-full pt-12 md:pt-16 lg:pt-[80px] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 md:gap-12 lg:gap-[54px] border-t border-white">
+            <div className="w-full pt-12 md:pt-16 lg:pt-[80px] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 md:gap-12 lg:gap-[54px] border-t border-black">
               {Icons.map((item) => (
                 <div
                   key={item.id}
-                  className="flex text-[#D5B584] flex-col items-center"
+                  className="flex text-black flex-col items-center"
                 >
                   <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 relative">
                     <Image 
@@ -350,11 +358,11 @@ const Index = () => {
       {/* service section  */}
 
       <section
-        className="w-full py-[40px] md:py-[68px] bg-[#F5F0E8]">
+        className="w-full py-[40px] md:py-[68px] ">
         <div className="max-w-6xl mx-auto px-4">
           {/* Header */}
           <div className="mb-8 md:mb-12 flex flex-col sm:flex-row gap-4 sm:gap-8 md:gap-[62px]">
-            <h2 className="text-[#C7A97B] text-[28px] sm:text-[32px] md:text-[40px] font-normal">
+            <h2 className="text-black text-[28px] sm:text-[32px] md:text-[40px] font-normal">
               Services
             </h2>
             <p className="text-[#1C3163] text-[14px] sm:text-[16px] md:text-[18px] font-light">
@@ -439,9 +447,9 @@ const Index = () => {
 
       {/* testimonials section  */}
 
-      <section className="w-full py-[40px] md:py-[68px] bg-[#F5F0E8] relative">
+      <section className="w-full py-[40px] md:py-[68px]  relative">
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-[#C7A97B] text-[28px] sm:text-[32px] md:text-[40px] font-normal mb-8 md:mb-12">
+          <h2 className="text-black text-[28px] sm:text-[32px] md:text-[40px] font-normal mb-8 md:mb-12">
             Testimonials
           </h2>
         </div>
@@ -488,16 +496,16 @@ const Index = () => {
             </div>
             
             {/* Right Side - Testimonial Card */}
-            <div className="flex-1 w-full bg-gradient-to-br from-[#001B3D] to-[#1C3163] rounded-2xl md:rounded-3xl p-6 sm:p-8 md:p-12 min-h-[280px] sm:min-h-[320px] md:min-h-[380px] flex flex-col justify-center">
+            <div className="flex-1 w-full border rounded-2xl md:rounded-3xl p-6 sm:p-8 md:p-12 min-h-[280px] sm:min-h-[320px] md:min-h-[380px] flex flex-col justify-center">
               {TestimonialsData.map((testimonial) => {
                 if (selectedTestimonial === testimonial.id) {
                   return (
                     <div key={testimonial.id} className="animate-fadeIn">
-                      <blockquote className="text-[#D5B584] text-[18px] sm:text-[22px] md:text-[28px] lg:text-[32px] font-light leading-relaxed mb-6 md:mb-8 italic">
+                      <blockquote className="text-black text-[18px] sm:text-[22px] md:text-[28px] lg:text-[32px] font-light leading-relaxed mb-6 md:mb-8 italic">
                         &ldquo;{testimonial.testimonial}&rdquo;
                       </blockquote>
                       
-                      <p className="text-[#C7A97B] text-[14px] sm:text-[15px] md:text-[16px] font-light">
+                      <p className="text-black text-[14px] sm:text-[15px] md:text-[16px] font-light">
                         {testimonial.name}
                       </p>
                     </div>
@@ -514,9 +522,9 @@ const Index = () => {
 
       {/* Upcoming Events section */}
 
-      <section className="w-full py-[40px] md:py-[68px] bg-[#F5F0E8]">
+      <section className="w-full py-[40px] md:py-[68px] ">
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-[#C7A97B] text-[28px] sm:text-[32px] md:text-[40px] font-normal mb-8 md:mb-12">
+          <h2 className="text-black text-[28px] sm:text-[32px] md:text-[40px] font-normal mb-8 md:mb-12">
             Upcoming Events
           </h2>
           
@@ -546,7 +554,7 @@ const Index = () => {
         </div>
       </section>
 
-      
+      </div>
       <Footer/>   
     </>
   );

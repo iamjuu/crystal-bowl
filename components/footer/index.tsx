@@ -4,14 +4,14 @@ import { ArrowRight, ChevronDown, ArrowUp, Facebook, MessageCircle, Camera, Play
 
 const index = () => {
   return (
-    <section className="w-full py-[40px] md:py-[68px] bg-gradient-to-b from-[#00071A] to-[#1C3163]">
-      <div className="max-w-6xl border-b pb-[64px] border-white items-stretch flex flex-col md:flex-row justify-between mx-auto px-4 gap-6 md:gap-6">
+    <section className="w-full py-[40px] md:py-[68px] bg-gradient-to-b from-[#FEC1A2] to-[#FDECE2]">
+      <div className="max-w-6xl border-b pb-[64px] border-black items-stretch flex flex-col md:flex-row justify-between mx-auto px-4 gap-6 md:gap-6">
         <div className="hidden md:flex items-start h-full">
           <Image src={FooterIcon1} alt="footer icon" className="w-[60px] lg:w-auto" />
         </div>
 
         <div className="flex flex-col gap-8 md:gap-[64px] items-center text-center">
-          <h3 className="text-[#D5B584] italic leading-tight text-[26px] sm:text-[32px] md:text-[40px] lg:text-[48px]">
+          <h3 className="text-[black] italic leading-tight text-[26px] sm:text-[32px] md:text-[40px] lg:text-[48px]">
             Ready To Begin Your
             <br className="hidden sm:block" /> Healing Journey?
           </h3>
@@ -65,7 +65,7 @@ const index = () => {
                   <li>
                     <a
                       href="/home"
-                      className="text-white hover:text-[#D5B584] transition-colors"
+                      className="text-black hover:text-[black] transition-colors"
                     >
                       Home
                     </a>
@@ -73,7 +73,7 @@ const index = () => {
                   <li>
                     <a
                       href="/about"
-                      className="text-white hover:text-[#D5B584] transition-colors"
+                      className="text-black hover:text-[black] transition-colors"
                     >
                       About Us
                     </a>
@@ -81,7 +81,7 @@ const index = () => {
                   <li>
                     <a
                       href="/portfolio"
-                      className="text-white hover:text-[#D5B584] transition-colors"
+                      className="text-black hover:text-[black] transition-colors"
                     >
                       Portfolio
                     </a>
@@ -93,7 +93,7 @@ const index = () => {
                   <li>
                     <a
                       href="#"
-                      className="text-white hover:text-[#D5B584] transition-colors"
+                      className="text-black hover:text-[black] transition-colors"
                     >
                       Products
                     </a>
@@ -102,7 +102,7 @@ const index = () => {
                   <li>
                     <a
                       href="#"
-                      className="text-white hover:text-[#D5B584] transition-colors"
+                      className="text-black hover:text-[black] transition-colors"
                     >
                       Testimonials
                     </a>
@@ -110,7 +110,7 @@ const index = () => {
                   <li>
                     <a
                       href="#"
-                      className="text-white hover:text-[#D5B584] transition-colors"
+                      className="text-black hover:text-[black] transition-colors"
                     >
                       Blog
                     </a>
@@ -118,7 +118,7 @@ const index = () => {
                   <li>
                     <a
                       href="#"
-                      className="text-white hover:text-[#D5B584] transition-colors"
+                      className="text-black hover:text-[black] transition-colors"
                     >
                       Contact
                     </a>
@@ -130,21 +130,21 @@ const index = () => {
                   <li>
                     <a
                       href="#"
-                      className="text-white hover:text-[#D5B584] transition-colors break-words"
+                      className="text-black hover:text-[black] transition-colors break-words"
                     >
 Singapore                    </a>
                   </li>
                   <li>
                     <a
                       href="#"
-                      className="text-white hover:text-[#D5B584] transition-colors break-words"
+                      className="text-black hover:text-[black] transition-colors break-words"
                     >
 mail@abcdefghijklmn.com                    </a>
                   </li>
                   <li>
                     <a
                       href="#"
-                      className="text-white hover:text-[#D5B584] transition-colors"
+                      className="text-black hover:text-[black] transition-colors"
                     >
 +91 989272927                    </a>
                   </li>
@@ -164,42 +164,42 @@ mail@abcdefghijklmn.com                    </a>
                 <div className="flex gap-3">
                   <a
                     href="#"
-                    className="size-10 rounded-full border border-white flex items-center justify-center hover:bg-white/10 transition-colors"
+                    className="size-10 rounded-full border border-black flex items-center justify-center hover:bg-black/10 transition-colors"
                     aria-label="Facebook"
                   >
-                    <Facebook className="w-5 h-5 text-white" strokeWidth={1.5} />
+                    <Facebook className="w-5 h-5 text-black" strokeWidth={1.5} />
                   </a>
                   <a
                     href="#"
-                    className="size-10 rounded-full border border-white flex items-center justify-center hover:bg-white/10 transition-colors"
+                    className="size-10 rounded-full border border-black flex items-center justify-center hover:bg-black/10 transition-colors"
                     aria-label="WhatsApp"
                   >
-                    <MessageCircle className="w-5 h-5 text-white" strokeWidth={1.5} />
+                    <MessageCircle className="w-5 h-5 text-black" strokeWidth={1.5} />
                   </a>
                   <a
                     href="#"
-                    className="size-10 rounded-full border border-white flex items-center justify-center hover:bg-white/10 transition-colors"
+                    className="size-10 rounded-full border border-black flex items-center justify-center hover:bg-black/10 transition-colors"
                     aria-label="Instagram"
                   >
-                    <Camera className="w-5 h-5 text-white" strokeWidth={1.5} />
+                    <Camera className="w-5 h-5 text-black" strokeWidth={1.5} />
                   </a>
                   <a
                     href="#"
-                    className="size-10 rounded-full border border-white flex items-center justify-center hover:bg-white/10 transition-colors"
+                    className="size-10 rounded-full border border-black flex items-center justify-center hover:bg-black/10 transition-colors"
                     aria-label="YouTube"
                   >
-                    <Play className="w-5 h-5 text-white" strokeWidth={1.5} />
+                    <Play className="w-5 h-5 text-black" strokeWidth={1.5} />
                   </a>
                 </div>
                 
                 {/* Copyright and Links */}
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 text-white/80 text-[12px] sm:text-[14px] font-light">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 text-black/80 text-[12px] sm:text-[14px] font-light">
                   <p>©{new Date().getFullYear()} — Copyright</p>
                   <div className="flex flex-wrap gap-2 sm:gap-4">
-                    <a href="#" className="hover:text-[#D5B584] transition-colors">
+                    <a href="#" className="hover:text-[black] transition-colors">
                       Terms & Conditions
                     </a>
-                    <a href="#" className="hover:text-[#D5B584] transition-colors">
+                    <a href="#" className="hover:text-[black] transition-colors">
                       Privacy Policy
                     </a>
                   </div>
@@ -209,10 +209,10 @@ mail@abcdefghijklmn.com                    </a>
               {/* Right Section - Scroll to Top Button */}
               <button
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="size-12 rounded-full border border-white flex items-center justify-center hover:bg-white/10 transition-colors self-end sm:self-auto"
+                className="size-12 rounded-full border border-black flex items-center justify-center hover:bg-black/10 transition-colors self-end sm:self-auto"
                 aria-label="Scroll to top"
               >
-                <ArrowUp className="w-5 h-5 text-white" strokeWidth={1.5} />
+                <ArrowUp className="w-5 h-5 text-black" strokeWidth={1.5} />
               </button>
             </div>
           </div>

@@ -13,12 +13,12 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="w-full px-4 sm:px-6 lg:px-8 pt-[43px]">
+    <nav className="w-full px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 lg:pt-[43px]">
       <div className="max-w-[1400px] mx-auto">
         {/* Desktop Layout */}
-        <div className="hidden lg:flex gap-[60px] xl:gap-[100px] justify-center items-center">
+        <div className="hidden lg:flex gap-8 xl:gap-[60px] 2xl:gap-[100px] justify-center items-center flex-wrap">
           {/* Logo Section */}
-          <div className="flex items-center flex-shrink-0">
+          <div className="flex items-center shrink-0">
             <Link href="/" className="flex items-center">
               <Image 
                 src={CryselLogo} 
@@ -32,7 +32,7 @@ const Navbar = () => {
           </div>
 
           {/* Navigation Links */}
-          <div className="flex items-center gap-[40px] xl:gap-[68px] flex-wrap justify-center">
+          <div className="flex items-center gap-6 lg:gap-8 xl:gap-[40px] 2xl:gap-[68px] flex-wrap justify-center">
             <Link href="/" className="text-[#D5B584] hover:text-white transition-colors duration-300 text-sm xl:text-base font-normal whitespace-nowrap">
               Home
             </Link>
@@ -53,7 +53,7 @@ const Navbar = () => {
             </Link>
             <Link 
               href="/book" 
-              className="text-[#D5B584] px-4 xl:px-6 py-2 rounded hover:bg-white hover:text-black transition-colors duration-300 text-sm xl:text-base font-normal whitespace-nowrap"
+              className="text-[#D5B584] border border-[#D5B584] px-4 xl:px-6 py-2 rounded hover:bg-white hover:text-black transition-colors duration-300 text-sm xl:text-base font-normal whitespace-nowrap"
             >
               Book a Session
             </Link>
@@ -108,11 +108,11 @@ const Navbar = () => {
 
         {/* Mobile Menu Dropdown */}
         <div 
-          className={`lg:hidden bg-black/40 overflow-hidden absolute  transition-all duration-300 ease-in-out ${
+          className={`lg:hidden bg-black/15 backdrop-blur-sm overflow-hidden transition-all duration-300 ease-in-out ${
             isMobileMenuOpen ? 'max-h-[500px] opacity-100 mt-6' : 'max-h-0 opacity-0'
           }`}
         >
-          <div className="flex flex-col gap-4 pb-6">
+          <div className="flex flex-col gap-4 py-4 px-2">
             <Link 
               href="/" 
               className="text-[#D5B584] hover:text-white transition-colors duration-300 text-base font-normal py-2 px-4 hover:bg-white/5 rounded"
@@ -155,14 +155,14 @@ const Navbar = () => {
             >
               Blog
             </Link>
-            <div className='p-2'>
-            <Link 
-              href="/book" 
-              className="text-[#D5B584]  border border-[#D5B584] px-6 py-3 rounded hover:bg-white hover:text-black transition-colors duration-300 text-base font-normal text-center mt-2"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Book a Session
-            </Link>
+            <div className='px-2 pt-2'>
+              <Link 
+                href="/book" 
+                className="block text-[#D5B584] border border-[#D5B584] px-6 py-3 rounded hover:bg-white hover:text-black transition-colors duration-300 text-base font-normal text-center"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Book a Session
+              </Link>
             </div>
           </div>
         </div>

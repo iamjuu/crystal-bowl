@@ -19,7 +19,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@video/*": ["./public/assets/images/landing/video/*"]
     }
   },
   "include": [
