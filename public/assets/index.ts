@@ -37,3 +37,6 @@ export { default as TestimonialIcon } from './images/landing/testimonailsicon.sv
 export { default as FooterIcon1 } from './images/landing/footericon1.svg';
 export { default as FooterIcon2 } from './images/landing/footericon2.svg';
 export { default as FooterIcon3 } from './images/landing/footericon3.svg';
+
+export {default as FliterIcon} from './icon/filter.svg'
+export {default as SortIcon} from './icon/arrowflter.svg'
