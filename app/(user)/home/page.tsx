@@ -197,7 +197,7 @@ const Index = () => {
         <div className="h-full flex flex-col justify-between w-full">
           <Navbar />
 
-          <h1 className="text-center pb-[60px] sm:pb-[80px] md:pb-[100px] lg:pb-[120px] px-4 text-[#D5B584] text-[28px] sm:text-[32px] md:text-[40px] lg:text-[50px] italic leading-tight">
+          <h1 className="  text-center pb-[60px] sm:pb-[80px] md:pb-[100px] lg:pb-[120px] px-4 text-[#D5B584] text-[28px] sm:text-[32px] md:text-[40px] lg:text-[50px] italic leading-tight">
             The go-to crystal bowls for <br /> sound healers worldwide.
           </h1>
         </div>
