@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Navbar from "@/components/navbar";
 import Image from "next/image";
 import {
@@ -10,7 +10,6 @@ import {
   Bucket3,
   Intention,
   LightWeight,
-  RightArrow,
   TestimonialIcon,
   UniqueToYou,
   Yoga1,
@@ -23,7 +22,7 @@ import {
 import Footer from "@/components/footer";
 import { PremiumQuality } from "@/public/assets";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Volume2, VolumeX } from "lucide-react";
 
 const Data = [
   {
@@ -180,11 +179,21 @@ const UpcomingEventsData = [
 
 const Index = () => {
   const [selectedTestimonial, setSelectedTestimonial] = useState(1);
+  const [isMuted, setIsMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !videoRef.current.muted;
+      setIsMuted(!isMuted);
+    }
+  };
 
   return (
     <>
       <div className="relative h-screen w-full overflow-hidden bg-black">
         <video
+          ref={videoRef}
           autoPlay
           loop
           muted
@@ -200,9 +209,24 @@ const Index = () => {
         <div className="relative z-10 h-full flex flex-col justify-between w-full">
           <Navbar />
 
-          <h1 className="  text-center pb-[60px] sm:pb-[80px] md:pb-[100px] lg:pb-[120px] px-4 text-[#D5B584] text-[28px] sm:text-[32px] md:text-[40px] lg:text-[50px] italic leading-tight">
-            The go-to crystal bowls for <br /> sound healers worldwide.
-          </h1>
+          <div className="relative">
+            <h1 className="text-center pb-[60px] sm:pb-[80px] md:pb-[100px] lg:pb-[120px] px-4 text-[#D5B584] text-[28px] sm:text-[32px] md:text-[40px] lg:text-[50px] italic leading-tight">
+              The go-to crystal bowls for <br /> sound healers worldwide.
+            </h1>
+            
+            {/* Mute/Unmute Button */}
+            <button
+              onClick={toggleMute}
+              className="absolute bottom-[20px] sm:bottom-[30px] md:bottom-[40px] lg:bottom-[50px] right-4 sm:right-6 md:right-8 lg:right-12 p-2 sm:p-3 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-sm transition-all duration-300 border border-[#D5B584]/30"
+              aria-label={isMuted ? "Unmute video" : "Mute video"}
+            >
+              {isMuted ? (
+                <VolumeX className="w-5 h-5 sm:w-6 sm:h-6 text-[#D5B584]" />
+              ) : (
+                <Volume2 className="w-5 h-5 sm:w-6 sm:h-6 text-[#D5B584]" />
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -470,7 +494,7 @@ const Index = () => {
           <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start md:items-center">
             {/* Left Side - Profile Images */}
             <div className="flex md:flex-col flex-row gap-3 md:gap-4 overflow-x-auto md:overflow-visible w-full md:w-auto pb-2 md:pb-0">
-              {TestimonialsData.map((testimonial, index) => {
+              {TestimonialsData.map((testimonial) => {
                 const isSelected = selectedTestimonial === testimonial.id;
                 
                 return (
