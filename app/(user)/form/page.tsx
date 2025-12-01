@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState } from 'react'
-import Navbar from '@/components/navbar'
-import Footer from '@/components/footer'
+import Navbar from '@/components/user/Navbar'
+import Footer from '@/components/user/Footer'
 
 const FormPage = () => {
   const [formData, setFormData] = useState({

@@ -3,8 +3,8 @@
 import React from 'react'
 import Image from 'next/image'
 import { About1, About2,About3, Services1, Services2, Services3, Services4 } from '@/public/assets'
-import Navbar from '@/components/navbar'
-import Footer from '@/components/footer'
+import Navbar from '@/components/user/Navbar'
+import Footer from '@/components/user/Footer'
 
 const ServicesPage = () => {
   const corporateGroupData = [

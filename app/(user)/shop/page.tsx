@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
+import Navbar from "@/components/user/Navbar";
+import Footer from "@/components/user/Footer";
 import Image from "next/image";
 import { Plus } from "lucide-react";
 import {

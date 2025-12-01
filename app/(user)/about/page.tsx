@@ -1,7 +1,7 @@
 "use client";
 
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
+import Navbar from "@/components/user/Navbar";
+import Footer from "@/components/user/Footer";
 import Image from "next/image";
 import { About1, About2, About3, HeroImage } from "@/public/assets";
 const page = () => {

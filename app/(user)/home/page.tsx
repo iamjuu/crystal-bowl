@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useRef } from "react";
-import Navbar from "@/components/navbar";
+import Navbar from "@/components/user/Navbar";
 import Image from "next/image";
 import {
   AboutSection,
@@ -19,7 +19,7 @@ import {
   YogaSection2,
   YogaSection3
 } from "@/public/assets";
-import Footer from "@/components/footer";
+import Footer from "@/components/user/Footer";
 import { PremiumQuality } from "@/public/assets";
 import Link from "next/link";
 import { ArrowRight, Volume2, VolumeX } from "lucide-react";

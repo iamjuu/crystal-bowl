@@ -2,8 +2,8 @@
 
 import React from 'react'
 import Image from 'next/image'
-import Navbar from '@/components/navbar'
-import Footer from '@/components/footer'
+import Navbar from '@/components/user/Navbar'
+import Footer from '@/components/user/Footer'
 import { About1 } from '@/public/assets'
 
 const BlogPage = () => {
