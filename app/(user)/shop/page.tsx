@@ -101,7 +101,7 @@ const page = () => {
   ];
 
   return (
-    <div>
+    <div className=' bg-gradient-to-r from-[#FDECE2] to-[#FEC1A2] min-h-screen'>
       <Navbar />
 
       <>

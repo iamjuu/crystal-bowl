@@ -31,9 +31,9 @@ const ServicesPage = () => {
   ];
 
   return (
-    <>
+    <div className=' bg-gradient-to-r from-[#FDECE2] to-[#FEC1A2] min-h-screen'>
     <Navbar/>
-    <div className="w-full bg-gradient-to-r from-[#FDECE2] to-[#FEC1A2] min-h-screen">
+    <div className="w-full ">
       <section className="w-full px-4 md:px-0 py-[68px]">
         <div className="max-w-6xl pb-[106px] border-b mx-auto">
           <div className="flex flex-col w-full">
@@ -191,7 +191,7 @@ const ServicesPage = () => {
       </section>
     </div>
     <Footer/>
-    </>
+    </div>
   )
 }
 
