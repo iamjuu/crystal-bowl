@@ -52,8 +52,8 @@ const EventsPage = () => {
     <>
       <Navbar />
       <div className="w-full bg-gradient-to-r from-[#FDECE2] to-[#FEC1A2] min-h-screen">
-        <section className="w-full gap-[128px] flex flex-col  px-4 md:px-8 py-[68px]">
-          <div className="max-w-6xl mx-auto">
+      <section className="w-full px-4 md:px-0 py-[68px]">
+      <div className="max-w-6xl pb-[106px] border-b mx-auto">
             {/* Header Section */}
             <div className="mb-12 flex gap-[48px] md:mb-16">
               <h1 className="text-[#D5B584] text-[36px] sm:text-[40px]  font-light mb-4">
