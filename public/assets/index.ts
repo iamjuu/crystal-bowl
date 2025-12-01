@@ -29,6 +29,11 @@ export { default as About1 } from './images/about/about1.svg';
 export { default as About2 } from './images/about/about2.svg';
 export { default as About3 } from './images/about/about3.svg';
 
+// Services Page Images
+export { default as Services1 } from './services/Rectangle.svg';
+export { default as Services2 } from './services/Rectangle (1).svg';
+export { default as Services3 } from './services/Rectangle.png';
+export { default as Services4 } from './services/Rectangle (2).svg';
 // testimonials images
 
 export { default as TestimonialIcon } from './images/landing/testimonailsicon.svg';
