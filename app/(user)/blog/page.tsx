@@ -53,9 +53,9 @@ const BlogPage = () => {
             {/* Blog List */}
             <div className="w-full space-y-6">
               {blogsData.map((blog) => (
-                <div key={blog.id} className="bg-white w-full rounded-[20px] p-4 md:p-6 flex flex-col md:flex-row gap-4 md:gap-6 shadow-sm">
+                <div key={blog.id} className="bg-[#D9D9D9] w-full rounded-[20px] p-4 md:p-6 flex flex-col md:flex-row gap-4 md:gap-6 shadow-sm">
                   {/* Left Side - Blog Image */}
-                  <div className=" w-[50%] flex-shrink-0">
+                  <div className="w-full md:w-[50%] flex-shrink-0">
                     <div className="relative w-full aspect-[14/10] rounded-[12px] overflow-hidden">
                       <Image
                         src={blog.image}
@@ -67,7 +67,7 @@ const BlogPage = () => {
                   </div>
 
                   {/* Right Side - Blog Content */}
-                  <div className=" w-[50%] flex flex-col justify-between py-2">
+                  <div className="w-full md:w-[50%] flex flex-col justify-between py-2">
                     <div>
                       <h2 className="text-[#1C3163] text-[18px] md:text-[20px] lg:text-[22px] font-normal mb-3 md:mb-4 leading-snug">
                         {blog.title}
@@ -79,7 +79,7 @@ const BlogPage = () => {
                     </div>
 
                     {/* Author and Views */}
-                    <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                    <div className="flex items-center justify-between pt-2 border-t border-black/20">
                       <p className="text-[#1C3163] text-[13px] md:text-[14px] font-normal">
                         {blog.author}
                       </p>
