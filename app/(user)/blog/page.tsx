@@ -35,9 +35,9 @@ const BlogPage = () => {
   ]
 
   return (
-    <>
+    <div className=' bg-gradient-to-r from-[#FDECE2] to-[#FEC1A2] min-h-screen'>
       <Navbar />
-      <div className="w-full bg-gradient-to-r from-[#FDECE2] to-[#FEC1A2] min-h-screen">
+      <div className="w-full ">
         <section className="w-full px-4 md:px-8 py-[68px]">
           <div className="max-w-6xl mx-auto">
             {/* Header Section */}
@@ -95,7 +95,7 @@ const BlogPage = () => {
         </section>
       </div>
       <Footer />
-    </>
+    </div>
   )
 }
 

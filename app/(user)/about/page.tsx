@@ -1,10 +1,23 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Navbar from "@/components/user/Navbar";
 import Footer from "@/components/user/Footer";
-import Image from "next/image";
 import { About1, About2, About3, HeroImage } from "@/public/assets";
-const page = () => {
+import { AboutSkeleton, ImageWithShimmer } from "./components";
+
+const AboutPage = () => {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate initial loading time
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   const Data = [
     {
       id: 1,
@@ -19,8 +32,20 @@ const page = () => {
       image: About3
     }
   ];
+
+  // Show skeleton while loading
+  if (isLoading) {
+    return (
+      <>
+        <Navbar />
+        <AboutSkeleton />
+        <Footer />
+      </>
+    );
+  }
+
   return (
-    <div>
+    <div className=' bg-gradient-to-r from-[#FDECE2] to-[#FEC1A2] min-h-screen'>
       <div>
         <Navbar />
       </div>
@@ -28,7 +53,7 @@ const page = () => {
         <div className="grid pt-[30px] sm:pt-[40px] md:pt-[54px] grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {Data.map((item) => (
             <div key={item.id}>
-              <Image
+              <ImageWithShimmer
                 src={item.image}
                 alt={`About ${item.id}`}
                 width={500}
@@ -67,7 +92,7 @@ const page = () => {
                 aesthetic as a healer.
               </p>
 
-              <h2 className="text-[20px] sm:text-[24px] md:text-[28px] lg:text-[30px] text-[#D5B584] font-[500]">
+              <h2 className="text-[20px] sm:text-[24px] md:text-[28px] lg:text-[30px] text-black font-[500]">
                 Yogi & music healer inspired by ancient traditions & modern
                 well-being. 
               </h2>
@@ -95,7 +120,7 @@ const page = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           {/* Left Content */}
           <div className="space-y-6">
-            <h2 className="text-[#D5B584] text-[32px] sm:text-[40px] md:text-[48px] font-normal font-serif">
+            <h2 className="text-[#D5B584] text-[32px] sm:text-[40px]  font-normal font-serif">
               Meet Frankie
             </h2>
             
@@ -126,7 +151,7 @@ const page = () => {
               
               {/* Main Image */}
               <div className="relative w-full aspect-[3/4] rounded-[15px] sm:rounded-[18px] md:rounded-[20px] overflow-hidden shadow-2xl z-10">
-                <Image
+                <ImageWithShimmer
                   src={HeroImage}
                   alt="Frankie in meditation pose"
                   fill
@@ -143,4 +168,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default AboutPage;

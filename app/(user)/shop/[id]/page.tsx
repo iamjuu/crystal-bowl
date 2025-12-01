@@ -141,7 +141,7 @@ const ProductDetailPage = () => {
 
   if (!product) {
     return (
-      <div>
+      <div >
         <Navbar />
         <div className="min-h-screen flex items-center justify-center">
           <p className="text-2xl">Product not found</p>
@@ -155,7 +155,7 @@ const ProductDetailPage = () => {
   const relatedProducts = allProducts.filter((p) => p.id !== product.id).slice(0, 4);
 
   return (
-    <div className="bg-[#F5F5F0]">
+    <div className=" bg-gradient-to-r from-[#FDECE2] to-[#FEC1A2] min-h-screen]">
       <Navbar />
 
       <section className="w-full py-[40px] md:py-[68px]">

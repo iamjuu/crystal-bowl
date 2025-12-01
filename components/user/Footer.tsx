@@ -1,3 +1,5 @@
+'use client'
+
 import { FooterIcon1, FooterIcon2, FooterIcon3 } from "@/public/assets";
 import Image from "next/image";
 import { ArrowRight, ChevronDown, ArrowUp, Facebook, MessageCircle, Camera, Play } from "lucide-react";

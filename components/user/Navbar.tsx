@@ -1,20 +1,70 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
 import { CryselLogo } from '@/public/assets'
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isNavigating, setIsNavigating] = useState(false)
+  const pathname = usePathname()
+  const router = useRouter()
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen)
   }
 
+  // Close mobile menu when route changes
+  useEffect(() => {
+    // Use a microtask to avoid synchronous state updates
+    Promise.resolve().then(() => {
+      setIsMobileMenuOpen(false)
+      setIsNavigating(false)
+    })
+  }, [pathname])
+
+  const handleNavigation = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    // Don't animate if already on the page
+    if (pathname === href) {
+      e.preventDefault()
+      return
+    }
+
+    e.preventDefault()
+    setIsNavigating(true)
+    setIsMobileMenuOpen(false)
+
+    // Delay navigation for smooth animation
+    setTimeout(() => {
+      router.push(href)
+    }, 300)
+  }
+
   return (
-    <nav className="w-full px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 lg:pt-[43px]">
-      <div className="max-w-[1400px] mx-auto">
+    <>
+      {/* Page Transition Overlay */}
+      <div 
+        className={`fixed inset-0 bg-linear-to-br from-[#FDECE2] via-[#FEC1A2] to-[#D5B584] z-9999 pointer-events-none transition-all duration-500 ease-in-out ${
+          isNavigating 
+            ? 'opacity-100 scale-100' 
+            : 'opacity-0 scale-95'
+        }`}
+      >
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="relative">
+            {/* Animated Crystal Bowl Icon */}
+            <div className="w-20 h-20 rounded-full border-4 border-white/30 border-t-white animate-spin" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-white/20 animate-pulse" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <nav className="w-full px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 lg:pt-[43px]">
+        <div className="max-w-[1400px] mx-auto">
         {/* Desktop Layout */}
         <div className="hidden lg:flex gap-8 xl:gap-[60px] 2xl:gap-[100px] justify-center items-center flex-wrap">
           {/* Logo Section */}
@@ -33,27 +83,66 @@ const Navbar = () => {
 
           {/* Navigation Links */}
           <div className="flex items-center gap-6 lg:gap-8 xl:gap-[40px] 2xl:gap-[68px] flex-wrap justify-center">
-            <Link href="/" className="text-[#D5B584] hover:text-white transition-colors duration-300 text-sm xl:text-base font-normal whitespace-nowrap">
+            <Link 
+              href="/" 
+              onClick={(e) => handleNavigation(e, '/')}
+              className={`text-[#D5B584] hover:text-white transition-all duration-300 text-sm xl:text-base font-normal whitespace-nowrap hover:scale-110 ${
+                pathname === '/' ? 'text-white font-semibold scale-110' : ''
+              }`}
+            >
               Home
             </Link>
-            <Link href="/about" className="text-[#D5B584] hover:text-white transition-colors duration-300 text-sm xl:text-base font-normal whitespace-nowrap">
+            <Link 
+              href="/about" 
+              onClick={(e) => handleNavigation(e, '/about')}
+              className={`text-[#D5B584] hover:text-white transition-all duration-300 text-sm xl:text-base font-normal whitespace-nowrap hover:scale-110 ${
+                pathname === '/about' ? 'text-white font-semibold scale-110' : ''
+              }`}
+            >
               About Us
             </Link>
-            <Link href="/services" className="text-[#D5B584] hover:text-white transition-colors duration-300 text-sm xl:text-base font-normal whitespace-nowrap">
+            <Link 
+              href="/services" 
+              onClick={(e) => handleNavigation(e, '/services')}
+              className={`text-[#D5B584] hover:text-white transition-all duration-300 text-sm xl:text-base font-normal whitespace-nowrap hover:scale-110 ${
+                pathname === '/services' ? 'text-white font-semibold scale-110' : ''
+              }`}
+            >
               Services
             </Link>
-            <Link href="/shop" className="text-[#D5B584] hover:text-white transition-colors duration-300 text-sm xl:text-base font-normal whitespace-nowrap">
+            <Link 
+              href="/shop" 
+              onClick={(e) => handleNavigation(e, '/shop')}
+              className={`text-[#D5B584] hover:text-white transition-all duration-300 text-sm xl:text-base font-normal whitespace-nowrap hover:scale-110 ${
+                pathname === '/shop' ? 'text-white font-semibold scale-110' : ''
+              }`}
+            >
               Shop
             </Link>
-            <Link href="/events" className="text-[#D5B584] hover:text-white transition-colors duration-300 text-sm xl:text-base font-normal whitespace-nowrap">
+            <Link 
+              href="/events" 
+              onClick={(e) => handleNavigation(e, '/events')}
+              className={`text-[#D5B584] hover:text-white transition-all duration-300 text-sm xl:text-base font-normal whitespace-nowrap hover:scale-110 ${
+                pathname === '/events' ? 'text-white font-semibold scale-110' : ''
+              }`}
+            >
               Events
             </Link>
-            <Link href="/blog" className="text-[#D5B584] hover:text-white transition-colors duration-300 text-sm xl:text-base font-normal whitespace-nowrap">
+            <Link 
+              href="/blog" 
+              onClick={(e) => handleNavigation(e, '/blog')}
+              className={`text-[#D5B584] hover:text-white transition-all duration-300 text-sm xl:text-base font-normal whitespace-nowrap hover:scale-110 ${
+                pathname === '/blog' ? 'text-white font-semibold scale-110' : ''
+              }`}
+            >
               Blog
             </Link>
             <Link 
               href="/book" 
-              className="text-[#D5B584] border border-[#D5B584] px-4 xl:px-6 py-2 rounded hover:bg-white hover:text-black transition-colors duration-300 text-sm xl:text-base font-normal whitespace-nowrap"
+              onClick={(e) => handleNavigation(e, '/book')}
+              className={`text-[#D5B584] border border-[#D5B584] px-4 xl:px-6 py-2 rounded hover:bg-white hover:text-black transition-all duration-300 text-sm xl:text-base font-normal whitespace-nowrap hover:scale-105 hover:shadow-lg ${
+                pathname === '/book' ? 'bg-white text-black scale-105 shadow-lg' : ''
+              }`}
             >
               Book a Session
             </Link>
@@ -115,51 +204,65 @@ const Navbar = () => {
           <div className="flex flex-col gap-4 py-4 px-2">
             <Link 
               href="/" 
-              className="text-[#D5B584] hover:text-white transition-colors duration-300 text-base font-normal py-2 px-4 hover:bg-white/5 rounded"
-              onClick={() => setIsMobileMenuOpen(false)}
+              onClick={(e) => handleNavigation(e, '/')}
+              className={`text-[#D5B584] hover:text-white transition-all duration-300 text-base font-normal py-2 px-4 hover:bg-white/5 rounded hover:translate-x-2 ${
+                pathname === '/' ? 'bg-white/10 text-white font-semibold translate-x-2' : ''
+              }`}
             >
               Home
             </Link>
             <Link 
               href="/about" 
-              className="text-[#D5B584] hover:text-white transition-colors duration-300 text-base font-normal py-2 px-4 hover:bg-white/5 rounded"
-              onClick={() => setIsMobileMenuOpen(false)}
+              onClick={(e) => handleNavigation(e, '/about')}
+              className={`text-[#D5B584] hover:text-white transition-all duration-300 text-base font-normal py-2 px-4 hover:bg-white/5 rounded hover:translate-x-2 ${
+                pathname === '/about' ? 'bg-white/10 text-white font-semibold translate-x-2' : ''
+              }`}
             >
               About Us
             </Link>
             <Link 
               href="/services" 
-              className="text-[#D5B584] hover:text-white transition-colors duration-300 text-base font-normal py-2 px-4 hover:bg-white/5 rounded"
-              onClick={() => setIsMobileMenuOpen(false)}
+              onClick={(e) => handleNavigation(e, '/services')}
+              className={`text-[#D5B584] hover:text-white transition-all duration-300 text-base font-normal py-2 px-4 hover:bg-white/5 rounded hover:translate-x-2 ${
+                pathname === '/services' ? 'bg-white/10 text-white font-semibold translate-x-2' : ''
+              }`}
             >
               Services
             </Link>
             <Link 
               href="/shop" 
-              className="text-[#D5B584] hover:text-white transition-colors duration-300 text-base font-normal py-2 px-4 hover:bg-white/5 rounded"
-              onClick={() => setIsMobileMenuOpen(false)}
+              onClick={(e) => handleNavigation(e, '/shop')}
+              className={`text-[#D5B584] hover:text-white transition-all duration-300 text-base font-normal py-2 px-4 hover:bg-white/5 rounded hover:translate-x-2 ${
+                pathname === '/shop' ? 'bg-white/10 text-white font-semibold translate-x-2' : ''
+              }`}
             >
               Shop
             </Link>
             <Link 
               href="/events" 
-              className="text-[#D5B584] hover:text-white transition-colors duration-300 text-base font-normal py-2 px-4 hover:bg-white/5 rounded"
-              onClick={() => setIsMobileMenuOpen(false)}
+              onClick={(e) => handleNavigation(e, '/events')}
+              className={`text-[#D5B584] hover:text-white transition-all duration-300 text-base font-normal py-2 px-4 hover:bg-white/5 rounded hover:translate-x-2 ${
+                pathname === '/events' ? 'bg-white/10 text-white font-semibold translate-x-2' : ''
+              }`}
             >
               Events
             </Link>
             <Link 
               href="/blog" 
-              className="text-[#D5B584] hover:text-white transition-colors duration-300 text-base font-normal py-2 px-4 hover:bg-white/5 rounded"
-              onClick={() => setIsMobileMenuOpen(false)}
+              onClick={(e) => handleNavigation(e, '/blog')}
+              className={`text-[#D5B584] hover:text-white transition-all duration-300 text-base font-normal py-2 px-4 hover:bg-white/5 rounded hover:translate-x-2 ${
+                pathname === '/blog' ? 'bg-white/10 text-white font-semibold translate-x-2' : ''
+              }`}
             >
               Blog
             </Link>
             <div className='px-2 pt-2'>
               <Link 
                 href="/book" 
-                className="block text-[#D5B584] border border-[#D5B584] px-6 py-3 rounded hover:bg-white hover:text-black transition-colors duration-300 text-base font-normal text-center"
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={(e) => handleNavigation(e, '/book')}
+                className={`block text-[#D5B584] border border-[#D5B584] px-6 py-3 rounded hover:bg-white hover:text-black transition-all duration-300 text-base font-normal text-center hover:scale-105 hover:shadow-lg ${
+                  pathname === '/book' ? 'bg-white text-black scale-105 shadow-lg' : ''
+                }`}
               >
                 Book a Session
               </Link>
@@ -167,7 +270,8 @@ const Navbar = () => {
           </div>
         </div>
       </div>
-    </nav>
+      </nav>
+    </>
   )
 }
 
