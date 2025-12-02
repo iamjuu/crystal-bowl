@@ -48,23 +48,25 @@ export default function SignupPage() {
         return;
       }
 
-      toast.success("Account created! Please verify your email to continue.");
+      toast.success("Account created! Please check your email to verify your account.");
       
       // If verification URL is provided in development, show it
       if (data.data?.verificationUrl) {
         toast(
           <div>
-            <p>Verification link (dev only):</p>
-            <a href={data.data.verificationUrl} className="text-blue-600 underline" target="_blank" rel="noopener noreferrer">
-              {data.data.verificationUrl}
+            <p className="font-semibold mb-1">Development Mode - Click to verify:</p>
+            <a href={data.data.verificationUrl} className="text-blue-600 underline break-all" target="_blank" rel="noopener noreferrer">
+              Verify Email Now
             </a>
           </div>,
-          { duration: 10000 }
+          { duration: 15000 }
         );
       }
 
-      // Redirect to login or verification page
-      router.push("/login");
+      // Redirect to login page with a message
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000);
     } catch (err) {
       setError("Something went wrong. Please try again.");
       toast.error("Registration failed. Please try again.");
