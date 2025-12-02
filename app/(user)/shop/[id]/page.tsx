@@ -5,13 +5,17 @@ import Footer from "@/components/user/Footer";
 import Image from "next/image";
 import { Plus } from "lucide-react";
 import { Bucket1, Bucket2, Bucket3 } from "@/public/assets";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { useCart } from "@/stores/useCart";
+import toast from "react-hot-toast";
 
 const ProductDetailPage = () => {
   const params = useParams();
+  const router = useRouter();
   const productId = params.id;
   const [selectedImage, setSelectedImage] = useState(0);
+  const { addItem } = useCart();
 
   // Sample product data - in a real app, this would come from an API or database
   const allProducts = [
@@ -154,6 +158,30 @@ const ProductDetailPage = () => {
   // Get related products (excluding current product)
   const relatedProducts = allProducts.filter((p) => p.id !== product.id).slice(0, 4);
 
+  // Handle Add to Cart
+  const handleAddToCart = () => {
+    // Check if user is logged in
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Please login to add items to cart");
+      router.push("/login");
+      return;
+    }
+
+    // Parse price (remove ₹ and convert to number in paise)
+    const priceValue = parseInt(product.price.replace("₹", "").replace(",", "")) * 100;
+
+    addItem({
+      id: product.id.toString(),
+      name: product.title,
+      price: priceValue,
+      imageUrl: product.image.src,
+    });
+
+    toast.success("Added to cart!");
+    router.push("/cart");
+  };
+
   return (
     <div className=" bg-gradient-to-r from-[#FDECE2] to-[#FEC1A2] min-h-screen]">
       <Navbar />
@@ -210,8 +238,11 @@ const ProductDetailPage = () => {
               </div>
 
               {/* Add to Cart Button */}
-              <button className="w-full bg-[#2C3E50] hover:bg-[#1C3163] text-white py-4 rounded-lg mb-4 transition-colors text-[16px] font-medium">
-                Add Cart
+              <button 
+                onClick={handleAddToCart}
+                className="w-full bg-[#2C3E50] hover:bg-[#1C3163] text-white py-4 rounded-lg mb-4 transition-colors text-[16px] font-medium"
+              >
+                Add to Cart
               </button>
 
               {/* Buy with PayPal Button */}

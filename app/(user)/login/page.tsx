@@ -10,11 +10,13 @@ export default function LoginPage() {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [needsVerification, setNeedsVerification] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setNeedsVerification(false);
 
     try {
       const res = await fetch("/api/auth/login", {
@@ -27,6 +29,14 @@ export default function LoginPage() {
       const data = await res.json();
       if (!res.ok) {
         setError(data.message || "Login failed");
+        
+        // Check if error is due to unverified email
+        if (res.status === 403 && data.message?.toLowerCase().includes("verify")) {
+          setNeedsVerification(true);
+          toast.error("Please verify your email before logging in");
+        } else {
+          toast.error(data.message || "Login failed");
+        }
         return;
       }
 
@@ -36,7 +46,7 @@ export default function LoginPage() {
         toast.success("Login successful!");
         router.push("/home");
       }
-    } catch (err) {
+    } catch {
       setError("Something went wrong. Please try again.");
       toast.error("Login failed. Please try again.");
     } finally {
@@ -83,7 +93,19 @@ export default function LoginPage() {
               placeholder="Enter your password"
             />
           </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && (
+            <div className="text-sm text-red-600">
+              <p>{error}</p>
+              {needsVerification && (
+                <Link
+                  href="/resend-verification"
+                  className="mt-2 inline-block text-blue-600 underline hover:no-underline"
+                >
+                  Resend verification email
+                </Link>
+              )}
+            </div>
+          )}
           <button
             type="submit"
             disabled={loading}
@@ -93,17 +115,25 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-zinc-600">
-          Don't have an account?{" "}
-          <Link href="/signup" className="font-medium text-black underline hover:no-underline">
-            Sign Up
-          </Link>
-        </p>
-        <p className="mt-4 text-center text-sm text-zinc-600">
-          <Link href="/home" className="text-black underline hover:no-underline">
-            Back to Home
-          </Link>
-        </p>
+        <div className="mt-6 space-y-3 text-center text-sm text-zinc-600">
+          <p>
+            Don&apos;t have an account?{" "}
+            <Link href="/signup" className="font-medium text-black underline hover:no-underline">
+              Sign Up
+            </Link>
+          </p>
+          <p>
+            Need to verify your email?{" "}
+            <Link href="/resend-verification" className="font-medium text-black underline hover:no-underline">
+              Resend verification
+            </Link>
+          </p>
+          <p>
+            <Link href="/home" className="text-black underline hover:no-underline">
+              Back to Home
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

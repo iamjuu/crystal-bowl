@@ -5,12 +5,21 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { CryselLogo } from '@/public/assets'
+import { ShoppingCart } from 'lucide-react'
+import { useCart } from '@/stores/useCart'
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isNavigating, setIsNavigating] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
+  const { totalQuantity } = useCart()
+  const [cartCount, setCartCount] = useState(0)
+
+  // Update cart count on client side only
+  useEffect(() => {
+    setCartCount(totalQuantity())
+  }, [totalQuantity])
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen)
@@ -146,6 +155,20 @@ const Navbar = () => {
             >
               Book a Session
             </Link>
+            
+            {/* Cart Icon */}
+            <Link 
+              href="/cart" 
+              onClick={(e) => handleNavigation(e, '/cart')}
+              className="relative text-[#D5B584] hover:text-white transition-all duration-300 hover:scale-110"
+            >
+              <ShoppingCart size={24} />
+              {cartCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
           </div>
         </div>
 
@@ -163,12 +186,27 @@ const Navbar = () => {
             />
           </Link>
 
-          {/* Mobile Menu Button */}
-          <button 
-            onClick={toggleMobileMenu}
-            className="text-[#D5B584] hover:text-white transition-colors p-2"
-            aria-label="Toggle menu"
-          >
+          <div className="flex items-center gap-4">
+            {/* Cart Icon Mobile */}
+            <Link 
+              href="/cart" 
+              onClick={(e) => handleNavigation(e, '/cart')}
+              className="relative text-[#D5B584] hover:text-white transition-all duration-300"
+            >
+              <ShoppingCart size={24} />
+              {cartCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
+
+            {/* Mobile Menu Button */}
+            <button 
+              onClick={toggleMobileMenu}
+              className="text-[#D5B584] hover:text-white transition-colors p-2"
+              aria-label="Toggle menu"
+            >
             {isMobileMenuOpen ? (
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
@@ -192,7 +230,8 @@ const Navbar = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
               </svg>
             )}
-          </button>
+            </button>
+          </div>
         </div>
 
         {/* Mobile Menu Dropdown */}

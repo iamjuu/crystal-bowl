@@ -19,12 +19,15 @@ const CalendarPage = () => {
   ]
 
   const timeSlots = [
-    { time: '17:00', available: true, highlighted: false },
-    { time: '17:30', available: false, highlighted: false },
-    { time: '17:00', available: true, highlighted: true },
-    { time: '17:00', available: true, highlighted: true },
-    { time: '17:00', available: true, highlighted: true },
-    { time: '17:00', available: true, highlighted: true },
+    { time: '09:00', available: true },
+    { time: '10:00', available: false },
+    { time: '11:00', available: true },
+    { time: '12:00', available: true },
+    { time: '14:00', available: true },
+    { time: '15:00', available: true },
+    { time: '16:00', available: true },
+    { time: '17:00', available: false },
+    { time: '18:00', available: true },
   ]
 
   const handleDateClick = (day: number) => {
@@ -129,28 +132,30 @@ const CalendarPage = () => {
 
                   {/* Time Slots Grid */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8">
-                    {timeSlots.map((slot, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleTimeClick(slot.time, slot.available)}
-                        disabled={!slot.available}
-                        className={`
-                          py-4 px-6 rounded-lg text-[16px] sm:text-[18px] font-medium
-                          transition-all duration-200
-                          ${
-                            selectedTime === slot.time && index === 0
-                              ? 'bg-[#EF4444] text-white'
-                              : slot.available && slot.highlighted
-                              ? 'bg-[#1E3A8A] text-white hover:bg-[#1E40AF]'
-                              : slot.available
-                              ? 'bg-[#8B7355] text-white hover:bg-[#9d8264]'
-                              : 'bg-[#9CA3AF] text-white cursor-not-allowed opacity-60'
-                          }
-                        `}
-                      >
-                        {slot.time}
-                      </button>
-                    ))}
+                    {timeSlots.map((slot, index) => {
+                      const isSelected = selectedTime === slot.time
+                      
+                      return (
+                        <button
+                          key={index}
+                          onClick={() => handleTimeClick(slot.time, slot.available)}
+                          disabled={!slot.available}
+                          className={`
+                            py-4 px-6 rounded-lg text-[16px] sm:text-[18px] font-medium
+                            transition-all duration-200
+                            ${
+                              isSelected
+                                ? 'bg-[#EF4444] text-white'
+                                : slot.available
+                                ? 'bg-[#1E3A8A] text-white hover:bg-[#EF4444]'
+                                : 'bg-[#9CA3AF] text-white cursor-not-allowed opacity-60'
+                            }
+                          `}
+                        >
+                          {slot.time}
+                        </button>
+                      )
+                    })}
                   </div>
 
                   {/* Submit Button */}
