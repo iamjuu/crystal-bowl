@@ -16,3 +16,5 @@ const BookingSchema = new Schema<BookingType>(
 
 export default (models.Booking as mongoose.Model<BookingType>) || model<BookingType>("Booking", BookingSchema);
 
+
+

@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI  as string;
+// const MONGODB_URI = process.env.MONGODB_URI  as string;
+const MONGODB_URI = "mongodb://localhost:27017/crystel";
 
 if (!MONGODB_URI) {
   throw new Error("MONGODB_URI is not set in environment variables");
@@ -26,4 +27,6 @@ export default async function connectDB() {
   cached!.conn = await cached!.promise;
   return cached!.conn;
 }
+
+
 

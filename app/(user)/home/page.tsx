@@ -321,7 +321,7 @@ const Index = () => {
               Collection
             </h2>
             <Link
-              href="/collection"
+              href="/shop"
               className="text-black flex gap-2 text-[14px] sm:text-[16px] md:text-[18px]"
             >
               View All
@@ -352,9 +352,10 @@ const Index = () => {
 
             <div className="w-full pt-12 md:pt-16 lg:pt-[80px] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 md:gap-12 lg:gap-[54px] border-t border-black">
               {Icons.map((item) => (
-                <div
+                <Link
                   key={item.id}
-                  className="flex text-black flex-col items-center"
+                  href="/shop"
+                  className="flex text-black flex-col items-center cursor-pointer hover:opacity-80 transition-opacity"
                 >
                   <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 relative">
                     <Image 
@@ -372,7 +373,7 @@ const Index = () => {
                       {item.para}
                     </p>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>

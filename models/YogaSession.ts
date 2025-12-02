@@ -19,3 +19,5 @@ const YogaSessionSchema = new Schema<YogaSessionType>(
 
 export default (models.YogaSession as mongoose.Model<YogaSessionType>) || model<YogaSessionType>("YogaSession", YogaSessionSchema);
 
+
+

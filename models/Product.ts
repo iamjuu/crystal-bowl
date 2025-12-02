@@ -7,9 +7,12 @@ const ProductSchema = new Schema<ProductType>(
     description: { type: String, required: true },
     price: { type: Number, required: true },
     imageUrl: { type: [String], default: [] } as any, // Array of base64 image strings
+    videoUrl: { type: String, default: "" } as any, // Base64 video string or URL
   },
   { timestamps: true }
 );
 
 export default (models.Product as mongoose.Model<ProductType>) || model<ProductType>("Product", ProductSchema);
+
+
 

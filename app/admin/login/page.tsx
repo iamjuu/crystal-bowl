@@ -1,14 +1,22 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  useEffect(() => {
+    if (searchParams.get("registered") === "true") {
+      setSuccess("Registration successful! Please login with your credentials.");
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,6 +88,7 @@ export default function AdminLoginPage() {
           />
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
+        {success && <p className="text-sm text-green-600">{success}</p>}
         <button
           type="submit"
           disabled={loading}
@@ -89,6 +98,12 @@ export default function AdminLoginPage() {
         </button>
       </form>
       <p className="mt-4 text-center text-sm text-zinc-600">
+        Don't have an account?{" "}
+        <Link href="/admin/signup" className="text-black underline">
+          Sign Up
+        </Link>
+      </p>
+      <p className="mt-2 text-center text-sm text-zinc-600">
         <Link href="/" className="text-black underline">
           Back to Home
         </Link>

@@ -91,3 +91,5 @@ export async function sendOTPEmail(email: string, otp: string, name: string) {
   return sendEmail(email, subject, html);
 }
 
+
+

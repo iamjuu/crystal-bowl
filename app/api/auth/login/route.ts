@@ -6,6 +6,7 @@ import { comparePassword, signToken } from "@/lib/auth";
 export async function POST(req: NextRequest) {
   try {
     const { email, password } = (await req.json()) as { email?: string; password?: string };
+    console.log(email, password);
     if (!email || !password) return NextResponse.json({ success: false, message: "Missing fields" }, { status: 400 });
 
     await connectDB();
@@ -41,4 +42,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, message: "Server error" }, { status: 500 });
   }
 }
+
+
 

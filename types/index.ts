@@ -52,6 +52,7 @@ export interface Product extends WithTimestamps {
   description: string;
   price: number; // smallest currency unit
   imageUrl: string[]; // Array of base64 image strings
+  videoUrl?: string; // Base64 video string or URL
 }
 
 export interface OrderItem {
@@ -112,4 +113,6 @@ export type CartItem = {
 export type Cart = {
   items: CartItem[];
 };
+
+
 
