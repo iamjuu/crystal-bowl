@@ -152,15 +152,7 @@ const FormPage = () => {
                   </div>
                 </div>
 
-                {/* Submit Button */}
-                <div className="pt-2">
-                  <button
-                    type="submit"
-                    className="bg-[#1C3163] text-white px-12 py-4 rounded-lg text-[16px] sm:text-[18px] font-medium hover:bg-[#2a4580] transition-colors duration-300 shadow-md"
-                  >
-                    Submit
-                  </button>
-                </div>
+             
 
                 {/* Comment Section */}
                 <div className="pt-8">
