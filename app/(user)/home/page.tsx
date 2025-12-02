@@ -332,8 +332,8 @@ const Index = () => {
           <div className="flex flex-col gap-12 md:gap-16 lg:gap-[80px]">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-[18px] w-full">
               {Data.map((item) => (
-                <div key={item.id} className="text-black">
-                  <div className="relative w-full aspect-square">
+                <div key={item.id} className="text-black group">
+                  <div className="relative w-full aspect-square group-hover:scale-105 transition-transform duration-300">
                     <Image 
                       src={item.image} 
                       alt={item.title}
@@ -398,14 +398,14 @@ const Index = () => {
           {/* First Row - Private Sessions & Corporate Wellness */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 md:gap-x-12 gap-y-8 md:gap-y-16 mb-12 md:mb-16">
             {YogaImage.map((item) => (
-              <div key={item.id} className="flex w-full items-end justify-between">
+              <div key={item.id} className="flex w-full items-end justify-between group">
                 {/* Image Container - Left Side */}
                 <div className="relative aspect-3/4 w-[50%] rounded-2xl md:rounded-3xl overflow-hidden shrink-0">
                   <Image
                     src={item.image}
                     alt={item.title}
                     fill
-                    className="object-cover"
+                    className="object-cover group-hover:scale-110 group-hover:brightness-110 transition-all duration-500 ease-out"
                   />
                 </div>
 
@@ -420,7 +420,7 @@ const Index = () => {
                     </p>
                     {/* Arrow Button */}
                     <button className="size-[18px] sm:size-[20px] md:size-[22px] rounded-full border-1 border-[#1C3163] flex items-center justify-center hover:bg-[#1C3163] transition-colors group">
-                      <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-[#1C3163] group-hover:text-white" strokeWidth={.9} />
+                      <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-[#1C3163] hover:text-white" strokeWidth={.9} />
                     </button>
                   </div>
                 </div>
@@ -440,14 +440,14 @@ const Index = () => {
           {/* Second Row - Creative Journey */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 md:gap-x-12 gap-y-8 md:gap-y-16 mb-12 md:mb-16">
             {CreativeJourneyData.map((item) => (
-              <div key={item.id} className="flex w-full items-end justify-between">
+              <div key={item.id} className="flex w-full items-end justify-between group">
                 {/* Image Container - Left Side */}
                 <div className="relative aspect-3/4 w-[50%] rounded-2xl md:rounded-3xl overflow-hidden shrink-0">
                   <Image
                     src={item.image}
                     alt={item.title}
                     fill
-                    className="object-cover"
+                    className="object-cover group-hover:scale-125 group-hover:rotate-2 group-hover:opacity-90 transition-all duration-700 ease-in-out"
                   />
                 </div>
 
@@ -459,7 +459,7 @@ const Index = () => {
                   <div className="flex-col gap-3 sm:gap-4 md:gap-[27px] flex">
                     {/* Arrow Button */}
                     <button className="size-[18px] sm:size-[20px] md:size-[22px] rounded-full border-1 border-[#1C3163] flex items-center justify-center hover:bg-[#1C3163] hover:text-white transition-colors group">
-                      <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 group-hover:text-white" strokeWidth={.9} />
+                      <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 hover:text-white" strokeWidth={.9} />
                     </button>
                   </div>
                 </div>
@@ -556,13 +556,13 @@ const Index = () => {
           {/* Events Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             {UpcomingEventsData.map((event) => (
-              <div key={event.id} className="flex flex-col">
-                <div className="relative w-[193px] h-[128px] rounded-2xl overflow-hidden mb-4">
+              <div key={event.id} className="flex flex-col group">
+                <div className="relative w-[193px] h-[128px] rounded-2xl overflow-hidden mb-4 group-hover:shadow-2xl transition-all duration-500">
                   <Image
                     src={event.image}
                     alt={event.title}
                     fill
-                    className="object-cover"
+                    className="object-cover group-hover:scale-115 group-hover:-translate-y-2 group-hover:grayscale-0 grayscale transition-all duration-500 ease-out"
                   />
                 </div>
                 <div className="flex flex-col gap-2">

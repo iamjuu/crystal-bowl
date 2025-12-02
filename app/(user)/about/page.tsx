@@ -52,13 +52,14 @@ const AboutPage = () => {
       <div className="max-w-7xl border-b border-[#D5B584] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid pt-[30px] sm:pt-[40px] md:pt-[54px] grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {Data.map((item) => (
-            <div key={item.id}>
+            <div key={item.id} className="relative group overflow-hidden">
               <ImageWithShimmer
                 src={item.image}
                 alt={`About ${item.id}`}
                 width={500}
                 height={500}
               />
+              <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out pointer-events-none"></div>
             </div>
           ))}
         </div>
@@ -141,21 +142,21 @@ const AboutPage = () => {
           
           {/* Right Image */}
           <div className="relative w-full flex justify-center lg:justify-end py-8 sm:py-12 md:py-16">
-            <div className="relative w-full max-w-[240px] sm:max-w-[280px] md:max-w-[300px]">
+            <div className="relative w-full max-w-[240px] sm:max-w-[280px] md:max-w-[300px] group">
               {/* Decorative Cards - Plus Icon Pattern */}
               {/* Vertical Card - Same dimensions as image, slightly offset */}
               {/* <div className="absolute top-1/2 left-1/2 w-full aspect-[3/4] bg-[#1C3163] rounded-[15px] sm:rounded-[18px] md:rounded-[20px] -translate-x-[45%] -translate-y-1/2 rotate-[8deg] shadow-lg"></div> */}
               
               {/* Horizontal Card - Rotated 90 degrees */}
-              <div className="absolute top-1/2 left-1/2 w-full aspect-[3/4] bg-[#1C3163] rounded-[15px] sm:rounded-[18px] md:rounded-[20px] -translate-x-[50%] -translate-y-1/2 rotate-90 shadow-lg"></div>
+              <div className="absolute top-1/2 left-1/2 w-full aspect-[3/4] bg-[#1C3163] rounded-[15px] sm:rounded-[18px] md:rounded-[20px] -translate-x-[50%] -translate-y-1/2 rotate-90 group-hover:rotate-60 transition-transform duration-300 ease-out shadow-lg"></div>
               
               {/* Main Image */}
-              <div className="relative w-full aspect-[3/4] rounded-[15px] sm:rounded-[18px] md:rounded-[20px] overflow-hidden shadow-2xl z-10">
+              <div className="relative w-full aspect-[3/4] rounded-[15px] sm:rounded-[18px] md:rounded-[20px] overflow-hidden  z-10">
                 <ImageWithShimmer
                   src={HeroImage}
                   alt="Frankie in meditation pose"
                   fill
-                  className="object-cover"
+                  className="object-cover group-hover:rotate-3 transition-transform duration-300 ease-out"
                   priority
                 />
               </div>

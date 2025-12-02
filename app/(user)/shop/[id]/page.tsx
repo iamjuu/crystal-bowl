@@ -34,7 +34,7 @@ const ProductDetailPage = () => {
       image: Bucket2,
       title: "Rose Quartz Bowl",
       description: "Love & harmony bowl",
-      price: "₹2000",
+      price: "₹000",
       fullDescription:
         "Lorem ipsum dolor sit amet, consectetur. Pretium eget imperdiet volutpat odio. Ut cursus diam. Eget aliquam et ut morbi. Nunc, at sit lacus, diam. Nunc, at sit lacus, diam. Mus ut id tincidunt turpis.",
       images: [Bucket2, Bucket1, Bucket3, Bucket2]
@@ -227,7 +227,7 @@ const ProductDetailPage = () => {
 
             {/* Right Side - Product Info */}
             <div className="flex flex-col">
-              <h1 className="text-[#1C3163] text-[28px] sm:text-[32px] lg:text-[36px] font-normal mb-4 leading-tight">
+              <h1 className="text-[#1C3163] text-[28px] sm:text-[32px] lg:text-[30px] font-normal mb-4 leading-tight">
                 8&quot; D-5 Tibetan Quartz Copper Aura, Alchemy Crystal Singing Bowl
               </h1>
 
@@ -248,7 +248,7 @@ const ProductDetailPage = () => {
               {/* Buy with PayPal Button */}
               <button className="w-full bg-[#FFC439] hover:bg-[#F0B429] text-[#1C3163] py-4 rounded-lg mb-6 transition-colors text-[16px] font-medium flex items-center justify-center gap-2">
                 <span>Buy with</span>
-                <span className="font-bold">Strip</span>
+                <span className="font-bold">Stripe</span>
               </button>
 
               {/* More Payment Options */}
