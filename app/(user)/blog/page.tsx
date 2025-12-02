@@ -41,14 +41,14 @@ const BlogPage = () => {
         <section className="w-full px-4 md:px-8 py-[68px]">
           <div className="max-w-6xl mx-auto">
             {/* Header Section */}
-            <div className="mb-12 md:mb-16">
-              <h1 className="text-[#D5B584] text-[36px] sm:text-[40px] md:text-[48px] font-light mb-4">
-                Blog
-              </h1>
-              <p className="text-[#1C3163] text-[14px] sm:text-[15px] md:text-[16px] font-light max-w-2xl">
-                Resonances that ground, stabilize, and root you in the wisdom of nature.
-              </p>
-            </div>
+            <div className="flex  items-center md:mb-12 mb-8 gap-[50px]">
+                <h2 className="text-[#D5B584] text-[28px] sm:text-[32px] md:text-[40px] font-normal">
+                  Blog
+                </h2>
+                <p className="text-[#1C3163] text-[14px] sm:text-[16px] md:text-[18px] font-light">
+            Resonances that ground, stabilize, and root you in the wisdom of nature.
+                </p>
+              </div>
 
             {/* Blog List */}
             <div className="w-full space-y-6">

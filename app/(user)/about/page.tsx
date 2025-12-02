@@ -92,7 +92,7 @@ const AboutPage = () => {
                 aesthetic as a healer.
               </p>
 
-              <h2 className="text-[20px] sm:text-[24px] md:text-[28px] lg:text-[30px] text-black font-[500]">
+              <h2 className="text-[20px] sm:text-[24px] md:text-[28px] lg:text-[30px] text-[#D5B584] font-[500]">
                 Yogi & music healer inspired by ancient traditions & modern
                 well-being. 
               </h2>
@@ -132,7 +132,7 @@ const AboutPage = () => {
                 practices.
               </p>
               
-              <p className="text-[14px] sm:text-[15px] md:text-[16px] font-[200] leading-relaxed italic text-[#1C3163]/80">
+              <p className="text-[14px] sm:text-[15px] md:text-[16px] font-[300] leading-relaxed italic text-[#1C3163]/80">
                 Her mission? To help individuals and teams manage stress, activate inner healing, and find 
                 balance through yoga, sound baths, and energy work.
               </p>
@@ -143,11 +143,11 @@ const AboutPage = () => {
           <div className="relative w-full flex justify-center lg:justify-end py-8 sm:py-12 md:py-16">
             <div className="relative w-full max-w-[240px] sm:max-w-[280px] md:max-w-[300px]">
               {/* Decorative Cards - Plus Icon Pattern */}
-              {/* Vertical Card */}
-              {/* <div className="absolute top-1/2 left-1/2 w-[280px] h-[480px] bg-[#1C3163] rounded-[30px] -z-10 -translate-x-1/2 -translate-y-1/2 rotate-0"></div> */}
+              {/* Vertical Card - Same dimensions as image, slightly offset */}
+              {/* <div className="absolute top-1/2 left-1/2 w-full aspect-[3/4] bg-[#1C3163] rounded-[15px] sm:rounded-[18px] md:rounded-[20px] -translate-x-[45%] -translate-y-1/2 rotate-[8deg] shadow-lg"></div> */}
               
-              {/* Horizontal Card */}
-              <div className="absolute top-1/2 left-1/2 w-[220px] h-[380px] sm:w-[260px] sm:h-[440px] md:w-[280px] md:h-[480px] bg-[#1C3163] rounded-[20px] sm:rounded-[25px] md:rounded-[30px] -z-20 -translate-x-1/2 -translate-y-1/2 rotate-90"></div>
+              {/* Horizontal Card - Rotated 90 degrees */}
+              <div className="absolute top-1/2 left-1/2 w-full aspect-[3/4] bg-[#1C3163] rounded-[15px] sm:rounded-[18px] md:rounded-[20px] -translate-x-[50%] -translate-y-1/2 rotate-90 shadow-lg"></div>
               
               {/* Main Image */}
               <div className="relative w-full aspect-[3/4] rounded-[15px] sm:rounded-[18px] md:rounded-[20px] overflow-hidden shadow-2xl z-10">
