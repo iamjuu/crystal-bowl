@@ -20,6 +20,14 @@ type Props = {
 
 const formatCurrency = (amount: number) => `₹${(amount / 100).toFixed(2)}`;
 
+const getMainImageUrl = (product: ProductListItem) => {
+  const img = product.imageUrl?.[0];
+  if (!img) return "";
+  if (img.startsWith("data:image")) return img;
+  if (img.startsWith("http://") || img.startsWith("https://")) return img;
+  return `data:image/jpeg;base64,${img}`;
+};
+
 export default function ProductList({ products: initialProducts, onRefresh }: Props) {
   const [products, setProducts] = useState(initialProducts);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -100,18 +108,32 @@ export default function ProductList({ products: initialProducts, onRefresh }: Pr
                 ) : (
                   <>
                     <td className="px-6 py-4">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium text-white">{product.name}</p>
-                          {product.videoUrl && (
-                            <span className="text-xs text-zinc-500" title="Has video">
-                              🎥
-                            </span>
+                      <div className="flex items-center gap-3">
+                        {getMainImageUrl(product) && (
+                          <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-md border border-zinc-700 bg-zinc-900">
+                            <img
+                              src={getMainImageUrl(product)}
+                              alt={product.name}
+                              className="h-full w-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                              }}
+                            />
+                          </div>
+                        )}
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium text-white">{product.name}</p>
+                            {product.videoUrl && (
+                              <span className="text-xs text-zinc-500" title="Has video">
+                                🎥
+                              </span>
+                            )}
+                          </div>
+                          {product.description && (
+                            <p className="mt-1 line-clamp-2 text-xs text-zinc-400">{product.description}</p>
                           )}
                         </div>
-                        {product.description && (
-                          <p className="mt-1 line-clamp-2 text-xs text-zinc-400">{product.description}</p>
-                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 font-medium text-white">{formatCurrency(product.price)}</td>

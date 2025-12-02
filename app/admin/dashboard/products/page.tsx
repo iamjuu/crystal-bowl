@@ -21,7 +21,7 @@ export default function ProductsPage() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch("/api/products?excludeImages=true");
+      const response = await fetch("/api/products");
       const data = await response.json();
       if (data.success) {
         setProducts(data.data);

@@ -337,11 +337,11 @@ export default function ProductForm({ productId, initialData, onComplete, onCanc
                 }}
               />
               {uploadedImages[index] && (
-                <div className="relative w-full h-32 rounded-md border border-zinc-600 overflow-hidden bg-zinc-900">
+                <div className="relative  w-full h-32 max-w-[200px] rounded-md border border-zinc-600 overflow-hidden  bg-zinc-900">
                   <img
                     src={normalizeImageUrl(uploadedImages[index])}
                     alt={index === 0 ? "Main Preview" : `Preview ${index + 1}`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                     onError={(e) => {
                       e.currentTarget.style.display = "none";
                     }}
