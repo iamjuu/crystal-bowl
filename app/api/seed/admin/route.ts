@@ -43,7 +43,12 @@ export async function POST(req: NextRequest) {
       // Update existing admin
       existing.password = hashedPassword;
       existing.name = name;
+      console.log(existing.password, "existing updated");
+      console.log(hashedPassword, "hashedPassword");
+      console.log(name, "name");
+      console.log(email, "email");
       await existing.save();
+      console.log("Admin updated");
       admin = existing;
     } else {
       // Create new admin

@@ -41,10 +41,10 @@ export async function middleware(request: NextRequest) {
   // Check if accessing an admin route
   const isAdminRoute = adminRoutes.some((route) => pathname.startsWith(route));
 
-  // If no token, allow access to customer routes and admin login
+  // If no token, allow access to customer routes and admin login/signup
   if (!token) {
-    // Allow access to admin login page
-    if (pathname.startsWith("/admin/login")) {
+    // Allow access to admin login and signup pages
+    if (pathname.startsWith("/admin/login") || pathname.startsWith("/admin/signup")) {
       return NextResponse.next();
     }
     // Allow access to customer routes
@@ -65,17 +65,17 @@ export async function middleware(request: NextRequest) {
 
     // If admin is logged in, prevent access to customer routes
     if (isAdmin && isCustomerRoute) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+      return NextResponse.redirect(new URL("/admin/dashboard", request.url));
     }
 
-    // If regular user is logged in, prevent access to admin routes (except admin login)
-    if (!isAdmin && isAdminRoute && !pathname.startsWith("/admin/login")) {
+    // If regular user is logged in, prevent access to admin routes (except admin login/signup)
+    if (!isAdmin && isAdminRoute && !pathname.startsWith("/admin/login") && !pathname.startsWith("/admin/signup")) {
       return NextResponse.redirect(new URL("/products", request.url));
     }
 
-    // Allow access to admin login page even if admin is logged in (for logout flow)
-    if (isAdmin && pathname.startsWith("/admin/login")) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+    // Redirect to dashboard if admin is logged in and tries to access login/signup pages
+    if (isAdmin && (pathname.startsWith("/admin/login") || pathname.startsWith("/admin/signup"))) {
+      return NextResponse.redirect(new URL("/admin/dashboard", request.url));
     }
   } else {
     // Invalid token format - clear it and allow access
