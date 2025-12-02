@@ -10,5 +10,9 @@ const AdministratorSchema = new Schema<IAdministrator>(
   { timestamps: true }
 );
 
-export default (models.Administrator as mongoose.Model<IAdministrator>) || model<IAdministrator>("Administrator", AdministratorSchema);
+const Administrator = models.Administrator || model<IAdministrator>("Administrator", AdministratorSchema);
+
+export default Administrator;
+
+
 

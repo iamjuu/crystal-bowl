@@ -36,8 +36,17 @@ export async function POST(req: NextRequest) {
     });
 
     return res;
-  } catch {
-    return NextResponse.json({ success: false, message: "Server error" }, { status: 500 });
+  } catch (error) {
+    console.error("Admin login error:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    console.error("Error details:", { errorMessage, errorStack });
+    return NextResponse.json(
+      { success: false, message: "Server error", error: process.env.NODE_ENV === "development" ? errorMessage : undefined },
+      { status: 500 }
+    );
   }
 }
+
+
 
