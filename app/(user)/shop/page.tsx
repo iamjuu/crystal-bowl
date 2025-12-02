@@ -110,8 +110,8 @@ const page = () => {
             {/* Header */}
             <div className="mb-8 items-center   w-full md:mb-12 flex flex-col justify-between sm:flex-row gap-4 sm:gap-8 md:gap-[62px]">
               <div className="flex  items-center gap-[50px]">
-                <h2 className="text-black text-[28px] sm:text-[32px] md:text-[40px] font-normal">
-                  Services
+                <h2 className="text-[#D5B584] text-[28px] sm:text-[32px] md:text-[40px] font-normal">
+                  Earth Elements
                 </h2>
                 <p className="text-[#1C3163] text-[14px] sm:text-[16px] md:text-[18px] font-light">
                   Private Sessions & <br /> Corporate Wellness

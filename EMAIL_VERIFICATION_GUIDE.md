@@ -261,3 +261,5 @@ If you have existing users in the database who haven't verified their emails, yo
 - Add admin panel to manually verify users
 - Add option to change email address
 
+
+

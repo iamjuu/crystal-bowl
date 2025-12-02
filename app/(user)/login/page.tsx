@@ -58,7 +58,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-linear-to-br from-zinc-50 via-white to-zinc-100 flex items-center justify-center px-6 py-20">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <h1 className="mb-2 text-4xl font-bold text-black">Login</h1>
+          <h1 className="mb-2 text-4xl font-bold text-black">  user Login</h1>
           <p className="text-zinc-600">Welcome back! Please sign in to your account.</p>
         </div>
 
