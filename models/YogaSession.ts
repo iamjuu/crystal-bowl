@@ -13,6 +13,10 @@ const YogaSessionSchema = new Schema<YogaSessionType>(
     sessionType: { type: String, enum: ["regular", "corporate", "private"], default: "regular" },
     sessionName: { type: String },
     duration: { type: Number }, // in minutes
+    title: { type: String },
+    description: { type: String },
+    imageUrl: { type: String },
+    videoUrl: { type: String },
   },
   { timestamps: true }
 );

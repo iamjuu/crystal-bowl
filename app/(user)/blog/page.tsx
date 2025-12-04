@@ -68,21 +68,26 @@ const BlogPage = () => {
 
                   {/* Right Side - Blog Content */}
                   <div className="w-full md:w-[50%] flex flex-col justify-between py-2">
-                    <div>
-                      <h2 className="text-[#1C3163] text-[18px] md:text-[20px] lg:text-[22px] font-normal mb-3 md:mb-4 leading-snug">
+                    <div className='h-full flex flex-col justify-between border-b border-black/20  '>
+                      <div  className=''>
+                      <h2 className="text-[#1C3163]  text-[18px] md:text-[20px] lg:text-[22px] font-normal mb-3 md:mb-4 leading-snug">
                         {blog.title}
                       </h2>
                       
                       <p className="text-[#1C3163] text-[13px] md:text-[14px] lg:text-[15px] font-light leading-relaxed mb-4 md:mb-6">
                         {blog.description}
                       </p>
-                    </div>
-
-                    {/* Author and Views */}
-                    <div className="flex items-center justify-between pt-2 border-t border-black/20">
+                      </div>
+                      <div className='mb-5'>
                       <p className="text-[#1C3163] text-[13px] md:text-[14px] font-normal">
                         {blog.author}
                       </p>
+                      </div>
+                    </div>
+
+                    {/* Author and Views */}
+                    <div className="flex items-center justify-between pt-2 my-2">
+                    
                       <p className="text-[#1C3163] text-[11px] md:text-[12px] font-light">
                         {blog.views}
                       </p>

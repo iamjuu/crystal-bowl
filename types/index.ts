@@ -87,6 +87,10 @@ export interface YogaSession extends WithTimestamps {
   sessionType?: "regular" | "corporate" | "private";
   sessionName?: string;
   duration?: number; // in minutes
+  title?: string;
+  description?: string;
+  imageUrl?: string;
+  videoUrl?: string;
 }
 
 export type BookingStatus = "pending" | "confirmed" | "cancelled";
