@@ -44,6 +44,7 @@ export interface IAdministrator extends WithTimestamps {
   name: string;
   email: string;
   password: string;
+  imageUrl?: string;
 }
 
 export interface Product extends WithTimestamps {

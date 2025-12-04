@@ -11,14 +11,14 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const navItems = [
-  { label: "Overview", href: "/admin/dashboard" },
+  { label: "Dashboard", href: "/admin/dashboard" },
   { label: "Orders", href: "/admin/dashboard/orders" },
   { label: "Yoga Sessions", href: "/admin/dashboard/sessions" },
-  { label: "Session Types", href: "/admin/dashboard/session-types" },
   { label: "Products", href: "/admin/dashboard/products" },
   { label: "Users", href: "/admin/dashboard/users" },
   { label: "Blogs", href: "/admin/dashboard/blogs" },
   { label: "Events", href: "/admin/dashboard/events" },
+  { label: "Settings", href: "/admin/dashboard/settings" },
 ];
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
@@ -36,14 +36,19 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   return (
     <div className="flex min-h-screen bg-zinc-900">
-      <aside className="hidden w-64 border-r border-zinc-800 bg-zinc-950 px-6 py-8 lg:block">
+      <aside className="hidden w-64 border-r border-zinc-800 bg-zinc-950 px-6 py-8 lg:flex lg:flex-col">
         <div>
           <Link href="/admin/dashboard" className="text-lg font-semibold text-white">
             Crystal Bowl Studio
           </Link>
           <p className="mt-1 text-xs text-zinc-400">Admin Dashboard</p>
         </div>
-        <DashboardNav items={navItems} />
+        <div className="flex-1">
+          <DashboardNav items={navItems.filter(item => item.label !== "Settings")} />
+        </div>
+        <div className="mt-auto pt-4 border-t border-zinc-800">
+          <DashboardNav items={navItems.filter(item => item.label === "Settings")} />
+        </div>
       </aside>
 
       <div className="flex-1">

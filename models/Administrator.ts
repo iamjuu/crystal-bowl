@@ -6,6 +6,7 @@ const AdministratorSchema = new Schema<IAdministrator>(
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true, index: true },
     password: { type: String, required: true },
+    imageUrl: { type: String },
   },
   { timestamps: true }
 );

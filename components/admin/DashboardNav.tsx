@@ -14,10 +14,10 @@ export default function DashboardNav({ items }: { items: NavItem[] }) {
   return (
     <nav className="mt-10 space-y-1">
       {items.map((item) => {
-        // For Overview (/dashboard), only match exactly, not sub-routes
+        // For Dashboard (/admin/dashboard), only match exactly, not sub-routes
         // For other routes, match exact or sub-routes
         const active =
-          item.href === "/dashboard"
+          item.href === "/admin/dashboard"
             ? pathname === item.href
             : pathname === item.href || pathname.startsWith(`${item.href}/`);
         return (
