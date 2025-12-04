@@ -22,6 +22,7 @@ export interface IUser extends WithTimestamps {
   registered: boolean; // true when user completed initial signup process
   verificationToken?: string | null;
   phone?: string;
+  imageUrl?: string;
   addresses?: Array<{
     street?: string;
     city?: string;

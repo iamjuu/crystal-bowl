@@ -23,6 +23,7 @@ export async function GET(req: NextRequest) {
         name: dbUser.name,
         email: dbUser.email,
         phone: dbUser.phone || "",
+        imageUrl: dbUser.imageUrl || undefined,
         address: dbUser.address || {},
       },
     });

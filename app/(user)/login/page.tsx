@@ -10,13 +10,11 @@ export default function LoginPage() {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [needsVerification, setNeedsVerification] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
-    setNeedsVerification(false);
 
     try {
       const res = await fetch("/api/auth/login", {
@@ -30,10 +28,12 @@ export default function LoginPage() {
       if (!res.ok) {
         setError(data.message || "Login failed");
         
-        // Check if error is due to unverified email
-        if (res.status === 403 && data.message?.toLowerCase().includes("verify")) {
-          setNeedsVerification(true);
-          toast.error("Please verify your email before logging in");
+        // If user not registered, show toast and redirect to signup
+        if (res.status === 404 && data.message?.toLowerCase().includes("not registered")) {
+          toast.error("User not registered. Please sign up first.");
+          setTimeout(() => {
+            router.push("/signup");
+          }, 1500);
         } else {
           toast.error(data.message || "Login failed");
         }
@@ -96,14 +96,6 @@ export default function LoginPage() {
           {error && (
             <div className="text-sm text-red-600">
               <p>{error}</p>
-              {needsVerification && (
-                <Link
-                  href="/resend-verification"
-                  className="mt-2 inline-block text-blue-600 underline hover:no-underline"
-                >
-                  Resend verification email
-                </Link>
-              )}
             </div>
           )}
           <button
@@ -120,12 +112,6 @@ export default function LoginPage() {
             Don&apos;t have an account?{" "}
             <Link href="/signup" className="font-medium text-black underline hover:no-underline">
               Sign Up
-            </Link>
-          </p>
-          <p>
-            Need to verify your email?{" "}
-            <Link href="/resend-verification" className="font-medium text-black underline hover:no-underline">
-              Resend verification
             </Link>
           </p>
           <p>

@@ -11,19 +11,16 @@ export async function POST(req: NextRequest) {
 
     await connectDB();
 
-    // Otherwise check regular user
+    // Check if user exists
     const user = await User.findOne({ email });
-    if (!user) return NextResponse.json({ success: false, message: "Invalid credentials" }, { status: 401 });
+    if (!user) {
+      return NextResponse.json({ success: false, message: "User not registered. Please sign up first." }, { status: 404 });
+    }
 
+    // Check password
     const ok = await comparePassword(password, user.password);
-    if (!ok) return NextResponse.json({ success: false, message: "Invalid credentials" }, { status: 401 });
-
-    // Check if email is verified
-    if (!user.emailVerified) {
-      return NextResponse.json(
-        { success: false, message: "Please verify your email before logging in" },
-        { status: 403 }
-      );
+    if (!ok) {
+      return NextResponse.json({ success: false, message: "Invalid password" }, { status: 401 });
     }
 
     const token = signToken({ userId: String(user._id), role: user.role });
