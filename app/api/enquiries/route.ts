@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       email,
       comment: comment || "",
       status: "pending",
-      sessionType: sessionType || "discovery",
+      sessionType: sessionType || "corporate",
     });
 
     // Send emails (don't wait for them to complete - send in background)
