@@ -153,7 +153,7 @@ const EventsPage = () => {
               {eventsData.slice(0, 3).map((event) => (
                 <div
                   key={event.id}
-                  className="flex py-[50px] border-b border-[#D5B584] flex-col lg:flex-row gap-8 lg:gap-12 hover:bg-white/10 transition-colors duration-300 rounded-lg px-4 -mx-4"
+                  className="flex py-[50px] border-b border-[#D5B584] flex-col lg:flex-row gap-8 lg:gap-12 hover:bg-white/10 transition-colors duration-300  px-4 -mx-4"
                 >
                   {/* Date Section */}
                   <div className="lg:w-[150px] flex-shrink-0">

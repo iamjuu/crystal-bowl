@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import toast from 'react-hot-toast'
 import Navbar from '@/components/user/Navbar'
 import Footer from '@/components/user/Footer'
 
@@ -26,7 +27,7 @@ const FormPage = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     console.log('Form submitted:', formData)
-    alert('Form submitted successfully!')
+    toast.success('Thank you for submitting! We will contact you soon.')
   }
 
   return (
