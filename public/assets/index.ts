@@ -48,3 +48,9 @@ export {default as BookNow} from './images/booknow/booknow.svg'
 
 export {default as FliterIcon} from './icon/filter.svg'
 export {default as SortIcon} from './icon/arrowflter.svg'
+
+// Social Media Icons (Footer)
+export { default as WhatsAppIcon } from './footer/whatsapp.svg';
+export { default as FacebookIcon } from './footer/Vector (9).svg';
+export { default as YouTubeIcon } from './footer/youtube.svg';
+export { default as InstagramIcon } from './footer/Vector (10).svg';
