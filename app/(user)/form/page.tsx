@@ -24,10 +24,49 @@ const FormPage = () => {
     }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Form submitted:', formData)
-    toast.success('Thank you for submitting! We will contact you soon.')
+    
+    // Determine sessionType based on service selection
+    let sessionType = 'discovery'
+    if (formData.services === 'discovery') {
+      sessionType = 'discovery'
+    } else if (formData.services === 'group-session') {
+      sessionType = 'corporate'
+    } else if (['sound-healing', 'meditation', 'yoga', 'crystal-therapy'].includes(formData.services)) {
+      sessionType = 'private'
+    }
+    
+    try {
+      const response = await fetch('/api/enquiries', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ...formData, sessionType }),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        toast.success('Thank you for submitting! We will contact you soon.')
+        // Reset form
+        setFormData({
+          fullName: '',
+          address: '',
+          dateOfBirth: '',
+          services: '',
+          phone: '',
+          email: '',
+          comment: ''
+        })
+      } else {
+        toast.error(data.message || 'Failed to submit enquiry. Please try again.')
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error)
+      toast.error('Failed to submit enquiry. Please try again.')
+    }
   }
 
   return (
@@ -113,11 +152,12 @@ const FormPage = () => {
                       required
                     >
                       <option value="">Services</option>
-                      <option value="sound-healing">Sound Healing</option>
-                      <option value="meditation">Meditation</option>
-                      <option value="yoga">Yoga</option>
-                      <option value="crystal-therapy">Crystal Therapy</option>
-                      <option value="group-session">Group Session</option>
+                      <option value="discovery">Discovery Session</option>
+                      <option value="sound-healing">Private - Sound Healing</option>
+                      <option value="meditation">Private - Meditation</option>
+                      <option value="yoga">Private - Yoga</option>
+                      <option value="crystal-therapy">Private - Crystal Therapy</option>
+                      <option value="group-session">Corporate - Group Session</option>
                     </select>
                     <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
                       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">

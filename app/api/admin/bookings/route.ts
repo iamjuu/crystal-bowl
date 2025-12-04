@@ -30,6 +30,10 @@ export async function GET(req: NextRequest) {
           YogaSession.findById(booking.sessionId).lean(),
         ]);
 
+        // Type guard to ensure user is a single document, not an array
+        const userDoc = user && !Array.isArray(user) ? user : null;
+        const sessionDoc = session && !Array.isArray(session) ? session : null;
+
         return {
           _id: String(booking._id),
           userId: String(booking.userId),
@@ -41,19 +45,19 @@ export async function GET(req: NextRequest) {
           comment: booking.comment,
           createdAt: booking.createdAt,
           updatedAt: booking.updatedAt,
-          user: user
+          user: userDoc && 'name' in userDoc
             ? {
-                name: user.name,
-                email: user.email,
-                phone: user.phone,
+                name: String(userDoc.name),
+                email: String(userDoc.email),
+                phone: userDoc.phone ? String(userDoc.phone) : undefined,
               }
             : null,
-          session: session
+          session: sessionDoc && 'instructor' in sessionDoc
             ? {
-                instructor: session.instructor,
-                date: session.date,
-                startTime: session.startTime,
-                endTime: session.endTime,
+                instructor: String(sessionDoc.instructor),
+                date: String(sessionDoc.date),
+                startTime: String(sessionDoc.startTime),
+                endTime: String(sessionDoc.endTime),
               }
             : null,
         };

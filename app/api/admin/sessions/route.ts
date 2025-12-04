@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
     await connectDB();
     
     const body = await req.json();
-    const { title, description, sessionType, imageUrl, videoUrl } = body;
+    const { title, description, sessionType, imageUrl, videoUrl, format, benefits } = body;
 
     // Validation
     if (!title || !description) {
@@ -36,8 +36,13 @@ export async function POST(req: NextRequest) {
       mappedSessionType = "private";
     }
 
+    // Filter out empty benefits
+    const filteredBenefits = Array.isArray(benefits) 
+      ? benefits.filter((b: string) => b && b.trim().length > 0).map((b: string) => String(b).trim())
+      : [];
+
     // Create a new session with minimal required fields
-    // Note: The form only provides title, description, image/video
+    // Note: The form provides title, description, image/video, format, and benefits
     // Other fields like instructor, date, time, price, seats can be added later or set to defaults
     const session = await YogaSession.create({
       title: String(title).trim(),
@@ -45,6 +50,8 @@ export async function POST(req: NextRequest) {
       sessionType: mappedSessionType,
       imageUrl: imageUrl ? String(imageUrl).trim() : undefined,
       videoUrl: videoUrl ? String(videoUrl).trim() : undefined,
+      format: format ? String(format).trim() : undefined,
+      benefits: filteredBenefits,
       // Set default values for required fields
       instructor: "TBD",
       date: new Date().toISOString().split("T")[0], // Today's date as default

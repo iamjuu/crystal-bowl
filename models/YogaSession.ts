@@ -17,6 +17,8 @@ const YogaSessionSchema = new Schema<YogaSessionType>(
     description: { type: String },
     imageUrl: { type: String },
     videoUrl: { type: String },
+    format: { type: String },
+    benefits: { type: [String], default: [] },
   },
   { timestamps: true }
 );

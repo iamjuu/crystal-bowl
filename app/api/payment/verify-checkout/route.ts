@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import Stripe from "stripe";
-import { connectDB } from "@/lib/mongodb";
+import connectDB from "@/lib/mongodb";
 import Order from "@/models/Order";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {

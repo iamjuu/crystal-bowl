@@ -12,6 +12,8 @@ type Session = {
   imageUrl?: string;
   videoUrl?: string;
   sessionType?: "regular" | "corporate" | "private" | "discovery";
+  format?: string;
+  benefits?: string[];
   createdAt: string;
   updatedAt: string;
 };
@@ -25,6 +27,8 @@ export default function SessionsPage() {
     description: "",
     image: "" as string | File | null,
     video: "" as string | File | null,
+    format: "",
+    benefits: [""],
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -274,6 +278,22 @@ export default function SessionsPage() {
     setPreviewUrl(url);
   };
 
+  // Handle benefits array
+  const handleAddBenefit = () => {
+    setFormData({ ...formData, benefits: [...formData.benefits, ""] });
+  };
+
+  const handleRemoveBenefit = (index: number) => {
+    const newBenefits = formData.benefits.filter((_, i) => i !== index);
+    setFormData({ ...formData, benefits: newBenefits.length > 0 ? newBenefits : [""] });
+  };
+
+  const handleBenefitChange = (index: number, value: string) => {
+    const newBenefits = [...formData.benefits];
+    newBenefits[index] = value;
+    setFormData({ ...formData, benefits: newBenefits });
+  };
+
   // Handle edit button click
   const handleEdit = (session: Session) => {
     setEditingId(session._id);
@@ -283,6 +303,8 @@ export default function SessionsPage() {
       description: session.description || "",
       image: session.imageUrl || "",
       video: session.videoUrl || "",
+      format: session.format || "",
+      benefits: session.benefits && session.benefits.length > 0 ? session.benefits : [""],
     });
     
     // Set media type based on what exists
@@ -352,10 +374,14 @@ export default function SessionsPage() {
         sessionType: TabType;
         imageUrl?: string;
         videoUrl?: string;
+        format?: string;
+        benefits?: string[];
       } = {
         title: formData.title.trim(),
         description: formData.description.trim(),
         sessionType: activeTab,
+        format: formData.format.trim() || undefined,
+        benefits: formData.benefits.filter(b => b.trim().length > 0),
       };
 
       if (isEdit) {
@@ -398,7 +424,7 @@ export default function SessionsPage() {
       }
 
       setSuccess(`Session ${isEdit ? "updated" : "created"} successfully!`);
-      setFormData({ title: "", description: "", image: "", video: "" });
+      setFormData({ title: "", description: "", image: "", video: "", format: "", benefits: [""] });
       setMediaType(null);
       setPreviewUrl("");
       setEditingId(null);
@@ -419,7 +445,7 @@ export default function SessionsPage() {
 
   const handleCancel = () => {
     setShowAddForm(false);
-    setFormData({ title: "", description: "", image: "", video: "" });
+    setFormData({ title: "", description: "", image: "", video: "", format: "", benefits: [""] });
     setMediaType(null);
     setPreviewUrl("");
     setEditingId(null);
@@ -441,7 +467,7 @@ export default function SessionsPage() {
                 onClick={() => {
                   setActiveTab(tab.id);
                   setShowAddForm(false);
-                  setFormData({ title: "", description: "", image: "", video: "" });
+                  setFormData({ title: "", description: "", image: "", video: "", format: "", benefits: [""] });
                   setMediaType(null);
                   setPreviewUrl("");
                   setError(null);
@@ -744,6 +770,55 @@ export default function SessionsPage() {
                 className="w-full rounded-md border border-zinc-600 bg-zinc-900 px-3 py-2 text-sm text-white focus:border-white focus:outline-none"
                 placeholder="Enter session description"
               />
+            </div>
+
+            <div className="space-y-1">
+              <label htmlFor="session-format" className="text-sm font-medium text-white">
+                Format
+              </label>
+              <input
+                id="session-format"
+                type="text"
+                value={formData.format}
+                onChange={(e) => setFormData({ ...formData, format: e.target.value })}
+                className="w-full rounded-md border border-zinc-600 bg-zinc-900 px-3 py-2 text-sm text-white focus:border-white focus:outline-none"
+                placeholder="Enter session format (e.g., Online, In-person, Hybrid)"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-white">
+                Benefits
+              </label>
+              <div className="space-y-2">
+                {formData.benefits.map((benefit, index) => (
+                  <div key={index} className="flex gap-2">
+                    <input
+                      type="text"
+                      value={benefit}
+                      onChange={(e) => handleBenefitChange(index, e.target.value)}
+                      className="flex-1 rounded-md border border-zinc-600 bg-zinc-900 px-3 py-2 text-sm text-white focus:border-white focus:outline-none"
+                      placeholder={`Benefit ${index + 1}`}
+                    />
+                    {formData.benefits.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveBenefit(index)}
+                        className="rounded-md border border-red-600 px-3 py-2 text-sm font-medium text-red-400 transition-colors hover:bg-red-900/20"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={handleAddBenefit}
+                  className="inline-flex items-center justify-center rounded-md border border-emerald-600 px-4 py-2 text-sm font-medium text-emerald-400 transition-colors hover:bg-emerald-900/20"
+                >
+                  + Add Benefit
+                </button>
+              </div>
             </div>
 
             <div className="flex gap-3">
