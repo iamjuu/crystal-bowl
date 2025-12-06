@@ -1,22 +1,65 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import Navbar from '@/components/user/Navbar'
 import Footer from '@/components/user/Footer'
 
 const CalendarPage = () => {
   const [selectedDate, setSelectedDate] = useState<number | null>(null)
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth())
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear())
 
   // Generate calendar days for current month
   const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-  const calendarDays = [
-    [26, 27, 28, 29, 30, 1, 2],
-    [3, 4, 5, 6, 7, 8, 9],
-    [10, 11, 12, 13, 14, 15, 16],
-    [17, 18, 19, 20, 21, 22, 23],
-    [24, 25, 26, 27, 28, 29, 30],
-  ]
+  
+  const calendarDays = useMemo(() => {
+    const firstDayOfMonth = new Date(currentYear, currentMonth, 1)
+    const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0)
+    const daysInMonth = lastDayOfMonth.getDate()
+    const startingDayOfWeek = (firstDayOfMonth.getDay() + 6) % 7 // Convert Sunday=0 to Monday=0
+    
+    type CalendarDay = { day: number; isCurrentMonth: boolean }
+    const days: CalendarDay[][] = []
+    let currentWeek: CalendarDay[] = []
+    
+    // Add days from previous month
+    const prevMonth = new Date(currentYear, currentMonth, 0)
+    const prevMonthDays = prevMonth.getDate()
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      currentWeek.push({
+        day: prevMonthDays - startingDayOfWeek + i + 1,
+        isCurrentMonth: false
+      })
+    }
+    
+    // Add days of current month
+    for (let day = 1; day <= daysInMonth; day++) {
+      currentWeek.push({
+        day,
+        isCurrentMonth: true
+      })
+      if (currentWeek.length === 7) {
+        days.push(currentWeek)
+        currentWeek = []
+      }
+    }
+    
+    // Add days from next month to fill the last week
+    let nextMonthDay = 1
+    while (currentWeek.length < 7) {
+      currentWeek.push({
+        day: nextMonthDay,
+        isCurrentMonth: false
+      })
+      nextMonthDay++
+    }
+    if (currentWeek.length > 0) {
+      days.push(currentWeek)
+    }
+    
+    return days
+  }, [currentMonth, currentYear])
 
   const timeSlots = [
     { time: '09:00', available: true },
@@ -30,9 +73,16 @@ const CalendarPage = () => {
     { time: '18:00', available: true },
   ]
 
-  const handleDateClick = (day: number) => {
-    if (day >= 1 && day <= 30) {
-      setSelectedDate(day)
+  const handleDateClick = (day: number | null, isCurrentMonth: boolean) => {
+    if (day !== null && isCurrentMonth) {
+      const today = new Date()
+      const selectedDateObj = new Date(currentYear, currentMonth, day)
+      const todayDateObj = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+      
+      // Only allow selection of today or future dates
+      if (selectedDateObj >= todayDateObj) {
+        setSelectedDate(day)
+      }
     }
   }
 
@@ -92,15 +142,24 @@ const CalendarPage = () => {
                     <div className="flex flex-col gap-1">
                       {calendarDays.map((week, weekIndex) => (
                         <div key={weekIndex} className="grid grid-cols-7 gap-1">
-                          {week.map((day, dayIndex) => {
-                            const isCurrentMonth = day >= 1 && day <= 30
-                            const isPastDate = day < 26 && weekIndex === 0
-                            const isSelected = selectedDate === day
+                          {week.map((calendarDay, dayIndex) => {
+                            const today = new Date()
+                            const { day, isCurrentMonth } = calendarDay
+                            
+                            // Check if date is in the past
+                            let isPastDate = false
+                            if (isCurrentMonth) {
+                              const selectedDateObj = new Date(currentYear, currentMonth, day)
+                              const todayDateObj = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+                              isPastDate = selectedDateObj < todayDateObj
+                            }
+                            
+                            const isSelected = selectedDate === day && isCurrentMonth
 
                             return (
                               <button
                                 key={dayIndex}
-                                onClick={() => handleDateClick(day)}
+                                onClick={() => handleDateClick(day, isCurrentMonth)}
                                 disabled={!isCurrentMonth || isPastDate}
                                 className={`
                                   aspect-square rounded-lg text-[14px] sm:text-[16px] font-medium

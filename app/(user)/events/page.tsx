@@ -1,142 +1,159 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Navbar from "@/components/user/Navbar";
 import Footer from "@/components/user/Footer";
-import { About1, About2, About3, Yoga1, Yoga2, Yoga3 } from "@/public/assets";
+import { About1 } from "@/public/assets";
 import { ArrowRight } from "lucide-react";
 
-const EventsPage = () => {
-  const eventsData = [
-    {
-      id: 1,
-      date: {
-        month: "May",
-        day: "15"
-      },
-      image: About1,
-      title: "Full Moon Sound Healing Journey",
-      location: "Rishikesh, Uttarakhand, India",
-      time: "Friday 07:00PM - 10:00PM",
-      description:
-        "Experience a transformative sound healing session under the full moon. Immerse yourself in the resonant frequencies of crystal bowls, gongs, and Tibetan singing bowls as you journey deep into relaxation and inner peace."
-    },
-    {
-      id: 2,
-      date: {
-        month: "May",
-        day: "22"
-      },
-      image: Yoga1,
-      title: "Sunrise Vinyasa Flow Retreat",
-      location: "Goa, India",
-      time: "Saturday 06:00AM - 08:00AM",
-      description:
-        "Start your day with an energizing vinyasa flow practice at sunrise. This dynamic yoga session combines breathwork, flowing sequences, and meditation to awaken your body and mind."
-    },
-    {
-      id: 3,
-      date: {
-        month: "June",
-        day: "05"
-      },
-      image: About2,
-      title: "Crystal Bowl Meditation Workshop",
-      location: "Singapore Studio",
-      time: "Sunday 02:00PM - 04:00PM",
-      description:
-        "Learn the art of crystal bowl meditation in this immersive workshop. Discover how to use crystal bowls for healing, meditation, and creating sacred space in your practice."
-    },
-    {
-      id: 4,
-      date: {
-        month: "June",
-        day: "18"
-      },
-      image: Yoga2,
-      title: "Yin Yoga & Sound Bath Experience",
-      location: "Bali, Indonesia",
-      time: "Friday 06:00PM - 08:30PM",
-      description:
-        "Combine the deep stretches of yin yoga with the healing vibrations of sound therapy. This restorative practice helps release tension, improve flexibility, and promote deep relaxation."
-    },
-    {
-      id: 5,
-      date: {
-        month: "July",
-        day: "10"
-      },
-      image: About3,
-      title: "New Moon Intention Setting Ceremony",
-      location: "Online Event",
-      time: "Wednesday 08:00PM - 09:30PM",
-      description:
-        "Join us for a sacred new moon ceremony where we'll set intentions, practice guided meditation, and use sound healing to align with the lunar energy for manifestation and renewal."
-    },
-    {
-      id: 6,
-      date: {
-        month: "July",
-        day: "25"
-      },
-      image: Yoga3,
-      title: "Corporate Wellness Sound Healing",
-      location: "Corporate Office, Singapore",
-      time: "Thursday 12:00PM - 01:00PM",
-      description:
-        "Bring the healing power of sound to your workplace. This lunchtime session is designed to reduce stress, improve focus, and enhance team well-being through guided sound meditation."
-    }
-  ];
+type ApiEvent = {
+  _id: string;
+  name: string;
+  title: string;
+  location: string;
+  day: string;
+  time: string;
+  date: string;
+  description: string;
+  imageUrl?: string;
+  createdAt: string;
+  updatedAt: string;
+};
 
-  const pastEventsData = [
-    {
-      id: 1,
-      date: {
-        month: "March",
-        day: "20"
-      },
-      image: About1,
-      title: "Spring Equinox Sound Healing",
-      location: "Rishikesh, Uttarakhand, India",
-      time: "Wednesday 07:00PM - 09:00PM",
-      description:
-        "Celebrated the spring equinox with a special sound healing ceremony. Participants experienced deep relaxation and renewal as we honored the balance of light and dark."
-    },
-    {
-      id: 2,
-      date: {
-        month: "February",
-        day: "14"
-      },
-      image: Yoga1,
-      title: "Valentine's Day Partner Yoga & Sound",
-      location: "Singapore Studio",
-      time: "Wednesday 06:00PM - 08:00PM",
-      description:
-        "A special couples event combining partner yoga poses with sound healing. Couples explored connection, trust, and harmony through movement and vibration."
-    },
-    {
-      id: 3,
-      date: {
-        month: "January",
-        day: "01"
-      },
-      image: About2,
-      title: "New Year Sound Healing & Intention Setting",
-      location: "Online Event",
-      time: "Monday 10:00PM - 12:00AM",
-      description:
-        "Welcomed the new year with a powerful sound healing session and intention-setting ceremony. Participants set their intentions for 2024 while being bathed in healing frequencies."
+type DisplayEvent = {
+  id: string;
+  date: {
+    month: string;
+    day: string;
+  };
+  image: string | typeof About1;
+  title: string;
+  location: string;
+  time: string;
+  description: string;
+};
+
+const EventsPage = () => {
+  const [eventsData, setEventsData] = useState<DisplayEvent[]>([]);
+  const [pastEventsData, setPastEventsData] = useState<DisplayEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Helper function to parse date and extract month and day
+  const parseDate = (dateString: string): { month: string; day: string } => {
+    try {
+      const date = new Date(dateString);
+      const months = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+      ];
+      return {
+        month: months[date.getMonth()] || "Unknown",
+        day: date.getDate().toString().padStart(2, "0")
+      };
+    } catch {
+      // Fallback if date parsing fails
+      const parts = dateString.split("-");
+      if (parts.length >= 2) {
+        const monthNum = parseInt(parts[1], 10);
+        const months = [
+          "January", "February", "March", "April", "May", "June",
+          "July", "August", "September", "October", "November", "December"
+        ];
+        return {
+          month: months[monthNum - 1] || "Unknown",
+          day: parts[2] || "01"
+        };
+      }
+      return { month: "Unknown", day: "01" };
     }
-  ];
+  };
+
+  // Helper function to get image URL
+  const getImageUrl = (imageUrl?: string): string | typeof About1 => {
+    if (!imageUrl) return About1;
+    if (imageUrl.startsWith("data:image")) return imageUrl;
+    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) return imageUrl;
+    return `data:image/jpeg;base64,${imageUrl}`;
+  };
+
+  // Helper function to format time with day
+  const formatTime = (day: string, time: string): string => {
+    return `${day} ${time}`;
+  };
+
+
+  // Fetch events from API
+  const fetchEvents = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("/api/events");
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        const apiEvents: ApiEvent[] = data.data;
+        
+        // Transform API events to display format
+        const transformedEvents: DisplayEvent[] = apiEvents.map((event) => ({
+          id: event._id,
+          date: parseDate(event.date),
+          image: getImageUrl(event.imageUrl),
+          title: event.title,
+          location: event.location,
+          time: formatTime(event.day, event.time),
+          description: event.description
+        }));
+
+        // Separate into upcoming and past events
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const upcoming = transformedEvents.filter((event) => {
+          try {
+            const eventDate = new Date(apiEvents.find(e => e._id === event.id)?.date || "");
+            eventDate.setHours(0, 0, 0, 0);
+            return eventDate >= today;
+          } catch {
+            return true; // Include if date parsing fails
+          }
+        });
+
+        const past = transformedEvents.filter((event) => {
+          try {
+            const eventDate = new Date(apiEvents.find(e => e._id === event.id)?.date || "");
+            eventDate.setHours(0, 0, 0, 0);
+            return eventDate < today;
+          } catch {
+            return false;
+          }
+        });
+
+        setEventsData(upcoming);
+        setPastEventsData(past);
+      } else {
+        setEventsData([]);
+        setPastEventsData([]);
+      }
+    } catch (error) {
+      console.error("Failed to fetch events:", error);
+      setEventsData([]);
+      setPastEventsData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className=" bg-gradient-to-r from-[#FDECE2] to-[#FEC1A2] min-h-screen">
       <Navbar />
       <div className="w-full ">
         <section className="w-full px-4 md:px-0 py-[68px]">
-          <div className="max-w-6xl pb-[106px] border-b mx-auto">
+          <div className="max-w-6xl pb-[106px]  mx-auto">
             {/* Header Section */}
             <div className="mb-12 flex gap-[48px] md:mb-16">
               <h1 className="text-[#D5B584] text-[36px] sm:text-[40px]  font-light mb-4">
@@ -149,12 +166,17 @@ const EventsPage = () => {
             </div>
 
             {/* Events List */}
-            <div className="">
-              {eventsData.slice(0, 3).map((event) => (
-                <div
-                  key={event.id}
-                  className="flex py-[50px] border-b border-[#D5B584] flex-col lg:flex-row gap-8 lg:gap-12 hover:bg-white/10 transition-colors duration-300 rounded-lg px-4 -mx-4"
-                >
+            {loading ? (
+              <div className="text-center py-12 text-[#1C3163]">Loading events...</div>
+            ) : eventsData.length === 0 ? (
+              <div className="text-center py-12 text-[#1C3163]">No upcoming events</div>
+            ) : (
+              <div className="">
+                {eventsData.slice(0, 3).map((event) => (
+                  <div
+                    key={event.id}
+                    className="flex py-[50px] border-b border-[#D5B584] flex-col lg:flex-row gap-8 lg:gap-12 hover:bg-white/10 transition-colors duration-300  px-4 -mx-4"
+                  >
                   {/* Date Section */}
                   <div className="lg:w-[150px] flex-shrink-0">
                     <div className="text-[#D5B584]">
@@ -172,12 +194,20 @@ const EventsPage = () => {
                     {/* Event Image */}
                     <div className="md:w-[45%] lg:w-[40%] flex-shrink-0">
                       <div className="relative w-full aspect-[4/3] rounded-[20px] overflow-hidden group/image">
-                        <Image
-                          src={event.image}
-                          alt={event.title}
-                          fill
-                          className="object-cover group-hover/image:scale-110 transition-transform duration-500 ease-out"
-                        />
+                        {typeof event.image === "string" ? (
+                          <img
+                            src={event.image}
+                            alt={event.title}
+                            className="w-full h-full object-cover group-hover/image:scale-110 transition-transform duration-500 ease-out"
+                          />
+                        ) : (
+                          <Image
+                            src={event.image}
+                            alt={event.title}
+                            fill
+                            className="object-cover group-hover/image:scale-110 transition-transform duration-500 ease-out"
+                          />
+                        )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 ease-out pointer-events-none"></div>
                       </div>
                     </div>
@@ -213,9 +243,10 @@ const EventsPage = () => {
                       </button>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="max-w-6xl mx-auto">
@@ -231,12 +262,17 @@ const EventsPage = () => {
             </div>
 
             {/* Events List */}
-            <div className="">
-              {pastEventsData.map((event) => (
-                <div
-                  key={event.id}
-                  className="flex py-[50px] border-b border-[#D5B584] flex-col lg:flex-row gap-8 lg:gap-12 hover:bg-white/10 transition-colors duration-300 rounded-lg px-4 -mx-4"
-                >
+            {loading ? (
+              <div className="text-center py-12 text-[#1C3163]">Loading events...</div>
+            ) : pastEventsData.length === 0 ? (
+              <div className="text-center py-12 text-[#1C3163]">No past events</div>
+            ) : (
+              <div className="">
+                {pastEventsData.map((event) => (
+                  <div
+                    key={event.id}
+                    className="flex py-[50px] border-b border-[#D5B584] flex-col lg:flex-row gap-8 lg:gap-12 hover:bg-white/10 transition-colors duration-300 rounded-lg px-4 -mx-4"
+                  >
                   {/* Date Section */}
                   <div className="lg:w-[150px] flex-shrink-0">
                     <div className="text-[#D5B584]">
@@ -254,12 +290,20 @@ const EventsPage = () => {
                     {/* Event Image */}
                     <div className="md:w-[45%] lg:w-[40%] flex-shrink-0">
                       <div className="relative w-full aspect-[4/3] rounded-[20px] overflow-hidden group/image">
-                        <Image
-                          src={event.image}
-                          alt={event.title}
-                          fill
-                          className="object-cover grayscale group-hover/image:grayscale-0 group-hover/image:scale-110 transition-all duration-500 ease-out"
-                        />
+                        {typeof event.image === "string" ? (
+                          <img
+                            src={event.image}
+                            alt={event.title}
+                            className="w-full h-full object-cover grayscale group-hover/image:grayscale-0 group-hover/image:scale-110 transition-all duration-500 ease-out"
+                          />
+                        ) : (
+                          <Image
+                            src={event.image}
+                            alt={event.title}
+                            fill
+                            className="object-cover grayscale group-hover/image:grayscale-0 group-hover/image:scale-110 transition-all duration-500 ease-out"
+                          />
+                        )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover/image:opacity-100 transition-opacity duration-300 ease-out pointer-events-none"></div>
                       </div>
                     </div>
@@ -295,9 +339,10 @@ const EventsPage = () => {
                       </button>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
       </div>

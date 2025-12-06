@@ -21,6 +21,7 @@ export async function PUT(req: NextRequest) {
     // Update fields
     if (body.name !== undefined) dbUser.name = body.name;
     if (body.phone !== undefined) dbUser.phone = body.phone;
+    if (body.imageUrl !== undefined) dbUser.imageUrl = body.imageUrl || undefined;
     if (body.address !== undefined) {
       dbUser.address = {
         street: body.address.street || "",
@@ -40,6 +41,7 @@ export async function PUT(req: NextRequest) {
         name: dbUser.name,
         email: dbUser.email,
         phone: dbUser.phone || "",
+        imageUrl: dbUser.imageUrl || undefined,
         address: dbUser.address || {},
       },
     });

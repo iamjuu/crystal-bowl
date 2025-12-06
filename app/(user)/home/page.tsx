@@ -1,10 +1,8 @@
 "use client";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Navbar from "@/components/user/Navbar";
 import Image from "next/image";
 import {
-  AboutSection,
-  AboutSection1,
   Bucket1,
   Bucket2,
   Bucket3,
@@ -19,11 +17,15 @@ import {
   YogaSection2,
   YogaSection3
 } from "@/public/assets";
+
+
+
 import Footer from "@/components/user/Footer";
 import { PremiumQuality } from "@/public/assets";
 import Link from "next/link";
 import { ArrowRight, Volume2, VolumeX } from "lucide-react";
-
+import AboutSectionComponent from "./components/about/AboutSection";
+import CollectionSection from "./components/collection/collectionSection"
 const Data = [
   {
     id: 1,
@@ -177,10 +179,32 @@ const UpcomingEventsData = [
   }
 ];
 
+type Product = {
+  _id: string;
+  name: string;
+  price: number;
+  createdAt: string;
+  description?: string;
+  imageUrl?: string[];
+  videoUrl?: string;
+};
+
+
 const Index = () => {
+  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>([]);
+
   const [selectedTestimonial, setSelectedTestimonial] = useState(1);
   const [isMuted, setIsMuted] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Helper to convert base64 string to data URL if needed
+  const normalizeImageUrl = (url: string): string => {
+    if (!url) return "";
+    if (url.startsWith("data:image")) return url;
+    if (url.startsWith("http://") || url.startsWith("https://")) return url;
+    return `data:image/jpeg;base64,${url}`;
+  };
 
   const toggleMute = () => {
     if (videoRef.current) {
@@ -188,6 +212,26 @@ const Index = () => {
       setIsMuted(!isMuted);
     }
   };
+
+
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch("/api/products");
+      const data = await response.json();
+      setProducts(data)
+      if (data.success) {
+        setProducts(data.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch products:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   return (
     <>
@@ -229,156 +273,14 @@ const Index = () => {
           </div>
         </div>
       </div>
+    <div className="w-full bg-gradient-to-r from-[#FDECE2] to-[#FEC1A2]">
 
-
-      <div className="w-full bg-gradient-to-r from-[#FDECE2] to-[#FEC1A2]">
-{/* about section  */}
-      
-      <section className="w-full  px-4 md;px-0 py-[68px]">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col w-full">
-            {/* Section Title */}
-            <h2 className="text-[24px] sm:text-[28px] md:text-[32px] lg:text-[36px] xl:text-[40px] pb-4 sm:pb-5 md:pb-6 text-[#D5B584] font-normal">
-              About
-            </h2>
-
-            {/* Content Container */}
-            <div className="flex  flex-col lg:flex-row w-full gap-8 md:gap-10 lg:gap-12">
-              {/* Left side - Text Content */}
-              <div className="w-full lg:w-[65%] xl:w-[70%]">
-                <div className="flex flex-col gap-4 sm:gap-5 md:gap-6 text-[14px] sm:text-[15px] md:text-[16px] lg:text-[16px] font-light text-black leading-relaxed sm:leading-relaxed md:leading-loose">
-                  <p>
-                    Crystal Bowl Studio is created and designed by master sound
-                    and energy healer Francesca Wong, fulfilling her dream to
-                    create a range of crystal bowls that are beautifully
-                    designed, with premium crystal quality and sound, with a
-                    powerful resonance and energy. at a more affordable price to
-                    make sound healing more accessible to healers all over the
-                    world.
-                  </p>
-
-                  <p>
-                    Our Crystal Bowls are 100% clear quartz crystal, with some
-                    of our premium designs infused with other crystals, metals
-                    and earth elements. They are lightweight and come in the
-                    most magical designs and colors to really make your practice
-                    unique. Take them with you on your Travels!
-                  </p>
-
-                  <p>
-                    Each bowl carries its own unique energy and intention so you
-                    can choose yours to match your own unique intentions, energy
-                    and aesthetic as a healer.
-                  </p>
-                </div>
-              </div>
-
-              {/* Right side - Abstract Graphics */}
-              <div className="relative w-full lg:w-[35%] xl:w-[30%] flex flex-row sm:flex-row lg:flex-col justify-center sm:justify-evenly lg:justify-between items-center lg:items-end gap-6 sm:gap-8 lg:gap-6 xl:gap-8 mt-4 lg:mt-0">
-                <div className=" lg:max-w-none">
-                  <Image
-                    src={AboutSection}
-                    alt="about"
-                    className="w-full h-auto object-contain"
-                  />
-                </div>
-                <div className=" lg:max-w-none">
-                  <Image
-                    src={AboutSection1}
-                    alt="about"
-                    className="w-full h-auto object-contain"
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="">
-              {/* Read More Link */}
-              <div className="flex pt-6 sm:pt-7 md:pt-8 lg:pt-9 items-center">
-                <a
-                  href="#"
-                  className="inline-flex text-[#D5B584] items-center gap-2 text-[15px] sm:text-[16px] md:text-[17px] lg:text-[18px] font-medium hover:opacity-80 transition-opacity"
-                >
-                  Read More
-                  {/* <Image
-                    className="w-4 sm:w-5 h-auto"
-                    src={RightArrow}
-                    alt="right arrow"
-                  /> */}
-                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-[#D5B584]" />
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* about section  */}
+      <AboutSectionComponent />
 
       {/* collection section  */}
 
-      <section className="w-full py-[40px] md:py-[68px] ">
-        <div className="max-w-6xl items-center flex flex-col mx-auto px-4">
-          <div className="flex w-full items-center justify-between mb-8 md:mb-0">
-            <h2 className="text-[24px] sm:text-[28px] md:text-[32px] lg:text-[36px] xl:text-[40px] pb-4 sm:pb-5 md:pb-6 text-[#D5B584] font-normal">
-              Collection
-            </h2>
-            <Link
-              href="/shop"
-              className="text-[#D5B584] flex gap-2 text-[14px] sm:text-[16px] md:text-[18px]"
-            >
-              View All
-              {/* <Image src={RightArrow} alt="right arrow" className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" /> */}
-              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-[#D5B584]" />
-            </Link>
-          </div>
-          <div className="flex flex-col gap-12 md:gap-16 lg:gap-[80px]">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-[18px] w-full">
-              {Data.map((item) => (
-                <div key={item.id} className="text-black group">
-                  <div className="relative w-full aspect-square group-hover:scale-105 transition-transform duration-300">
-                    <Image 
-                      src={item.image} 
-                      alt={item.title}
-                      fill
-                      className="object-cover rounded-lg"
-                    />
-                  </div>
-                  <div className="leading-5">
-                    <p className="pt-4 sm:pt-6 md:pt-[28px] text-[14px] sm:text-[16px] md:text-[18px]">{item.title}</p>
-                    <p className="text-[12px] sm:text-[13px] md:text-[14px]">{item.description}</p>
-                    <p className="pt-3 sm:pt-4 md:pt-[18px] text-[10px] sm:text-[11px] md:text-[12px]">{item.price}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="w-full pt-12 md:pt-16 lg:pt-[80px] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 md:gap-12 lg:gap-[54px] border-t border-black">
-              {Icons.map((item) => (
-                <Link
-                  key={item.id}
-                  href="/shop"
-                  className="flex text-black flex-col items-center cursor-pointer hover:opacity-80 transition-opacity"
-                >
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 relative">
-                    <Image 
-                      src={item.image} 
-                      alt={item.title}
-                      fill
-                      className="object-contain"
-                    />
-                  </div>
-                  <div className="leading-5">
-                    <p className="pt-4 sm:pt-6 md:pt-[28px] text-center font-[400] text-[14px] sm:text-[16px] md:text-[18px] pb-4 sm:pb-6 md:pb-8">
-                      {item.title}
-                    </p>
-                    <p className="text-center text-[9px] sm:text-[9.5px] md:text-[10px] font-[300] leading-[14px] sm:leading-[15px] md:leading-[16px]">
-                      {item.para}
-                    </p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+      <CollectionSection products={products}/>
 
       {/* service section  */}
 

@@ -14,7 +14,7 @@ function decodeToken(token: string): { userId?: string; role?: string; isAdmin?:
   }
 }
 
-// Routes that should be protected from admin access
+// Customer/User routes (public and protected)
 const customerRoutes = [
   "/products",
   "/cart",
@@ -28,60 +28,53 @@ const customerRoutes = [
 ];
 
 // Admin routes that require admin authentication
-const adminRoutes = ["/dashboard", "/admin"];
+const adminRoutes = ["/admin/dashboard"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const tokenCookie = request.cookies.get("token");
-  const token = tokenCookie?.value;
+  
+  // Get both user and admin tokens
+  const adminTokenCookie = request.cookies.get("adminToken");
+  const adminToken = adminTokenCookie?.value;
 
   // Check if accessing a customer route
   const isCustomerRoute = customerRoutes.some((route) => pathname.startsWith(route)) || pathname === "/";
 
-  // Check if accessing an admin route
-  const isAdminRoute = adminRoutes.some((route) => pathname.startsWith(route));
-
-  // If no token, allow access to customer routes and admin login/signup
-  if (!token) {
-    // Allow access to admin login and signup pages
-    if (pathname.startsWith("/admin/login") || pathname.startsWith("/admin/signup")) {
-      return NextResponse.next();
-    }
-    // Allow access to customer routes
-    if (isCustomerRoute) {
-      return NextResponse.next();
-    }
-    // Redirect to admin login if trying to access admin routes
-    if (isAdminRoute) {
-      return NextResponse.redirect(new URL("/admin/login", request.url));
-    }
+  // Allow access to admin login and signup pages (public pages)
+  if (pathname.startsWith("/admin/login") || pathname.startsWith("/admin/signup")) {
+    // Allow access to login/signup pages even if admin is logged in
+    // This allows admins to logout and login with different accounts
     return NextResponse.next();
   }
 
-  // If token exists, decode it to check role
-  const payload = decodeToken(token);
-  if (payload) {
-    const isAdmin = payload.isAdmin || payload.role === "admin";
+  // Check if accessing an admin route (protected routes only)
+  const isAdminRoute = adminRoutes.some((route) => pathname.startsWith(route));
 
-    // If admin is logged in, prevent access to customer routes
-    if (isAdmin && isCustomerRoute) {
-      return NextResponse.redirect(new URL("/admin/dashboard", request.url));
+  // Handle admin routes
+  if (isAdminRoute) {
+    if (!adminToken) {
+      // No admin token, redirect to admin login
+      return NextResponse.redirect(new URL("/admin/login", request.url));
     }
+    
+    // Verify admin token
+    const adminPayload = decodeToken(adminToken);
+    if (!adminPayload || (!adminPayload.isAdmin && adminPayload.role !== "admin")) {
+      // Invalid or non-admin token, clear it and redirect
+      const response = NextResponse.redirect(new URL("/admin/login", request.url));
+      response.cookies.delete("adminToken");
+      return response;
+    }
+    
+    // Valid admin token, allow access
+    return NextResponse.next();
+  }
 
-    // If regular user is logged in, prevent access to admin routes (except admin login/signup)
-    if (!isAdmin && isAdminRoute && !pathname.startsWith("/admin/login") && !pathname.startsWith("/admin/signup")) {
-      return NextResponse.redirect(new URL("/products", request.url));
-    }
-
-    // Redirect to dashboard if admin is logged in and tries to access login/signup pages
-    if (isAdmin && (pathname.startsWith("/admin/login") || pathname.startsWith("/admin/signup"))) {
-      return NextResponse.redirect(new URL("/admin/dashboard", request.url));
-    }
-  } else {
-    // Invalid token format - clear it and allow access
-    const response = NextResponse.next();
-    response.cookies.delete("token");
-    return response;
+  // Handle customer routes
+  if (isCustomerRoute) {
+    // Allow access to customer routes - user side is completely independent from admin side
+    // Users and admins use different tokens (userToken vs adminToken) and should not interfere
+    return NextResponse.next();
   }
 
   return NextResponse.next();

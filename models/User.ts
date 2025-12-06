@@ -10,7 +10,8 @@ const UserSchema = new Schema<IUser>(
     emailVerified: { type: Boolean, default: false },
     registered: { type: Boolean, default: false }, // true when user completed initial signup
     verificationToken: { type: String, default: null },
-    phone: { type: String, required: false }, 
+    phone: { type: String, required: false },
+    imageUrl: { type: String, required: false },
     addresses: [{
       street: { type: String, required: false },
       city: { type: String, required: false },

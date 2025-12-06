@@ -1,104 +1,88 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "@/components/user/Navbar";
 import Footer from "@/components/user/Footer";
 import Image from "next/image";
 import { Plus } from "lucide-react";
 import {
   Bucket1,
-  Bucket2,
-  Bucket3,
   FliterIcon,
   SortIcon
 } from "@/public/assets";
 import Link from "next/link";
-const page = () => {
-  const Data = [
-    {
-      id: 1,
-      image: Bucket1,
-      title: "Quartz Crystal Bowl",
-      description: "Premium healing bowl",
-      price: "₹1000"
-    },
-    {
-      id: 2,
-      image: Bucket2,
-      title: "Rose Quartz Bowl",
-      description: "Love & harmony bowl",
-      price: "₹2000"
-    },
-    {
-      id: 3,
-      image: Bucket3,
-      title: "Amethyst Crystal Bowl",
-      description: "Spiritual healing bowl",
-      price: "₹3000"
-    },
-    {
-      id: 4,
-      image: Bucket1,
-      title: "Clear Quartz Bowl",
-      description: "Energy cleansing bowl",
-      price: "₹1500"
-    },
-    {
-      id: 5,
-      image: Bucket2,
-      title: "Citrine Crystal Bowl",
-      description: "Abundance & joy bowl",
-      price: "₹2500"
-    },
-    {
-      id: 6,
-      image: Bucket3,
-      title: "Selenite Crystal Bowl",
-      description: "Purification bowl",
-      price: "₹3500"
-    },
-    {
-      id: 7,
-      image: Bucket1,
-      title: "Obsidian Crystal Bowl",
-      description: "Protection & grounding",
-      price: "₹1800"
-    },
-    {
-      id: 8,
-      image: Bucket2,
-      title: "Jade Crystal Bowl",
-      description: "Wisdom & balance bowl",
-      price: "₹2800"
-    },
-    {
-      id: 9,
-      image: Bucket3,
-      title: "Lapis Lazuli Bowl",
-      description: "Truth & intuition bowl",
-      price: "₹4000"
-    },
-    {
-      id: 10,
-      image: Bucket1,
-      title: "Tiger's Eye Bowl",
-      description: "Courage & strength bowl",
-      price: "₹2200"
-    },
-    {
-      id: 11,
-      image: Bucket2,
-      title: "Moonstone Crystal Bowl",
-      description: "Emotional healing bowl",
-      price: "₹3200"
-    },
-    {
-      id: 12,
-      image: Bucket3,
-      title: "Black Tourmaline Bowl",
-      description: "Energy protection bowl",
-      price: "₹4500"
+import { useCart } from "@/stores/useCart";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+
+type Product = {
+  _id: string;
+  name: string;
+  price: number;
+  createdAt: string;
+  description?: string;
+  imageUrl?: string[];
+  videoUrl?: string | string[];
+};
+
+const ShopPage = () => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { addItem } = useCart();
+  const router = useRouter();
+
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch("/api/products");
+      const data = await response.json();
+      if (data.success) {
+        setProducts(data.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch products:", error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  // Helper function to normalize image URL
+  const normalizeImageUrl = (url: string): string => {
+    if (!url) return "";
+    if (url.startsWith("data:image")) return url;
+    if (url.startsWith("http://") || url.startsWith("https://")) return url;
+    return `data:image/jpeg;base64,${url}`;
+  };
+
+  // Handle Add to Cart
+  const handleAddToCart = (e: React.MouseEvent, item: Product) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Check if user is logged in
+    const token = localStorage.getItem("userToken");
+    if (!token) {
+      toast.error("Please login to add items to cart");
+      router.push("/login");
+      return;
+    }
+
+    // Get first image URL for cart
+    const imageUrl = item.imageUrl && item.imageUrl.length > 0 
+      ? normalizeImageUrl(item.imageUrl[0])
+      : "";
+
+    addItem({
+      id: item._id,
+      name: item.name,
+      price: item.price, // Already in cents
+      imageUrl: imageUrl,
+    });
+
+    toast.success("Added to cart!");
+  };
 
   return (
     <div className=' bg-gradient-to-r from-[#FDECE2] to-[#FEC1A2] min-h-screen'>
@@ -128,42 +112,77 @@ const page = () => {
               </div>
             </div>
             <div className="flex  w-full bg-amber-100flex-col gap-12 md:gap-16 lg:gap-[80px]">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-[18px] w-full">
-                {Data.map((item) => (
-                  <Link 
-                    href={`/shop/${item.id}`} 
-                    key={item.id} 
-                    className="text-black group cursor-pointer"
-                  >
-                    <div className="relative w-full aspect-square">
-                      <Image
-                        src={item.image}
-                        alt={item.title}
-                        fill
-                        className="object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                    <div className="items-end justify-between  flex ">
-                      <div className="w-full">
-                        <p className="pt-4 sm:pt-6 md:pt-[28px] text-[14px] sm:text-[16px] md:text-[18px]">
-                          {item.title}
-                        </p>
-                        <p className="text-[12px]   w-full flex items-center justify-between sm:text-[13px] md:text-[14px]">
-                          {item.description}{" "}
-                          <span>
-                            <div className="border rounded-full">
-                              <Plus />
-                            </div>
-                          </span>
-                        </p>
-                        <p className="pt-3 sm:pt-4 md:pt-[18px] text-[10px] sm:text-[11px] md:text-[12px]">
-                          {item.price}
-                        </p>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
+              {loading ? (
+                <div className="text-center py-12 text-[#1C3163]">
+                  Loading products...
+                </div>
+              ) : products.length === 0 ? (
+                <div className="text-center py-12 text-[#1C3163]">
+                  No products available
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-[18px] w-full">
+                  {products.map((item) => {
+                    // Get first image or use placeholder
+                    const imageUrl = item.imageUrl && item.imageUrl.length > 0 
+                      ? item.imageUrl[0] 
+                      : null;
+                    // Convert price from cents to rupees
+                    const priceInRupees = (item.price / 100).toFixed(2);
+                    
+                    return (
+                      <Link 
+                        href={`/shop/${item._id}`} 
+                        key={item._id} 
+                        className="text-black group cursor-pointer"
+                      >
+                        <div className="relative w-full aspect-square">
+                          {imageUrl ? (
+                            <Image
+                              src={imageUrl.startsWith("data:") || imageUrl.startsWith("http") 
+                                ? imageUrl 
+                                : `data:image/jpeg;base64,${imageUrl}`}
+                              alt={item.name}
+                              fill
+                              className="object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
+                              unoptimized
+                            />
+                          ) : (
+                            <Image
+                              src={Bucket1}
+                              alt={item.name}
+                              fill
+                              className="object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
+                            />
+                          )}
+                        </div>
+                        <div className="items-end justify-between  flex ">
+                          <div className="w-full">
+                            <p className="pt-4 sm:pt-6 md:pt-[28px] text-[14px] sm:text-[16px] md:text-[18px]">
+                              {item.name}
+                            </p>
+                            <p className="text-[12px]   w-full flex items-center justify-between sm:text-[13px] md:text-[14px]">
+                              {item.description || "Premium product"}{" "}
+                              <span>
+                                <button
+                                  onClick={(e) => handleAddToCart(e, item)}
+                                  className="border rounded-full p-1 hover:bg-[#1C3163] hover:text-white transition-colors cursor-pointer"
+                                  aria-label="Add to cart"
+                                >
+                                  <Plus size={16} />
+                                </button>
+                              </span>
+                            </p>
+                            <p className="pt-3 sm:pt-4 md:pt-[18px] text-[10px] sm:text-[11px] md:text-[12px]">
+                              ₹{priceInRupees}
+                            </p>
+                          </div>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -174,4 +193,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default ShopPage;

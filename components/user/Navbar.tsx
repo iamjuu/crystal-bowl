@@ -5,21 +5,30 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { CryselLogo } from '@/public/assets'
-import { ShoppingCart } from 'lucide-react'
+import { ShoppingCart, User } from 'lucide-react'
 import { useCart } from '@/stores/useCart'
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isNavigating, setIsNavigating] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
   const { totalQuantity } = useCart()
   const [cartCount, setCartCount] = useState(0)
 
+  // Only render cart count after hydration to prevent mismatch
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   // Update cart count on client side only
   useEffect(() => {
-    setCartCount(totalQuantity())
-  }, [totalQuantity])
+    if (mounted) {
+      setCartCount(totalQuantity())
+    }
+  }, [totalQuantity, mounted])
+
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen)
@@ -156,6 +165,17 @@ const Navbar = () => {
               Book a Session
             </Link>
             
+            {/* Profile Icon - Always visible */}
+            <Link 
+              href="/profile" 
+              onClick={(e) => handleNavigation(e, '/profile')}
+              className={`relative text-[#D5B584] hover:text-white transition-all duration-300 hover:scale-110 ${
+                pathname === '/profile' ? 'text-white scale-110' : ''
+              }`}
+            >
+              <User size={24} />
+            </Link>
+            
             {/* Cart Icon */}
             <Link 
               href="/cart" 
@@ -163,7 +183,7 @@ const Navbar = () => {
               className="relative text-[#D5B584] hover:text-white transition-all duration-300 hover:scale-110"
             >
               <ShoppingCart size={24} />
-              {cartCount > 0 && (
+              {mounted && cartCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                   {cartCount}
                 </span>
@@ -187,6 +207,17 @@ const Navbar = () => {
           </Link>
 
           <div className="flex items-center gap-4">
+            {/* Profile Icon Mobile - Always visible */}
+            <Link 
+              href="/profile" 
+              onClick={(e) => handleNavigation(e, '/profile')}
+              className={`relative text-[#D5B584] hover:text-white transition-all duration-300 ${
+                pathname === '/profile' ? 'text-white' : ''
+              }`}
+            >
+              <User size={24} />
+            </Link>
+            
             {/* Cart Icon Mobile */}
             <Link 
               href="/cart" 
@@ -194,7 +225,7 @@ const Navbar = () => {
               className="relative text-[#D5B584] hover:text-white transition-all duration-300"
             >
               <ShoppingCart size={24} />
-              {cartCount > 0 && (
+              {mounted && cartCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                   {cartCount}
                 </span>

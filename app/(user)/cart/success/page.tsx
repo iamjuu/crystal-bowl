@@ -26,7 +26,7 @@ const SuccessPage = () => {
     // Verify the payment and create order
     const verifyPayment = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("userToken");
         const response = await fetch("/api/payment/verify-checkout", {
           method: "POST",
           headers: {

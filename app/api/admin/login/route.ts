@@ -13,9 +13,10 @@ export async function POST(req: NextRequest) {
 
     await connectDB();
 
+    // ONLY search in Administrator collection (not User collection)
     const admin = await Administrator.findOne({ email });
     if (!admin) {
-      return NextResponse.json({ success: false, message: "Invalid credentials" }, { status: 401 });
+      return NextResponse.json({ success: false, message: "Invalid admin credentials" }, { status: 401 });
     }
 
     const ok = await comparePassword(password, admin.password);
@@ -25,8 +26,10 @@ export async function POST(req: NextRequest) {
 
     const token = signToken({ userId: String(admin._id), role: "admin", isAdmin: true });
     const res = NextResponse.json({ success: true, data: { token, role: "admin" } });
+    
+    // Set admin-specific cookie (separate from user token)
     res.cookies.set({
-      name: "token",
+      name: "adminToken",
       value: token,
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

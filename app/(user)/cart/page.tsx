@@ -33,7 +33,7 @@ const CartPage = () => {
     }
 
     // Check if user is logged in
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("userToken");
     if (!token) {
       toast.error("Please login to proceed to checkout");
       router.push("/login");
@@ -192,7 +192,8 @@ const CartPage = () => {
                           <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
                             <button
                               onClick={() => decrement(item.id)}
-                              className="px-3 py-2 hover:bg-gray-100 transition-colors text-[#1C3163] font-medium"
+                              disabled={item.quantity === 1}
+                              className="px-3 py-2 hover:bg-gray-100 transition-colors text-[#1C3163] font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                               aria-label="Decrease quantity"
                             >
                               −

@@ -22,6 +22,7 @@ export interface IUser extends WithTimestamps {
   registered: boolean; // true when user completed initial signup process
   verificationToken?: string | null;
   phone?: string;
+  imageUrl?: string;
   addresses?: Array<{
     street?: string;
     city?: string;
@@ -44,6 +45,7 @@ export interface IAdministrator extends WithTimestamps {
   name: string;
   email: string;
   password: string;
+  imageUrl?: string;
 }
 
 export interface Product extends WithTimestamps {
@@ -52,7 +54,7 @@ export interface Product extends WithTimestamps {
   description: string;
   price: number; // smallest currency unit
   imageUrl: string[]; // Array of base64 image strings
-  videoUrl?: string; // Base64 video string or URL
+  videoUrl?: string | string[]; // Base64 video string(s) or URL(s) - supports up to 2 videos
 }
 
 export interface OrderItem {
@@ -87,6 +89,12 @@ export interface YogaSession extends WithTimestamps {
   sessionType?: "regular" | "corporate" | "private";
   sessionName?: string;
   duration?: number; // in minutes
+  title?: string;
+  description?: string;
+  imageUrl?: string;
+  videoUrl?: string;
+  format?: string;
+  benefits?: string[];
 }
 
 export type BookingStatus = "pending" | "confirmed" | "cancelled";

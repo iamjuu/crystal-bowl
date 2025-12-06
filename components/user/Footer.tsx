@@ -1,8 +1,8 @@
 'use client'
 
-import { FooterIcon1, FooterIcon2, FooterIcon3 } from "@/public/assets";
+import { FooterIcon1, FooterIcon2, FooterIcon3, WhatsAppIcon, FacebookIcon, YouTubeIcon, InstagramIcon } from "@/public/assets";
 import Image from "next/image";
-import { ArrowRight, ChevronDown, ArrowUp, Facebook, MessageCircle, Camera, Play } from "lucide-react";
+import { ArrowRight, ChevronDown, ArrowUp } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -166,31 +166,31 @@ mail@abcdefghijklmn.com                    </a>
                 <div className="flex gap-3">
                   <a
                     href="#"
-                    className="size-10 rounded-full border border-black flex items-center justify-center hover:bg-black/10 transition-colors"
+                    className="size-12 rounded-full border border-black flex items-center justify-center hover:bg-black/10 transition-colors"
                     aria-label="Facebook"
                   >
-                    <Facebook className="w-5 h-5 text-black" strokeWidth={1.5} />
+                    <Image src={FacebookIcon} alt="Facebook" className="w-5 h-5 brightness-0" />
                   </a>
                   <a
                     href="#"
-                    className="size-10 rounded-full border border-black flex items-center justify-center hover:bg-black/10 transition-colors"
+                    className="size-12 rounded-full border border-black flex items-center justify-center hover:bg-black/10 transition-colors"
                     aria-label="WhatsApp"
                   >
-                    <MessageCircle className="w-5 h-5 text-black" strokeWidth={1.5} />
+                    <Image src={WhatsAppIcon} alt="WhatsApp" className="w-5 h-5 brightness-0" />
                   </a>
                   <a
                     href="#"
-                    className="size-10 rounded-full border border-black flex items-center justify-center hover:bg-black/10 transition-colors"
+                    className="size-12 rounded-full border border-black flex items-center justify-center hover:bg-black/10 transition-colors"
                     aria-label="Instagram"
                   >
-                    <Camera className="w-5 h-5 text-black" strokeWidth={1.5} />
+                    <Image src={InstagramIcon} alt="Instagram" className="w-5 h-5 brightness-0" />
                   </a>
                   <a
                     href="#"
-                    className="size-10 rounded-full border border-black flex items-center justify-center hover:bg-black/10 transition-colors"
+                    className="size-12 rounded-full border border-black flex items-center justify-center hover:bg-black/10 transition-colors"
                     aria-label="YouTube"
                   >
-                    <Play className="w-5 h-5 text-black" strokeWidth={1.5} />
+                    <Image src={YouTubeIcon} alt="YouTube" className="w-5 h-5 brightness-0" />
                   </a>
                 </div>
                 

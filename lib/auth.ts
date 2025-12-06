@@ -61,12 +61,21 @@ export async function getAuthUser(req: NextRequest) {
     }
   }
   
-  // Fallback to cookie (for admin dashboard and server-side requests)
+  // Fallback to cookies (check both user and admin tokens)
   try {
     const cookieStore = await cookies();
-    const tokenFromCookie = cookieStore.get("token")?.value;
-    if (tokenFromCookie) {
-      return getAuthUserFromToken(tokenFromCookie);
+    
+    // Check admin token first (for admin routes)
+    const adminToken = cookieStore.get("adminToken")?.value;
+    if (adminToken) {
+      const user = await getAuthUserFromToken(adminToken);
+      if (user) return user;
+    }
+    
+    // Check user token (for user routes)
+    const userToken = cookieStore.get("token")?.value;
+    if (userToken) {
+      return getAuthUserFromToken(userToken);
     }
   } catch (error) {
     // cookies() might not be available in all contexts, ignore error

@@ -44,7 +44,7 @@ const BookPage = () => {
                 </div>
 
                 <div className="mt-4">
-                  <Link href="/calendar">
+                  <Link href="/discoveryappointment">
                     <button className="bg-[#1C3163] text-white px-8 py-4 rounded-lg text-[16px] sm:text-[18px] font-normal hover:bg-[#2a4580] transition-colors duration-300">
                       Book a Session
                     </button>

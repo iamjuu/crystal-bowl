@@ -37,18 +37,28 @@ export default function AdminLoginPage() {
         return;
       }
 
-      // Store token
-      if (data.data?.token) {
-        localStorage.setItem("token", data.data.token);
-        // Check if admin
-        if (data.data.role === "admin") {
-          router.push("/admin/dashboard");
-        } else {
-          setError("Access denied. Admin login required.");
-          localStorage.removeItem("token");
-        }
+      // Validate response data
+      if (!data.success || !data.data?.token || !data.data?.role) {
+        setError("Invalid response from server");
+        return;
       }
-    } catch (err) {
+
+      // Verify admin role before navigation
+      if (data.data.role !== "admin") {
+        setError("Access denied. Admin login required.");
+        return;
+      }
+
+      // Store token in localStorage (for client-side reference)
+      localStorage.setItem("adminToken", data.data.token);
+      localStorage.setItem("adminRole", "admin");
+
+      // Wait a bit for cookie to be set, then navigate
+      // The middleware will verify the cookie token
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      router.push("/admin/dashboard");
+    } catch {
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
@@ -98,7 +108,7 @@ export default function AdminLoginPage() {
         </button>
       </form>
       <p className="mt-4 text-center text-sm text-zinc-600">
-        Don't have an account?{" "}
+        Don&apos;t have an account?{" "}
         <Link href="/admin/signup" className="text-black underline">
           Sign Up
         </Link>

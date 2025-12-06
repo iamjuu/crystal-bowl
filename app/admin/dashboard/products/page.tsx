@@ -11,7 +11,7 @@ type Product = {
   createdAt: string;
   description?: string;
   imageUrl?: string[];
-  videoUrl?: string;
+  videoUrl?: string | string[];
 };
 
 export default function ProductsPage() {
