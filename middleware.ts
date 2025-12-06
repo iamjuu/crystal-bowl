@@ -14,7 +14,7 @@ function decodeToken(token: string): { userId?: string; role?: string; isAdmin?:
   }
 }
 
-// Routes that should be protected from admin access
+// Customer/User routes (public and protected)
 const customerRoutes = [
   "/products",
   "/cart",
@@ -42,13 +42,8 @@ export async function middleware(request: NextRequest) {
 
   // Allow access to admin login and signup pages (public pages)
   if (pathname.startsWith("/admin/login") || pathname.startsWith("/admin/signup")) {
-    // If admin is already logged in, redirect to dashboard
-    if (adminToken) {
-      const adminPayload = decodeToken(adminToken);
-      if (adminPayload?.isAdmin || adminPayload?.role === "admin") {
-        return NextResponse.redirect(new URL("/admin/dashboard", request.url));
-      }
-    }
+    // Allow access to login/signup pages even if admin is logged in
+    // This allows admins to logout and login with different accounts
     return NextResponse.next();
   }
 
@@ -77,15 +72,8 @@ export async function middleware(request: NextRequest) {
 
   // Handle customer routes
   if (isCustomerRoute) {
-    // If admin is logged in, redirect to admin dashboard
-    if (adminToken) {
-      const adminPayload = decodeToken(adminToken);
-      if (adminPayload?.isAdmin || adminPayload?.role === "admin") {
-        return NextResponse.redirect(new URL("/admin/dashboard", request.url));
-      }
-    }
-    
-    // Allow access to customer routes (with or without user token)
+    // Allow access to customer routes - user side is completely independent from admin side
+    // Users and admins use different tokens (userToken vs adminToken) and should not interfere
     return NextResponse.next();
   }
 
