@@ -27,11 +27,19 @@ const FormPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // All form submissions will show in corporate tab
-    const sessionType = 'corporate'
+    // Determine sessionType based on selected service
+    let sessionType: 'discovery' | 'private' | 'corporate' = 'corporate'
+    
+    if (formData.services === 'discovery') {
+      sessionType = 'discovery'
+    } else if (['sound-healing', 'meditation', 'yoga', 'crystal-therapy'].includes(formData.services)) {
+      sessionType = 'private'
+    } else {
+      sessionType = 'corporate'
+    }
     
     try {
-      const response = await fetch('/api/enquiries?type=corporate', {
+      const response = await fetch('/api/enquiries', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

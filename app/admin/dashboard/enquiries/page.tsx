@@ -1,5 +1,6 @@
 "use client";
 
+import { config } from "@/middleware";
 import { useState, useEffect } from "react";
 
 type TabType = "discovery" | "private" | "corporate";
@@ -39,6 +40,7 @@ export default function EnquiriesPage() {
       setLoading(true);
       const response = await fetch("/api/enquiries");
       const data = await response.json();
+      console.log("Enquiries API response:", data);
       
       if (data.success && data.data) {
         setEnquiries(data.data);
@@ -302,10 +304,54 @@ export default function EnquiriesPage() {
                                 </div>
                                 {enquiry.comment && (
                                   <div className="pt-2">
-                                    <p className="text-xs text-zinc-500 mb-1">Comment</p>
-                                    <p className="text-sm text-zinc-300 bg-zinc-800 p-3 rounded-md">
-                                      {enquiry.comment}
+                                    <p className="text-xs text-zinc-500 mb-1">
+                                      {enquiry.sessionType === 'discovery' ? 'Discovery Form Details' : 'Comment'}
                                     </p>
+                                    <div className="text-sm text-zinc-300 bg-zinc-800 p-3 rounded-md">
+                                      {enquiry.sessionType === 'discovery' ? (
+                                        (() => {
+                                          try {
+                                            const discoveryData = JSON.parse(enquiry.comment);
+                                            return (
+                                              <div className="space-y-3">
+                                                <div>
+                                                  <p className="text-xs text-zinc-400 mb-1">Appointment Date & Time</p>
+                                                  <p className="text-white">{discoveryData.selectedDate} at {discoveryData.selectedTime}</p>
+                                                </div>
+                                                <div>
+                                                  <p className="text-xs text-zinc-400 mb-1">Has Crystal Bowls</p>
+                                                  <p className="text-white">{discoveryData.hasCrystalBowls || 'Not specified'}</p>
+                                                </div>
+                                                {discoveryData.notesAndAlchemies && (
+                                                  <div>
+                                                    <p className="text-xs text-zinc-400 mb-1">Notes and Alchemies</p>
+                                                    <p className="text-white">{discoveryData.notesAndAlchemies}</p>
+                                                  </div>
+                                                )}
+                                                <div>
+                                                  <p className="text-xs text-zinc-400 mb-1">Experience Level</p>
+                                                  <p className="text-white">{discoveryData.experienceLevel?.join(', ') || 'Not specified'}</p>
+                                                </div>
+                                                <div>
+                                                  <p className="text-xs text-zinc-400 mb-1">Main Intention</p>
+                                                  <p className="text-white">{discoveryData.mainIntention?.join(', ') || 'Not specified'}</p>
+                                                </div>
+                                                {discoveryData.soundOrEnergy && (
+                                                  <div>
+                                                    <p className="text-xs text-zinc-400 mb-1">Sound or Energy Looking For</p>
+                                                    <p className="text-white">{discoveryData.soundOrEnergy}</p>
+                                                  </div>
+                                                )}
+                                              </div>
+                                            );
+                                          } catch {
+                                            return <p>{enquiry.comment}</p>;
+                                          }
+                                        })()
+                                      ) : (
+                                        <p>{enquiry.comment}</p>
+                                      )}
+                                    </div>
                                   </div>
                                 )}
                               </div>

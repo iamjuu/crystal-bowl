@@ -11,22 +11,25 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { fullName, address, dateOfBirth, services, phone, email, comment, sessionType } = body;
 
-    // Validate required fields
-    if (!fullName || !address || !dateOfBirth || !services || !phone || !email) {
-      return NextResponse.json(
-        { success: false, message: "All required fields must be provided" },
-        { status: 400 }
-      );
+    // For discovery appointments, user info fields are optional
+    // For other types, validate required fields
+    if (sessionType !== "discovery") {
+      if (!fullName || !address || !dateOfBirth || !services || !phone || !email) {
+        return NextResponse.json(
+          { success: false, message: "All required fields must be provided" },
+          { status: 400 }
+        );
+      }
     }
 
-    // Create new enquiry
+    // Create new enquiry (use defaults for discovery if fields are missing)
     const enquiry = await SessionEnquiry.create({
-      fullName,
-      address,
-      dateOfBirth,
-      services,
-      phone,
-      email,
+      fullName: fullName || "Discovery Appointment",
+      address: address || "N/A",
+      dateOfBirth: dateOfBirth || "N/A",
+      services: services || "Discovery Session",
+      phone: phone || "N/A",
+      email: email || "discovery@example.com",
       comment: comment || "",
       status: "pending",
       sessionType: sessionType || "corporate",
