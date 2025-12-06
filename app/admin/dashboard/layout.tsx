@@ -24,13 +24,15 @@ const navItems = [
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const cookieStore = await cookies();
-  const tokenCookie = cookieStore.get("token");
-  const token = tokenCookie?.value;
-  if (!token) {
+  // Check for adminToken cookie (admin-specific)
+  const adminTokenCookie = cookieStore.get("adminToken");
+  const adminToken = adminTokenCookie?.value;
+  
+  if (!adminToken) {
     redirect("/admin/login");
   }
 
-  const user = await getAuthUserFromToken(token);
+  const user = await getAuthUserFromToken(adminToken);
   if (!user || user.role !== "admin") {
     redirect("/admin/login");
   }

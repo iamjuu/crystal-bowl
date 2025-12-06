@@ -41,7 +41,7 @@ export default function ProfilePage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
 
   useEffect(() => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const token = typeof window !== "undefined" ? localStorage.getItem("userToken") : null;
     if (!token) {
       router.push("/login");
       return;
@@ -159,7 +159,7 @@ export default function ProfilePage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const token = typeof window !== "undefined" ? localStorage.getItem("userToken") : null;
     if (!token) {
       router.push("/login");
       return;
@@ -214,15 +214,29 @@ export default function ProfilePage() {
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+      // Call user-specific logout endpoint
+      await fetch("/api/user/logout", { 
+        method: "POST", 
+        credentials: "include" 
+      });
     } catch (err) {
-      console.error("Logout error");
+      console.error("Logout error:", err);
     } finally {
-      localStorage.removeItem("token");
+      // Clear all user auth data from localStorage
+      localStorage.removeItem("userToken");
+      localStorage.removeItem("userRole");
       localStorage.removeItem("user");
+      
+      // Dispatch logout event for Navbar
+      window.dispatchEvent(new Event("logout"));
+      
       toast.success("Logged out successfully");
       router.push("/");
-      router.refresh();
+      
+      // Force a hard refresh to clear any cached state
+      setTimeout(() => {
+        router.refresh();
+      }, 100);
     }
   };
 

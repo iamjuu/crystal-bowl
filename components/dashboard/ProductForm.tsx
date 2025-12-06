@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 
 type ProductFormProps = {
@@ -9,7 +10,7 @@ type ProductFormProps = {
     description?: string;
     price?: string;
     imageUrl?: string[];
-    videoUrl?: string;
+    videoUrl?: string | string[];
   };
   onComplete?: () => void;
   onCancel?: () => void;
@@ -26,7 +27,11 @@ export default function ProductForm({ productId, initialData, onComplete, onCanc
     description: initialData?.description || "",
     price: initialData?.price || "",
     images: initialData?.imageUrl || [] as string[],
-    video: initialData?.videoUrl || "",
+    videos: Array.isArray(initialData?.videoUrl) 
+      ? initialData.videoUrl 
+      : initialData?.videoUrl 
+        ? [initialData.videoUrl] 
+        : [] as string[],
   });
 
   // Helper to convert base64 string to data URL if needed
@@ -42,10 +47,11 @@ export default function ProductForm({ productId, initialData, onComplete, onCanc
     return existing.map(normalizeImageUrl);
   });
 
-  // Track number of image fields to show
+  // Track number of image fields to show (max 3)
+  const MAX_IMAGES = 3;
   const [imageFieldCount, setImageFieldCount] = useState(() => {
     const existing = initialData?.imageUrl || [];
-    return Math.max(1, existing.length); // At least 1 field, or more if editing with existing images
+    return Math.max(1, Math.min(MAX_IMAGES, existing.length)); // At least 1 field, max 3
   });
 
   // Helper to normalize video URL
@@ -56,8 +62,24 @@ export default function ProductForm({ productId, initialData, onComplete, onCanc
     return `data:video/mp4;base64,${url}`;
   };
 
-  const [uploadedVideo, setUploadedVideo] = useState<string>(() => {
-    return normalizeVideoUrl(initialData?.videoUrl || "");
+  // Track number of video fields to show (max 2)
+  const MAX_VIDEOS = 2;
+  const [videoFieldCount, setVideoFieldCount] = useState(() => {
+    const existing = Array.isArray(initialData?.videoUrl) 
+      ? initialData.videoUrl 
+      : initialData?.videoUrl 
+        ? [initialData.videoUrl] 
+        : [];
+    return Math.max(0, Math.min(MAX_VIDEOS, existing.length)); // Max 2 videos
+  });
+
+  const [uploadedVideos, setUploadedVideos] = useState<string[]>(() => {
+    const existing = Array.isArray(initialData?.videoUrl) 
+      ? initialData.videoUrl 
+      : initialData?.videoUrl 
+        ? [initialData.videoUrl] 
+        : [];
+    return existing.map(normalizeVideoUrl);
   });
 
   // Helper function to compress and convert image to base64
@@ -161,13 +183,26 @@ export default function ProductForm({ productId, initialData, onComplete, onCanc
   };
 
   const handleAddImageField = () => {
-    setImageFieldCount(imageFieldCount + 1);
+    if (imageFieldCount < MAX_IMAGES) {
+      setImageFieldCount(imageFieldCount + 1);
+    } else {
+      alert(`Maximum ${MAX_IMAGES} images allowed`);
+    }
   };
 
-  const handleVideoUpload = (file: File | null) => {
+  const handleVideoUpload = (index: number, file: File | null) => {
     if (!file) {
-      setUploadedVideo("");
-      setFormData({ ...formData, video: "" });
+      const newVideos = [...uploadedVideos];
+      const newFormVideos = [...formData.videos];
+      newVideos.splice(index, 1);
+      newFormVideos.splice(index, 1);
+      setUploadedVideos(newVideos);
+      setFormData({ ...formData, videos: newFormVideos });
+      
+      // If removing the last video and there are multiple fields, reduce field count
+      if (index === videoFieldCount - 1 && videoFieldCount > 0) {
+        setVideoFieldCount(videoFieldCount - 1);
+      }
       return;
     }
 
@@ -181,13 +216,48 @@ export default function ProductForm({ productId, initialData, onComplete, onCanc
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64String = reader.result as string;
-      setUploadedVideo(base64String);
-      setFormData({ ...formData, video: base64String });
+      const newVideos = [...uploadedVideos];
+      const newFormVideos = [...formData.videos];
+      
+      while (newVideos.length <= index) {
+        newVideos.push("");
+        newFormVideos.push("");
+      }
+      
+      newVideos[index] = base64String;
+      newFormVideos[index] = base64String;
+      
+      setUploadedVideos(newVideos);
+      setFormData({ ...formData, videos: newFormVideos });
     };
     reader.onerror = () => {
       alert("Failed to read video file. Please try again.");
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleAddVideoField = () => {
+    if (videoFieldCount < MAX_VIDEOS) {
+      setVideoFieldCount(videoFieldCount + 1);
+    } else {
+      alert(`Maximum ${MAX_VIDEOS} videos allowed`);
+    }
+  };
+
+  const handleVideoUrlChange = (index: number, url: string) => {
+    const newVideos = [...uploadedVideos];
+    const newFormVideos = [...formData.videos];
+    
+    while (newVideos.length <= index) {
+      newVideos.push("");
+      newFormVideos.push("");
+    }
+    
+    newVideos[index] = url;
+    newFormVideos[index] = url;
+    
+    setUploadedVideos(newVideos);
+    setFormData({ ...formData, videos: newFormVideos });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -221,6 +291,18 @@ export default function ProductForm({ productId, initialData, onComplete, onCanc
       return;
     }
 
+    if (formData.images.length > MAX_IMAGES) {
+      setError(`Maximum ${MAX_IMAGES} images allowed`);
+      setLoading(false);
+      return;
+    }
+
+    if (formData.videos.length > MAX_VIDEOS) {
+      setError(`Maximum ${MAX_VIDEOS} videos allowed`);
+      setLoading(false);
+      return;
+    }
+
     try {
       const url = isEdit 
         ? `/api/admin/products/${productId}`
@@ -238,7 +320,7 @@ export default function ProductForm({ productId, initialData, onComplete, onCanc
           description: formData.description.trim(),
           price: formData.price,
           imageUrl: formData.images,
-          videoUrl: formData.video || undefined,
+          videoUrl: formData.videos.length > 0 ? formData.videos : undefined,
         }),
       });
 
@@ -315,7 +397,7 @@ export default function ProductForm({ productId, initialData, onComplete, onCanc
           Product Images <span className="text-red-500">*</span>
         </label>
         <p className="text-xs text-zinc-400 mb-2">
-          At least one image is required. Click &quot;Add Image&quot; to add more.
+          At least one image is required. Maximum {MAX_IMAGES} images allowed.
         </p>
         <div className="space-y-4">
           {Array.from({ length: imageFieldCount }).map((_, index) => (
@@ -338,9 +420,11 @@ export default function ProductForm({ productId, initialData, onComplete, onCanc
               />
               {uploadedImages[index] && (
                 <div className="relative  w-full h-32 max-w-[200px] rounded-md border border-zinc-600 overflow-hidden  bg-zinc-900">
-                  <img
+                  <Image
                     src={normalizeImageUrl(uploadedImages[index])}
                     alt={index === 0 ? "Main Preview" : `Preview ${index + 1}`}
+                    width={200}
+                    height={128}
                     className="w-full h-full object-contain"
                     onError={(e) => {
                       e.currentTarget.style.display = "none";
@@ -358,70 +442,89 @@ export default function ProductForm({ productId, initialData, onComplete, onCanc
               )}
             </div>
           ))}
-          <button
-            type="button"
-            onClick={handleAddImageField}
-            className="inline-flex items-center justify-center rounded-md border border-zinc-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
-          >
-            + Add Image
-          </button>
+          {imageFieldCount < MAX_IMAGES && (
+            <button
+              type="button"
+              onClick={handleAddImageField}
+              className="inline-flex items-center justify-center rounded-md border border-zinc-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+            >
+              + Add Image ({imageFieldCount}/{MAX_IMAGES})
+            </button>
+          )}
         </div>
       </div>
 
       <div className="space-y-1">
-        <label htmlFor="product-video" className="text-sm font-medium text-white">
-          Product Video (Optional)
+        <label className="text-sm font-medium text-white">
+          Product Videos (Optional)
         </label>
         <p className="text-xs text-zinc-400 mb-2">
-          Upload a video file (max 50MB) or enter a video URL (YouTube, Vimeo, etc.)
+          Upload video files (max 50MB each) or enter video URLs (YouTube, Vimeo, etc.). Maximum {MAX_VIDEOS} videos allowed.
         </p>
-        <div className="space-y-2">
-          <input
-            id="product-video-file"
-            type="file"
-            accept="video/*"
-            className="w-full rounded-md border border-zinc-600 bg-zinc-900 px-3 py-2 text-sm text-white focus:border-white focus:outline-none"
-            onChange={(e) => {
-              const file = e.target.files?.[0] || null;
-              handleVideoUpload(file);
-            }}
-          />
-          <input
-            id="product-video-url"
-            type="text"
-            value={formData.video && !formData.video.startsWith("data:") ? formData.video : ""}
-            onChange={(e) => {
-              const url = e.target.value;
-              setFormData({ ...formData, video: url });
-              setUploadedVideo(url);
-            }}
-            className="w-full rounded-md border border-zinc-600 bg-zinc-900 px-3 py-2 text-sm text-white focus:border-white focus:outline-none"
-            placeholder="Or enter video URL (e.g., https://youtube.com/watch?v=...)"
-          />
-          {uploadedVideo && (
-            <div className="relative w-full rounded-md border border-zinc-600 overflow-hidden bg-zinc-900">
-              {uploadedVideo.startsWith("data:video") ? (
-                <video
-                  src={normalizeVideoUrl(uploadedVideo)}
-                  controls
-                  className="w-full max-h-64 object-contain"
-                >
-                  Your browser does not support the video tag.
-                </video>
-              ) : uploadedVideo.startsWith("http://") || uploadedVideo.startsWith("https://") ? (
-                <div className="p-4 text-sm text-zinc-400">
-                  Video URL: <span className="text-white break-all">{uploadedVideo}</span>
-                </div>
-              ) : null}
-              <button
-                type="button"
-                onClick={() => handleVideoUpload(null)}
-                className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 z-10"
-                title="Remove video"
+        <div className="space-y-4">
+          {Array.from({ length: videoFieldCount }).map((_, index) => (
+            <div key={index} className="space-y-2">
+              <label
+                htmlFor={`product-video-file-${index}`}
+                className="block text-xs text-zinc-400"
               >
-                ×
-              </button>
+                Video {index + 1}
+              </label>
+              <input
+                id={`product-video-file-${index}`}
+                type="file"
+                accept="video/*"
+                className="w-full rounded-md border border-zinc-600 bg-zinc-900 px-3 py-2 text-sm text-white focus:border-white focus:outline-none"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] || null;
+                  handleVideoUpload(index, file);
+                }}
+              />
+              <input
+                id={`product-video-url-${index}`}
+                type="text"
+                value={uploadedVideos[index] && !uploadedVideos[index].startsWith("data:") ? uploadedVideos[index] : ""}
+                onChange={(e) => {
+                  handleVideoUrlChange(index, e.target.value);
+                }}
+                className="w-full rounded-md border border-zinc-600 bg-zinc-900 px-3 py-2 text-sm text-white focus:border-white focus:outline-none"
+                placeholder="Or enter video URL (e.g., https://youtube.com/watch?v=...)"
+              />
+              {uploadedVideos[index] && (
+                <div className="relative w-full rounded-md border border-zinc-600 overflow-hidden bg-zinc-900">
+                  {uploadedVideos[index].startsWith("data:video") ? (
+                    <video
+                      src={normalizeVideoUrl(uploadedVideos[index])}
+                      controls
+                      className="w-full max-h-64 object-contain"
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  ) : uploadedVideos[index].startsWith("http://") || uploadedVideos[index].startsWith("https://") ? (
+                    <div className="p-4 text-sm text-zinc-400">
+                      Video URL: <span className="text-white break-all">{uploadedVideos[index]}</span>
+                    </div>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={() => handleVideoUpload(index, null)}
+                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 z-10"
+                    title="Remove video"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
             </div>
+          ))}
+          {videoFieldCount < MAX_VIDEOS && (
+            <button
+              type="button"
+              onClick={handleAddVideoField}
+              className="inline-flex items-center justify-center rounded-md border border-zinc-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+            >
+              + Add Video ({videoFieldCount}/{MAX_VIDEOS})
+            </button>
           )}
         </div>
       </div>

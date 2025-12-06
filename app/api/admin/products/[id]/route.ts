@@ -50,7 +50,16 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
       updateData.price = priceInCents;
     }
     if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
-    if (videoUrl !== undefined) updateData.videoUrl = videoUrl ? String(videoUrl).trim() : "";
+    if (videoUrl !== undefined) {
+      // Handle videoUrl - can be string or array
+      if (Array.isArray(videoUrl)) {
+        updateData.videoUrl = videoUrl.filter(v => v && String(v).trim()).map(v => String(v).trim());
+      } else if (videoUrl) {
+        updateData.videoUrl = [String(videoUrl).trim()];
+      } else {
+        updateData.videoUrl = [];
+      }
+    }
 
     const updated = await Product.findByIdAndUpdate(id, updateData, { new: true });
     

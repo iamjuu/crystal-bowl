@@ -9,14 +9,14 @@ export function useAuthSync() {
 
   useEffect(() => {
     // Check authentication on mount
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const token = typeof window !== "undefined" ? localStorage.getItem("userToken") : null;
     if (!token) {
       clearCart();
     }
 
     // Listen for token removal (logout)
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "token" && !e.newValue) {
+      if (e.key === "userToken" && !e.newValue) {
         clearCart();
       }
     };

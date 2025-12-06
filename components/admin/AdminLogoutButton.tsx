@@ -10,16 +10,26 @@ export default function AdminLogoutButton() {
   const handleLogout = () => {
     startTransition(async () => {
       try {
-        await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-      } catch {
-        // ignore network errors, we'll still clear local state
+        // Call admin-specific logout endpoint
+        await fetch("/api/admin/logout", { 
+          method: "POST", 
+          credentials: "include" 
+        });
+      } catch (error) {
+        console.error("Logout error:", error);
       } finally {
-        // Clear all auth data
-        localStorage.removeItem("token");
+        // Clear all admin auth data from localStorage
+        localStorage.removeItem("adminToken");
+        localStorage.removeItem("adminRole");
         localStorage.removeItem("user");
-        // Redirect to home page (admin can now access any page)
-        router.push("/");
-        router.refresh();
+        
+        // Redirect to admin login page
+        router.push("/admin/login");
+        
+        // Force a hard refresh to clear any cached state
+        setTimeout(() => {
+          router.refresh();
+        }, 100);
       }
     });
   };

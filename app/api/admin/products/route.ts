@@ -35,12 +35,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Handle videoUrl - can be string or array
+    let processedVideoUrl: string | string[] = [];
+    if (videoUrl) {
+      if (Array.isArray(videoUrl)) {
+        processedVideoUrl = videoUrl.filter(v => v && String(v).trim()).map(v => String(v).trim());
+      } else {
+        processedVideoUrl = [String(videoUrl).trim()];
+      }
+    }
+
     const product = await Product.create({
       name: String(name).trim(),
       description: String(description).trim(),
       price: priceInCents,
       imageUrl: imageUrl,
-      videoUrl: videoUrl ? String(videoUrl).trim() : "",
+      videoUrl: processedVideoUrl.length > 0 ? processedVideoUrl : [],
     });
 
     return NextResponse.json(

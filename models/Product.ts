@@ -6,8 +6,8 @@ const ProductSchema = new Schema<ProductType>(
     name: { type: String, required: true },
     description: { type: String, required: true },
     price: { type: Number, required: true },
-    imageUrl: { type: [String], default: [] } as any, // Array of base64 image strings
-    videoUrl: { type: String, default: "" } as any, // Base64 video string or URL
+    imageUrl: { type: [String], default: [] } as any, // Array of base64 image strings (max 3)
+    videoUrl: { type: Schema.Types.Mixed, default: [] } as any, // Can be string or array of strings (max 2 videos)
   },
   { timestamps: true }
 );

@@ -54,7 +54,7 @@ export interface Product extends WithTimestamps {
   description: string;
   price: number; // smallest currency unit
   imageUrl: string[]; // Array of base64 image strings
-  videoUrl?: string; // Base64 video string or URL
+  videoUrl?: string | string[]; // Base64 video string(s) or URL(s) - supports up to 2 videos
 }
 
 export interface OrderItem {

@@ -1,181 +1,224 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Navbar from "@/components/user/Navbar";
 import Footer from "@/components/user/Footer";
 import Image from "next/image";
 import { Plus } from "lucide-react";
-import { Bucket1, Bucket2, Bucket3 } from "@/public/assets";
+import { Bucket1 } from "@/public/assets";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useCart } from "@/stores/useCart";
 import toast from "react-hot-toast";
 
+type Product = {
+  _id: string;
+  name: string;
+  price: number;
+  createdAt: string;
+  description?: string;
+  imageUrl?: string[];
+  videoUrl?: string | string[];
+};
+
+// Magnifier Component
+const ImageMagnifier = ({ src, alt }: { src: string; alt: string }) => {
+  const [magnifierStyle, setMagnifierStyle] = useState<React.CSSProperties>({});
+  const [showMagnifier, setShowMagnifier] = useState(false);
+  const imgRef = useRef<HTMLDivElement>(null);
+  const magnifierRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
+    setShowMagnifier(true);
+    updateMagnifier(e);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    updateMagnifier(e);
+  };
+
+  const handleMouseLeave = () => {
+    setShowMagnifier(false);
+  };
+
+  const updateMagnifier = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!imgRef.current) return;
+    
+    const rect = imgRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const percentX = (x / rect.width) * 100;
+    const percentY = (y / rect.height) * 100;
+
+    // Position magnifier relative to viewport to avoid overflow clipping
+    const magnifierX = e.clientX;
+    const magnifierY = e.clientY;
+
+    setMagnifierStyle({
+      display: "block",
+      left: `${magnifierX}px`,
+      top: `${magnifierY}px`,
+      backgroundImage: `url(${src})`,
+      backgroundPosition: `${percentX}% ${percentY}%`,
+      backgroundSize: "200%",
+    });
+  };
+
+  return (
+    <>
+      <div
+        ref={imgRef}
+        className="relative w-full h-full cursor-zoom-in"
+        onMouseEnter={handleMouseEnter}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+      >
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          className="object-cover"
+          unoptimized
+        />
+      </div>
+      {showMagnifier && (
+        <div
+          ref={magnifierRef}
+          className="fixed pointer-events-none rounded-full shadow-2xl z-50"
+          style={{
+            ...magnifierStyle,
+            width: "200px",
+            height: "200px",
+            transform: "translate(-50%, -50%)",
+            borderRadius: "50%",
+            border: "4px solid rgba(255, 255, 255, 0.9)",
+            boxShadow: "0 0 30px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 0, 0, 0.1)",
+            backgroundRepeat: "no-repeat",
+          }}
+        />
+      )}
+    </>
+  );
+};
+
 const ProductDetailPage = () => {
   const params = useParams();
   const router = useRouter();
-  const productId = params.id;
+  const productId = params.id as string;
   const [selectedImage, setSelectedImage] = useState(0);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const { addItem } = useCart();
 
-  // Sample product data - in a real app, this would come from an API or database
-  const allProducts = [
-    {
-      id: 1,
-      image: Bucket1,
-      title: "Pro Sage Aura Blue Crystal Singing Bowl",
-      description: "Premium healing bowl",
-      price: "₹1000",
-      fullDescription:
-        "Lorem ipsum dolor sit amet, consectetur. Pretium eget imperdiet volutpat odio. Ut cursus diam. Eget aliquam et ut morbi. Nunc, at sit lacus, diam. Nunc, at sit lacus, diam. Mus ut id tincidunt turpis.",
-      images: [Bucket1, Bucket2, Bucket3, Bucket1]
-    },
-    {
-      id: 2,
-      image: Bucket2,
-      title: "Rose Quartz Bowl",
-      description: "Love & harmony bowl",
-      price: "₹000",
-      fullDescription:
-        "Lorem ipsum dolor sit amet, consectetur. Pretium eget imperdiet volutpat odio. Ut cursus diam. Eget aliquam et ut morbi. Nunc, at sit lacus, diam. Nunc, at sit lacus, diam. Mus ut id tincidunt turpis.",
-      images: [Bucket2, Bucket1, Bucket3, Bucket2]
-    },
-    {
-      id: 3,
-      image: Bucket3,
-      title: "Amethyst Crystal Bowl",
-      description: "Spiritual healing bowl",
-      price: "₹3000",
-      fullDescription:
-        "Lorem ipsum dolor sit amet, consectetur. Pretium eget imperdiet volutpat odio. Ut cursus diam. Eget aliquam et ut morbi. Nunc, at sit lacus, diam. Nunc, at sit lacus, diam. Mus ut id tincidunt turpis.",
-      images: [Bucket3, Bucket1, Bucket2, Bucket3]
-    },
-    {
-      id: 4,
-      image: Bucket1,
-      title: "Clear Quartz Bowl",
-      description: "Energy cleansing bowl",
-      price: "₹1500",
-      fullDescription:
-        "Lorem ipsum dolor sit amet, consectetur. Pretium eget imperdiet volutpat odio. Ut cursus diam. Eget aliquam et ut morbi. Nunc, at sit lacus, diam. Nunc, at sit lacus, diam. Mus ut id tincidunt turpis.",
-      images: [Bucket1, Bucket2, Bucket3, Bucket1]
-    },
-    {
-      id: 5,
-      image: Bucket2,
-      title: "Citrine Crystal Bowl",
-      description: "Abundance & joy bowl",
-      price: "₹2500",
-      fullDescription:
-        "Lorem ipsum dolor sit amet, consectetur. Pretium eget imperdiet volutpat odio. Ut cursus diam. Eget aliquam et ut morbi. Nunc, at sit lacus, diam. Nunc, at sit lacus, diam. Mus ut id tincidunt turpis.",
-      images: [Bucket2, Bucket1, Bucket3, Bucket2]
-    },
-    {
-      id: 6,
-      image: Bucket3,
-      title: "Selenite Crystal Bowl",
-      description: "Purification bowl",
-      price: "₹3500",
-      fullDescription:
-        "Lorem ipsum dolor sit amet, consectetur. Pretium eget imperdiet volutpat odio. Ut cursus diam. Eget aliquam et ut morbi. Nunc, at sit lacus, diam. Nunc, at sit lacus, diam. Mus ut id tincidunt turpis.",
-      images: [Bucket3, Bucket1, Bucket2, Bucket3]
-    },
-    {
-      id: 7,
-      image: Bucket1,
-      title: "Obsidian Crystal Bowl",
-      description: "Protection & grounding",
-      price: "₹1800",
-      fullDescription:
-        "Lorem ipsum dolor sit amet, consectetur. Pretium eget imperdiet volutpat odio. Ut cursus diam. Eget aliquam et ut morbi. Nunc, at sit lacus, diam. Nunc, at sit lacus, diam. Mus ut id tincidunt turpis.",
-      images: [Bucket1, Bucket2, Bucket3, Bucket1]
-    },
-    {
-      id: 8,
-      image: Bucket2,
-      title: "Jade Crystal Bowl",
-      description: "Wisdom & balance bowl",
-      price: "₹2800",
-      fullDescription:
-        "Lorem ipsum dolor sit amet, consectetur. Pretium eget imperdiet volutpat odio. Ut cursus diam. Eget aliquam et ut morbi. Nunc, at sit lacus, diam. Nunc, at sit lacus, diam. Mus ut id tincidunt turpis.",
-      images: [Bucket2, Bucket1, Bucket3, Bucket2]
-    },
-    {
-      id: 9,
-      image: Bucket3,
-      title: "Lapis Lazuli Bowl",
-      description: "Truth & intuition bowl",
-      price: "₹4000",
-      fullDescription:
-        "Lorem ipsum dolor sit amet, consectetur. Pretium eget imperdiet volutpat odio. Ut cursus diam. Eget aliquam et ut morbi. Nunc, at sit lacus, diam. Nunc, at sit lacus, diam. Mus ut id tincidunt turpis.",
-      images: [Bucket3, Bucket1, Bucket2, Bucket3]
-    },
-    {
-      id: 10,
-      image: Bucket1,
-      title: "Tiger's Eye Bowl",
-      description: "Courage & strength bowl",
-      price: "₹2200",
-      fullDescription:
-        "Lorem ipsum dolor sit amet, consectetur. Pretium eget imperdiet volutpat odio. Ut cursus diam. Eget aliquam et ut morbi. Nunc, at sit lacus, diam. Nunc, at sit lacus, diam. Mus ut id tincidunt turpis.",
-      images: [Bucket1, Bucket2, Bucket3, Bucket1]
-    },
-    {
-      id: 11,
-      image: Bucket2,
-      title: "Moonstone Crystal Bowl",
-      description: "Emotional healing bowl",
-      price: "₹3200",
-      fullDescription:
-        "Lorem ipsum dolor sit amet, consectetur. Pretium eget imperdiet volutpat odio. Ut cursus diam. Eget aliquam et ut morbi. Nunc, at sit lacus, diam. Nunc, at sit lacus, diam. Mus ut id tincidunt turpis.",
-      images: [Bucket2, Bucket1, Bucket3, Bucket2]
-    },
-    {
-      id: 12,
-      image: Bucket3,
-      title: "Black Tourmaline Bowl",
-      description: "Energy protection bowl",
-      price: "₹4500",
-      fullDescription:
-        "Lorem ipsum dolor sit amet, consectetur. Pretium eget imperdiet volutpat odio. Ut cursus diam. Eget aliquam et ut morbi. Nunc, at sit lacus, diam. Nunc, at sit lacus, diam. Mus ut id tincidunt turpis.",
-      images: [Bucket3, Bucket1, Bucket2, Bucket3]
+  const fetchProduct = async () => {
+    try {
+      const response = await fetch(`/api/products/${productId}`);
+      const data = await response.json();
+      if (data.success) {
+        setProduct(data.data);
+      } else {
+        router.push("/shop");
+      }
+    } catch (error) {
+      console.error("Failed to fetch product:", error);
+      router.push("/shop");
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  const product = allProducts.find((p) => p.id === parseInt(productId as string));
+  const fetchRelatedProducts = async () => {
+    try {
+      const response = await fetch("/api/products?limit=4");
+      const data = await response.json();
+      if (data.success) {
+        // Filter out current product
+        const filtered = data.data.filter((p: Product) => p._id !== productId);
+        setRelatedProducts(filtered.slice(0, 4));
+      }
+    } catch (error) {
+      console.error("Failed to fetch related products:", error);
+    }
+  };
 
-  if (!product) {
+  useEffect(() => {
+    if (productId) {
+      fetchProduct();
+      fetchRelatedProducts();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productId]);
+
+  // Helper function to normalize image URL
+  const normalizeImageUrl = (url: string): string => {
+    if (!url) return "";
+    if (url.startsWith("data:image")) return url;
+    if (url.startsWith("http://") || url.startsWith("https://")) return url;
+    return `data:image/jpeg;base64,${url}`;
+  };
+
+  if (loading) {
     return (
-      <div >
+      <div className="bg-gradient-to-r from-[#FDECE2] to-[#FEC1A2] min-h-screen">
         <Navbar />
         <div className="min-h-screen flex items-center justify-center">
-          <p className="text-2xl">Product not found</p>
+          <p className="text-2xl text-[#1C3163]">Loading product...</p>
         </div>
         <Footer />
       </div>
     );
   }
 
-  // Get related products (excluding current product)
-  const relatedProducts = allProducts.filter((p) => p.id !== product.id).slice(0, 4);
+  if (!product) {
+    return (
+      <div className="bg-gradient-to-r from-[#FDECE2] to-[#FEC1A2] min-h-screen">
+        <Navbar />
+        <div className="min-h-screen flex items-center justify-center">
+          <p className="text-2xl text-[#1C3163]">Product not found</p>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Get product images (max 3) - ensure it's always an array
+  const productImages = Array.isArray(product.imageUrl) && product.imageUrl.length > 0 
+    ? product.imageUrl 
+    : [];
+  
+  // Ensure selectedImage is within bounds
+  const safeSelectedImage = productImages.length > 0 
+    ? Math.min(Math.max(0, selectedImage), productImages.length - 1)
+    : 0;
+  
+  // Get main image or placeholder
+  const mainImage = productImages.length > 0 && productImages[safeSelectedImage]
+    ? normalizeImageUrl(productImages[safeSelectedImage])
+    : null;
+  
+  // Convert price from cents to rupees
+  const priceInRupees = (product.price / 100).toFixed(2);
 
   // Handle Add to Cart
   const handleAddToCart = () => {
     // Check if user is logged in
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("userToken");
     if (!token) {
       toast.error("Please login to add items to cart");
       router.push("/login");
       return;
     }
 
-    // Parse price (remove ₹ and convert to number in paise)
-    const priceValue = parseInt(product.price.replace("₹", "").replace(",", "")) * 100;
+    // Get first image URL for cart
+    const imageUrl = productImages.length > 0 
+      ? normalizeImageUrl(productImages[0])
+      : "";
 
     addItem({
-      id: product.id.toString(),
-      name: product.title,
-      price: priceValue,
-      imageUrl: product.image.src,
+      id: product._id,
+      name: product.name,
+      price: product.price, // Already in cents
+      imageUrl: imageUrl,
     });
 
     toast.success("Added to cart!");
@@ -193,47 +236,60 @@ const ProductDetailPage = () => {
             {/* Left Side - Images */}
             <div className="flex flex-col-reverse sm:flex-row gap-4">
               {/* Thumbnail Images */}
-              <div className="flex sm:flex-col gap-3 overflow-x-auto sm:overflow-visible">
-                {product.images.map((img, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedImage(index)}
-                    className={`relative w-20 h-20 sm:w-24 sm:h-24 shrink-0 rounded-lg overflow-hidden border-2 transition-all ${
-                      selectedImage === index
-                        ? "border-[#1C3163]"
-                        : "border-transparent opacity-60 hover:opacity-100"
-                    }`}
-                  >
-                    <Image
-                      src={img}
-                      alt={`Product view ${index + 1}`}
-                      fill
-                      className="object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
+              {Array.isArray(productImages) && productImages.length > 1 && (
+                <div className="flex sm:flex-col gap-3 overflow-x-auto sm:overflow-visible">
+                  {productImages.map((imgUrl, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedImage(index)}
+                      className={`relative w-20 h-20 sm:w-24 sm:h-24 shrink-0 rounded-lg overflow-hidden border-2 transition-all ${
+                        selectedImage === index
+                          ? "border-[#1C3163]"
+                          : "border-transparent opacity-60 hover:opacity-100"
+                      }`}
+                    >
+                      <Image
+                        src={normalizeImageUrl(imgUrl)}
+                        alt={`Product view ${index + 1}`}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
 
               {/* Main Image */}
               <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-white">
-                <Image
-                  src={product.images[selectedImage]}
-                  alt={product.title}
-                  fill
-                  className="object-cover"
-                />
+                {mainImage ? (
+                  <Image
+                    src={mainImage}
+                    alt={product.name}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                ) : (
+                  <Image
+                    src={Bucket1}
+                    alt={product.name}
+                    fill
+                    className="object-cover"
+                  />
+                )}
               </div>
             </div>
 
             {/* Right Side - Product Info */}
             <div className="flex flex-col">
               <h1 className="text-[#1C3163] text-[28px] sm:text-[32px] lg:text-[30px] font-normal mb-4 leading-tight">
-                8&quot; D-5 Tibetan Quartz Copper Aura, Alchemy Crystal Singing Bowl
+                {product.name}
               </h1>
 
               <div className="mb-6">
                 <p className="text-[#1C3163] text-[24px] sm:text-[28px] lg:text-[32px] font-medium">
-                  {product.price}
+                  ₹{priceInRupees}
                 </p>
               </div>
 
@@ -257,17 +313,16 @@ const ProductDetailPage = () => {
               </button>
 
               {/* About Product */}
-              <div>
-                <h3 className="text-[#1C3163] text-[18px] sm:text-[20px] font-medium mb-3">
-                  About Product
-                </h3>
-                <p className="text-[#1C3163] text-[14px] sm:text-[15px] leading-relaxed mb-4">
-                  {product.fullDescription}
-                </p>
-                <button className="text-[#1C3163] text-[14px] font-medium underline">
-                  Read More
-                </button>
-              </div>
+              {product.description && (
+                <div>
+                  <h3 className="text-[#1C3163] text-[18px] sm:text-[20px] font-medium mb-3">
+                    About Product
+                  </h3>
+                  <p className="text-[#1C3163] text-[14px] sm:text-[15px] leading-relaxed mb-4">
+                    {product.description}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -277,37 +332,61 @@ const ProductDetailPage = () => {
               Related Products
             </h2>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-              {relatedProducts.map((item) => (
-                <Link
-                  href={`/shop/${item.id}`}
-                  key={item.id}
-                  className="group cursor-pointer"
-                >
-                  <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-white mb-4">
-                    <Image
-                      src={item.image}
-                      alt={item.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                  <div>
-                    <p className="text-[#1C3163] text-[14px] sm:text-[16px] font-medium mb-2">
-                      {item.title}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <p className="text-[#1C3163] text-[12px] sm:text-[14px]">
-                        {item.price}
-                      </p>
-                      <button className="w-8 h-8 rounded-full border-2 border-[#1C3163] flex items-center justify-center hover:bg-[#1C3163] hover:text-white transition-colors">
-                        <Plus size={16} />
-                      </button>
+            {relatedProducts.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                {relatedProducts.map((item) => {
+                  const itemImageUrl = item.imageUrl && item.imageUrl.length > 0 
+                    ? normalizeImageUrl(item.imageUrl[0])
+                    : null;
+                  const itemPriceInRupees = (item.price / 100).toFixed(2);
+                  
+                  return (
+                    <div key={item._id} className="group">
+                      <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-white mb-4">
+                        {itemImageUrl ? (
+                          <ImageMagnifier src={itemImageUrl} alt={item.name} />
+                        ) : (
+                          <Link href={`/shop/${item._id}`} className="block w-full h-full">
+                            <Image
+                              src={Bucket1}
+                              alt={item.name}
+                              fill
+                              className="object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          </Link>
+                        )}
+                      </div>
+                      <Link
+                        href={`/shop/${item._id}`}
+                        className="block cursor-pointer"
+                      >
+                        <div>
+                          <p className="text-[#1C3163] text-[14px] sm:text-[16px] font-medium mb-2">
+                            {item.name}
+                          </p>
+                          <div className="flex items-center justify-between">
+                            <p className="text-[#1C3163] text-[12px] sm:text-[14px]">
+                              ₹{itemPriceInRupees}
+                            </p>
+                            <button 
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                              }}
+                              className="w-8 h-8 rounded-full border-2 border-[#1C3163] flex items-center justify-center hover:bg-[#1C3163] hover:text-white transition-colors"
+                            >
+                              <Plus size={16} />
+                            </button>
+                          </div>
+                        </div>
+                      </Link>
                     </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-[#1C3163] text-center py-8">No related products available</p>
+            )}
           </div>
         </div>
       </section>

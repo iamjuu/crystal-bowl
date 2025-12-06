@@ -2,6 +2,7 @@ import { getDashboardStats } from "@/lib/admin/stats";
 import Link from "next/link";
 import { SimplePieChart } from "@/components/admin/SimpleChart";
 import DashboardCharts from "@/components/admin/DashboardCharts";
+import CurrentDate from "@/components/admin/CurrentDate";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -61,25 +62,33 @@ export default async function DashboardPage() {
     color: "#8b5cf6",
   }));
 
+  // Format dates on server side consistently
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const month = date.toLocaleString("en-US", { month: "short", timeZone: "UTC" });
+    const day = date.getUTCDate();
+    return `${month} ${day}`;
+  };
+
   const blogChartData = stats.blogData.slice(-14).map((item) => ({
-    date: new Date(item.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+    date: formatDate(item.date),
     value: item.count,
   }));
 
   const eventChartData = stats.eventData.slice(-14).map((item) => ({
-    date: new Date(item.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+    date: formatDate(item.date),
     value: item.count,
     participants: item.participants,
   }));
 
   const yogaSessionChartData = stats.yogaSessionData.slice(-14).map((item) => ({
-    date: new Date(item.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+    date: formatDate(item.date),
     value: item.sessions,
     bookings: item.bookings,
   }));
 
   const revenueChartData = stats.revenueData.slice(-14).map((item) => ({
-    date: new Date(item.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+    date: formatDate(item.date),
     value: item.revenue / 100, // Convert to currency units
   }));
 
@@ -92,9 +101,7 @@ export default async function DashboardPage() {
             <h1 className="text-3xl font-bold text-white">Dashboard</h1>
             <p className="mt-1 text-sm text-zinc-400">Welcome back! Here&apos;s what&apos;s happening with your business.</p>
           </div>
-          <div className="rounded-lg bg-zinc-800/50 px-4 py-2 text-sm text-zinc-300 border border-zinc-700/50">
-            {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-          </div>
+          <CurrentDate />
         </div>
 
         {/* Charts Section - 4 Main Charts */}
@@ -252,7 +259,7 @@ export default async function DashboardPage() {
                       >
                         {order.status}
                       </span>
-                      <span className="text-xs text-zinc-500">{new Date(order.createdAt).toLocaleDateString()}</span>
+                      <span className="text-xs text-zinc-500" suppressHydrationWarning>{new Date(order.createdAt).toLocaleDateString()}</span>
                     </div>
                   </div>
                 ))}
@@ -298,7 +305,7 @@ export default async function DashboardPage() {
                       >
                         {booking.status}
                       </span>
-                      <span className="text-xs text-zinc-500">{new Date(booking.createdAt).toLocaleDateString()}</span>
+                      <span className="text-xs text-zinc-500" suppressHydrationWarning>{new Date(booking.createdAt).toLocaleDateString()}</span>
                     </div>
                   </div>
                 ))}

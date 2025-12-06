@@ -40,9 +40,10 @@ export default function LoginPage() {
         return;
       }
 
-      // Store token in localStorage for client-side auth
+      // Store token in localStorage for client-side auth (user-side)
       if (data.data?.token) {
-        localStorage.setItem("token", data.data.token);
+        localStorage.setItem("userToken", data.data.token);
+        localStorage.setItem("userRole", "user");
         toast.success("Login successful!");
         router.push("/home");
       }

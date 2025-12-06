@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
 
     await connectDB();
 
-    // Check if user exists
+    // ONLY search in User collection (not Administrator collection)
     const user = await User.findOne({ email });
     if (!user) {
       return NextResponse.json({ success: false, message: "User not registered. Please sign up first." }, { status: 404 });

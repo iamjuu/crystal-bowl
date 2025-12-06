@@ -32,7 +32,7 @@ const OrdersPage = () => {
 
   useEffect(() => {
     const fetchOrders = async () => {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("userToken");
       
       if (!token) {
         toast.error("Please login to view your orders");

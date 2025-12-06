@@ -21,3 +21,8 @@ const BlogSchema = new Schema<BlogType>(
 
 export default (models.Blog as mongoose.Model<BlogType>) || model<BlogType>("Blog", BlogSchema);
 
+
+
+
+
+

@@ -12,7 +12,6 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isNavigating, setIsNavigating] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
   const { totalQuantity } = useCart()
@@ -21,9 +20,6 @@ const Navbar = () => {
   // Only render cart count after hydration to prevent mismatch
   useEffect(() => {
     setMounted(true)
-    // Check if user is logged in
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
-    setIsLoggedIn(!!token)
   }, [])
 
   // Update cart count on client side only
@@ -32,44 +28,6 @@ const Navbar = () => {
       setCartCount(totalQuantity())
     }
   }, [totalQuantity, mounted])
-
-  // Listen for login/logout changes
-  useEffect(() => {
-    if (!mounted) return
-
-    const checkAuth = () => {
-      const token = localStorage.getItem("token")
-      setIsLoggedIn(!!token)
-    }
-
-    // Check on storage changes (logout from other tabs)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "token") {
-        checkAuth()
-      }
-    }
-
-    // Check on custom logout event
-    const handleLogout = () => {
-      checkAuth()
-    }
-
-    window.addEventListener("storage", handleStorageChange)
-    window.addEventListener("logout", handleLogout)
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange)
-      window.removeEventListener("logout", handleLogout)
-    }
-  }, [mounted])
-
-  // Check auth state when pathname changes (e.g., after login redirect)
-  useEffect(() => {
-    if (mounted) {
-      const token = localStorage.getItem("token")
-      setIsLoggedIn(!!token)
-    }
-  }, [pathname, mounted])
 
 
   const toggleMobileMenu = () => {
@@ -207,18 +165,16 @@ const Navbar = () => {
               Book a Session
             </Link>
             
-            {/* Profile Icon */}
-            {mounted && isLoggedIn && (
-              <Link 
-                href="/profile" 
-                onClick={(e) => handleNavigation(e, '/profile')}
-                className={`relative text-[#D5B584] hover:text-white transition-all duration-300 hover:scale-110 ${
-                  pathname === '/profile' ? 'text-white scale-110' : ''
-                }`}
-              >
-                <User size={24} />
-              </Link>
-            )}
+            {/* Profile Icon - Always visible */}
+            <Link 
+              href="/profile" 
+              onClick={(e) => handleNavigation(e, '/profile')}
+              className={`relative text-[#D5B584] hover:text-white transition-all duration-300 hover:scale-110 ${
+                pathname === '/profile' ? 'text-white scale-110' : ''
+              }`}
+            >
+              <User size={24} />
+            </Link>
             
             {/* Cart Icon */}
             <Link 
@@ -251,18 +207,16 @@ const Navbar = () => {
           </Link>
 
           <div className="flex items-center gap-4">
-            {/* Profile Icon Mobile */}
-            {mounted && isLoggedIn && (
-              <Link 
-                href="/profile" 
-                onClick={(e) => handleNavigation(e, '/profile')}
-                className={`relative text-[#D5B584] hover:text-white transition-all duration-300 ${
-                  pathname === '/profile' ? 'text-white' : ''
-                }`}
-              >
-                <User size={24} />
-              </Link>
-            )}
+            {/* Profile Icon Mobile - Always visible */}
+            <Link 
+              href="/profile" 
+              onClick={(e) => handleNavigation(e, '/profile')}
+              className={`relative text-[#D5B584] hover:text-white transition-all duration-300 ${
+                pathname === '/profile' ? 'text-white' : ''
+              }`}
+            >
+              <User size={24} />
+            </Link>
             
             {/* Cart Icon Mobile */}
             <Link 

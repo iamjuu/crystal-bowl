@@ -30,7 +30,7 @@ export const useCart = create<CartState>()(
       addItem: (item, quantity = 1) => {
         // Check if user is logged in before adding
         if (typeof window !== "undefined") {
-          const token = localStorage.getItem("token");
+          const token = localStorage.getItem("userToken");
           if (!token) {
             console.warn("Cannot add to cart: User not logged in");
             return;
@@ -53,7 +53,7 @@ export const useCart = create<CartState>()(
       increment: (id) => {
         // Check if user is logged in
         if (typeof window !== "undefined") {
-          const token = localStorage.getItem("token");
+          const token = localStorage.getItem("userToken");
           if (!token) {
             console.warn("Cannot modify cart: User not logged in");
             return;
@@ -66,7 +66,7 @@ export const useCart = create<CartState>()(
       decrement: (id) => {
         // Check if user is logged in
         if (typeof window !== "undefined") {
-          const token = localStorage.getItem("token");
+          const token = localStorage.getItem("userToken");
           if (!token) {
             console.warn("Cannot modify cart: User not logged in");
             return;
@@ -93,7 +93,7 @@ export const useCart = create<CartState>()(
       // Clear cart if user is not logged in when store initializes
       onRehydrateStorage: () => (state) => {
         if (typeof window !== "undefined" && state) {
-          const token = localStorage.getItem("token");
+          const token = localStorage.getItem("userToken");
           if (!token) {
             state.clearCart();
           }
