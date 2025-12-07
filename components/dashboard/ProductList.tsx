@@ -10,7 +10,7 @@ type ProductListItem = {
   createdAt: string;
   description?: string;
   imageUrl?: string[];
-  videoUrl?: string;
+  videoUrl?: string | string[];
 };
 
 type Props = {

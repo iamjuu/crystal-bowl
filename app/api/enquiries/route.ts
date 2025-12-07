@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     // For discovery sessions, send special confirmation email
     if (sessionType === "discovery") {
       // Parse discovery data from comment if available
-      let discoveryData: { selectedDate?: string; selectedTime?: string } = {};
+      let discoveryData: { selectedDate?: string; selectedTime?: string; email?: string } = {};
       try {
         if (comment) {
           const parsed = JSON.parse(comment);

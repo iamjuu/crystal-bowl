@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
   try {
     const user = await requireAuth(req);
     await connectDB();
-    const dbUser = await User.findById(user._id).select("-password").lean();
+    const dbUser = await User.findById(user._id).select("-password").lean() as any;
     
     if (!dbUser) {
       return NextResponse.json(

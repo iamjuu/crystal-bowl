@@ -135,7 +135,7 @@ export default function ResendVerificationPage() {
           </Link>
         </p>
         <p className="mt-4 text-center text-sm text-zinc-600">
-          <Link href="/home" className="text-black underline hover:no-underline">
+          <Link href="/" className="text-black underline hover:no-underline">
             Back to Home
           </Link>
         </p>

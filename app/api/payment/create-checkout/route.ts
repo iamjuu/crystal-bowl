@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2024-12-18.acacia",
-});
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", );
 
 export async function POST(req: NextRequest) {
   try {
@@ -53,7 +51,6 @@ export async function POST(req: NextRequest) {
           quantity: item.quantity,
         }))),
       },
-      customer_email: user.email,
       billing_address_collection: "required",
       shipping_address_collection: {
         allowed_countries: ["IN", "US", "GB", "CA", "AU"],

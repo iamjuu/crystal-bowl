@@ -4,12 +4,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
-
+import { X, Eye, EyeOff } from "lucide-react";
+import Navbar from "@/components/user/Navbar";
+import Footer from "@/components/user/Footer";
 export default function LoginPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +48,7 @@ export default function LoginPage() {
         localStorage.setItem("userToken", data.data.token);
         localStorage.setItem("userRole", "user");
         toast.success("Login successful!");
-        router.push("/home");
+        router.push("/");
       }
     } catch {
       setError("Something went wrong. Please try again.");
@@ -56,56 +59,91 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-zinc-50 via-white to-zinc-100 flex items-center justify-center px-6 py-20">
-      <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <h1 className="mb-2 text-4xl font-bold text-black">  user Login</h1>
-          <p className="text-zinc-600">Welcome back! Please sign in to your account.</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4 bg-white p-8 rounded-lg shadow-sm border border-zinc-200">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-1">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-              autoComplete="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full rounded-md border border-zinc-300 px-3 py-2 focus:border-black focus:outline-none focus:ring-2 focus:ring-black/20"
-              placeholder="you@example.com"
-            />
-          </div>
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium mb-1">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              required
-              autoComplete="current-password"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="w-full rounded-md border border-zinc-300 px-3 py-2 focus:border-black focus:outline-none focus:ring-2 focus:ring-black/20"
-              placeholder="Enter your password"
-            />
-          </div>
-          {error && (
-            <div className="text-sm text-red-600">
-              <p>{error}</p>
-            </div>
-          )}
+    <div className="min-h-screen flex-col bg-gradient-to-b from-[#FEC1A2] to-[#FDECE2]  flex items-center justify-center ">
+      <Navbar />
+      <div className="w-full mt-[150px]  max-w-lg">
+        <form onSubmit={handleSubmit} className="relative  w-[500px] bg-white p-8 rounded-lg shadow-lg border border-zinc-200">
+          {/* Close button */}
           <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-md bg-black px-4 py-2 text-white transition-colors hover:bg-zinc-800 disabled:opacity-50"
+            type="button"
+            onClick={() => router.push("/home")}
+            className="absolute top-4 left-4 w-8 h-8 flex items-center justify-center rounded-full border border-black/20 hover:bg-zinc-50 transition-colors"
+            aria-label="Close"
           >
-            {loading ? "Logging in..." : "Login"}
+            <X className="w-4 h-4 text-black" />
           </button>
+
+          {/* Title */}
+          <h1 className="text-3xl font-[300] text-black mb-6 mt-2">Log In</h1>
+
+          <div className="space-y-5">
+            {/* Email field */}
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-black mb-1">
+                Email <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="email"
+                type="email"
+                required
+                autoComplete="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="w-full rounded-md border border-[#FEC1A2] px-3 py-2 focus:border-[#FEC1A2] focus:outline-none focus:ring-2 focus:ring-[#FEC1A2]/20 bg-white"
+                placeholder="you@example.com"
+              />
+            </div>
+
+            {/* Password field */}
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-black mb-1">
+                Password <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  autoComplete="current-password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="w-full rounded-md border border-[#FEC1A2] px-3 py-2 pr-10 focus:border-[#FEC1A2] focus:outline-none focus:ring-2 focus:ring-[#FEC1A2]/20 bg-white"
+                  placeholder="Enter your password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-black hover:text-zinc-600 transition-colors"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Error message */}
+            {error && (
+              <div className="text-sm text-red-600">
+                <p>{error}</p>
+              </div>
+            )}
+
+            {/* Submit button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-md bg-[#FEC1A2] border border-[#F5A082] px-4 py-2 text-black font-medium transition-colors hover:bg-[#F5A082] disabled:opacity-50"
+            >
+              {loading ? "Logging in..." : "Log In"}
+            </button>
+
+            {/* Forgot password link */}
+            <div className="text-center">
+              <Link href="/forgot-password" className="text-sm text-[#6B7280] hover:text-[#4B5563] transition-colors">
+                Forgot Your Password?
+              </Link>
+            </div>
+          </div>
         </form>
 
         <div className="mt-6 space-y-3 text-center text-sm text-zinc-600">
@@ -116,11 +154,14 @@ export default function LoginPage() {
             </Link>
           </p>
           <p>
-            <Link href="/home" className="text-black underline hover:no-underline">
+            <Link href="/" className="text-black underline hover:no-underline">
               Back to Home
             </Link>
           </p>
         </div>
+      </div>
+      <div className="mt-[100px] w-full" >
+      <Footer  />
       </div>
     </div>
   );
