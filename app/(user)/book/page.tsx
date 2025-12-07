@@ -1,13 +1,19 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import Navbar from '@/components/user/Navbar'
 import Footer from '@/components/user/Footer'
-import { About1, BookNow } from '@/public/assets'
+import { BookNow } from '@/public/assets'
 
 const BookPage = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    if (typeof window !== "undefined") {
+      return !!localStorage.getItem("userToken")
+    }
+    return false
+  })
   return (
     <div className=' bg-gradient-to-r from-[#FDECE2] to-[#FEC1A2] min-h-screen'>
       <Navbar />
@@ -44,11 +50,19 @@ const BookPage = () => {
                 </div>
 
                 <div className="mt-4">
-                  <Link href="/discoveryappointment">
-                    <button className="bg-[#1C3163] text-white px-8 py-4 rounded-lg text-[16px] sm:text-[18px] font-normal hover:bg-[#2a4580] transition-colors duration-300">
-                      Book a Session
-                    </button>
-                  </Link>
+                  {isLoggedIn ? (
+                    <Link href="/discoveryappointment">
+                      <button className="bg-[#1C3163] text-white px-8 py-4 rounded-lg text-[16px] sm:text-[18px] font-normal hover:bg-[#2a4580] transition-colors duration-300">
+                        Book a Session
+                      </button>
+                    </Link>
+                  ) : (
+                    <Link href="/login">
+                      <button className="bg-[#1C3163] text-white px-8 py-4 rounded-lg text-[16px] sm:text-[18px] font-normal hover:bg-[#2a4580] transition-colors duration-300">
+                        Book a Session
+                      </button>
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>

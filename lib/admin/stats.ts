@@ -45,6 +45,11 @@ export type DashboardStats = {
     totalBookings: number;
     totalSeats: number;
     bookedSeats: number;
+    byType: {
+      regular: { count: number; bookedSeats: number; totalSeats: number };
+      corporate: { count: number; bookedSeats: number; totalSeats: number };
+      private: { count: number; bookedSeats: number; totalSeats: number };
+    };
   };
   recentOrders: any[];
   recentBookings: any[];
@@ -55,14 +60,17 @@ export type DashboardStats = {
   blogData: { date: string; count: number }[];
   eventData: { date: string; count: number; participants: number }[];
   yogaSessionData: { date: string; sessions: number; bookings: number }[];
+  userData: { date: string; count: number }[];
+  ordersData: { date: string; paid: number; pending: number; cancelled: number }[];
 };
 
 export async function getDashboardStats(): Promise<DashboardStats> {
   await connectDB();
 
-  const [orders, bookings, totalUsers, verifiedUsers, totalProducts, blogs, events, yogaSessions] = await Promise.all([
+  const [orders, bookings, users, totalUsers, verifiedUsers, totalProducts, blogs, events, yogaSessions] = await Promise.all([
     Order.find().lean(),
     Booking.find().lean(),
+    User.find().lean(),
     User.countDocuments(),
     User.countDocuments({ emailVerified: true }),
     Product.countDocuments(),
@@ -183,6 +191,45 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     });
   }
 
+  // Generate user growth data for last 14 days
+  const userData: { date: string; count: number }[] = [];
+  for (let i = 13; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toISOString().split("T")[0];
+    
+    const dayUsers = (users as any[]).filter((u: any) => {
+      const userDate = new Date(u.createdAt).toISOString().split("T")[0];
+      return userDate === dateStr;
+    });
+    
+    userData.push({ date: dateStr, count: dayUsers.length });
+  }
+
+  // Generate orders data for last 30 days
+  const ordersData: { date: string; paid: number; pending: number; cancelled: number }[] = [];
+  for (let i = 29; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toISOString().split("T")[0];
+    
+    const dayOrders = orders.filter((o: any) => {
+      const orderDate = new Date(o.createdAt).toISOString().split("T")[0];
+      return orderDate === dateStr;
+    });
+    
+    const paidCount = dayOrders.filter((o: any) => o.status === "paid").length;
+    const pendingCount = dayOrders.filter((o: any) => o.status === "pending").length;
+    const cancelledCount = dayOrders.filter((o: any) => o.status === "cancelled").length;
+    
+    ordersData.push({ 
+      date: dateStr, 
+      paid: paidCount,
+      pending: pendingCount,
+      cancelled: cancelledCount
+    });
+  }
+
   // Calculate upcoming and past events
   const now = new Date();
   const upcomingEvents = (events as any[]).filter((e: any) => new Date(e.date) >= now);
@@ -192,6 +239,29 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   const totalBookings = bookings.length;
   const totalSeats = (yogaSessions as any[]).reduce((sum, s: any) => sum + (s.totalSeats || 0), 0);
   const bookedSeats = (yogaSessions as any[]).reduce((sum, s: any) => sum + (s.bookedSeats || 0), 0);
+
+  // Calculate stats by session type
+  const regularSessions = (yogaSessions as any[]).filter((s: any) => s.sessionType === "regular");
+  const corporateSessions = (yogaSessions as any[]).filter((s: any) => s.sessionType === "corporate");
+  const privateSessions = (yogaSessions as any[]).filter((s: any) => s.sessionType === "private");
+
+  const yogaSessionsByType = {
+    regular: {
+      count: regularSessions.length,
+      bookedSeats: regularSessions.reduce((sum: number, s: any) => sum + (s.bookedSeats || 0), 0),
+      totalSeats: regularSessions.reduce((sum: number, s: any) => sum + (s.totalSeats || 0), 0),
+    },
+    corporate: {
+      count: corporateSessions.length,
+      bookedSeats: corporateSessions.reduce((sum: number, s: any) => sum + (s.bookedSeats || 0), 0),
+      totalSeats: corporateSessions.reduce((sum: number, s: any) => sum + (s.totalSeats || 0), 0),
+    },
+    private: {
+      count: privateSessions.length,
+      bookedSeats: privateSessions.reduce((sum: number, s: any) => sum + (s.bookedSeats || 0), 0),
+      totalSeats: privateSessions.reduce((sum: number, s: any) => sum + (s.totalSeats || 0), 0),
+    },
+  };
 
   return {
     revenue: {
@@ -231,6 +301,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       totalBookings: totalBookings,
       totalSeats: totalSeats,
       bookedSeats: bookedSeats,
+      byType: yogaSessionsByType,
     },
     recentOrders,
     recentBookings,
@@ -241,6 +312,8 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     blogData,
     eventData,
     yogaSessionData,
+    userData,
+    ordersData,
   };
 }
 

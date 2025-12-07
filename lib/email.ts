@@ -172,8 +172,6 @@ export async function sendEnquiryNotificationToAdmin(enquiryData: {
   fullName: string;
   email: string;
   phone: string;
-  address: string;
-  dateOfBirth: string;
   services: string;
   sessionType: string;
   comment?: string;
@@ -227,14 +225,6 @@ export async function sendEnquiryNotificationToAdmin(enquiryData: {
             <tr>
               <td>Phone</td>
               <td><a href="tel:${enquiryData.phone}">${enquiryData.phone}</a></td>
-            </tr>
-            <tr>
-              <td>Address</td>
-              <td>${enquiryData.address}</td>
-            </tr>
-            <tr>
-              <td>Date of Birth</td>
-              <td>${enquiryData.dateOfBirth}</td>
             </tr>
             <tr>
               <td>Service Requested</td>
@@ -354,6 +344,101 @@ export async function sendEnquiryConfirmationToUser(enquiryData: {
     return result;
   } catch (error) {
     console.error(`❌ Failed to send confirmation email to ${enquiryData.fullName} (${enquiryData.email}):`, error);
+    throw error;
+  }
+}
+
+// Send discovery session registration confirmation email
+export async function sendDiscoverySessionConfirmation(discoveryData: {
+  selectedDate: string;
+  selectedTime: string;
+  email?: string;
+}) {
+  // Send to provided email or admin email if no email provided
+  const recipientEmail = discoveryData.email && discoveryData.email !== 'discovery@example.com' 
+    ? discoveryData.email 
+    : process.env.ADMIN_EMAIL || process.env.EMAIL_USER;
+  
+  if (!recipientEmail) {
+    throw new Error("Recipient email not configured");
+  }
+
+  const subject = "Discovery Session Registration Successful - Crystal Bowl Studio";
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #D5B584; color: #fff; padding: 30px 20px; text-align: center; }
+        .content { padding: 30px 20px; background-color: #f9f9f9; }
+        .success-box { background-color: #fff; border-left: 4px solid #10b981; padding: 20px; margin: 20px 0; }
+        .appointment-details { background-color: #fff; border: 2px solid #D5B584; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e0e0e0; }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { font-weight: bold; color: #5B7C99; }
+        .detail-value { color: #333; }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>✨ Crystal Bowl Studio</h1>
+          <p style="margin: 0; font-size: 18px;">Discovery Session Registration</p>
+        </div>
+        <div class="content">
+          <div class="success-box">
+            <h2 style="margin-top: 0; color: #10b981;">✅ Registration Successfully for This Discovery Session</h2>
+            <p style="font-size: 18px; margin: 10px 0;">Your discovery session appointment has been successfully registered!</p>
+          </div>
+          
+          <div class="appointment-details">
+            <h3 style="margin-top: 0; color: #5B7C99;">📅 Appointment Details</h3>
+            <div class="detail-row">
+              <span class="detail-label">Date:</span>
+              <span class="detail-value">${discoveryData.selectedDate}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Time:</span>
+              <span class="detail-value">${discoveryData.selectedTime}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Session Type:</span>
+              <span class="detail-value">Discovery Session</span>
+            </div>
+          </div>
+          
+          <p style="margin-top: 30px;">
+            <strong>What's Next?</strong><br>
+            Our team will review your registration and contact you shortly to confirm your discovery session appointment.
+          </p>
+          
+          <p style="margin-top: 20px;">
+            If you have any questions or need to make changes to your appointment, please don't hesitate to reach out to us.
+          </p>
+          
+          <p style="margin-top: 30px; font-style: italic; color: #666;">
+            We look forward to helping you discover your perfect crystal bowl!
+          </p>
+        </div>
+        <div class="footer">
+          <p><strong>Crystal Bowl Studio</strong></p>
+          <p>&copy; ${new Date().getFullYear()} Crystal Bowl Studio. All rights reserved.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  try {
+    const result = await sendEmail(recipientEmail, subject, html);
+    console.log(`✅ Discovery session confirmation email sent successfully to ${recipientEmail}`);
+    return result;
+  } catch (error) {
+    console.error(`❌ Failed to send discovery session confirmation email to ${recipientEmail}:`, error);
     throw error;
   }
 }

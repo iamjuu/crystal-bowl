@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import SessionEnquiry from "@/models/SessionEnquiry";
-import { sendEnquiryNotificationToAdmin, sendEnquiryConfirmationToUser } from "@/lib/email";
+import { sendEnquiryNotificationToAdmin, sendEnquiryConfirmationToUser, sendDiscoverySessionConfirmation } from "@/lib/email";
 
 // POST - Submit a new enquiry
 export async function POST(req: NextRequest) {
@@ -9,12 +9,12 @@ export async function POST(req: NextRequest) {
     await connectDB();
 
     const body = await req.json();
-    const { fullName, address, dateOfBirth, services, phone, email, comment, sessionType } = body;
+    const { fullName, services, phone, email, comment, sessionType } = body;
 
     // For discovery appointments, user info fields are optional
     // For other types, validate required fields
     if (sessionType !== "discovery") {
-      if (!fullName || !address || !dateOfBirth || !services || !phone || !email) {
+      if (!fullName || !services || !phone || !email) {
         return NextResponse.json(
           { success: false, message: "All required fields must be provided" },
           { status: 400 }
@@ -25,8 +25,6 @@ export async function POST(req: NextRequest) {
     // Create new enquiry (use defaults for discovery if fields are missing)
     const enquiry = await SessionEnquiry.create({
       fullName: fullName || "Discovery Appointment",
-      address: address || "N/A",
-      dateOfBirth: dateOfBirth || "N/A",
       services: services || "Discovery Session",
       phone: phone || "N/A",
       email: email || "discovery@example.com",
@@ -41,8 +39,6 @@ export async function POST(req: NextRequest) {
       fullName: enquiry.fullName,
       email: enquiry.email,
       phone: enquiry.phone,
-      address: enquiry.address,
-      dateOfBirth: enquiry.dateOfBirth,
       services: enquiry.services,
       sessionType: enquiry.sessionType,
       comment: enquiry.comment,
@@ -52,16 +48,51 @@ export async function POST(req: NextRequest) {
       // Don't fail the request if email fails
     });
 
-    // Send confirmation to user
-    sendEnquiryConfirmationToUser({
-      fullName: enquiry.fullName,
-      email: enquiry.email,
-      services: enquiry.services,
-      sessionType: enquiry.sessionType,
-    }).catch((error) => {
-      console.error("Failed to send user confirmation email:", error);
-      // Don't fail the request if email fails
-    });
+    // For discovery sessions, send special confirmation email
+    if (sessionType === "discovery") {
+      // Parse discovery data from comment if available
+      let discoveryData: { selectedDate?: string; selectedTime?: string } = {};
+      try {
+        if (comment) {
+          const parsed = JSON.parse(comment);
+          discoveryData = {
+            selectedDate: parsed.selectedDate,
+            selectedTime: parsed.selectedTime,
+            email: enquiry.email !== "discovery@example.com" ? enquiry.email : undefined,
+          };
+        }
+      } catch (e) {
+        // If parsing fails, extract from services string
+        const servicesMatch = services.match(/Discovery Session - (.+) at (.+)/);
+        if (servicesMatch) {
+          discoveryData = {
+            selectedDate: servicesMatch[1],
+            selectedTime: servicesMatch[2],
+            email: enquiry.email !== "discovery@example.com" ? enquiry.email : undefined,
+          };
+        }
+      }
+
+      sendDiscoverySessionConfirmation({
+        selectedDate: discoveryData.selectedDate || "Date not specified",
+        selectedTime: discoveryData.selectedTime || "Time not specified",
+        email: discoveryData.email,
+      }).catch((error) => {
+        console.error("Failed to send discovery session confirmation email:", error);
+        // Don't fail the request if email fails
+      });
+    } else {
+      // Send regular confirmation to user for non-discovery sessions
+      sendEnquiryConfirmationToUser({
+        fullName: enquiry.fullName,
+        email: enquiry.email,
+        services: enquiry.services,
+        sessionType: enquiry.sessionType,
+      }).catch((error) => {
+        console.error("Failed to send user confirmation email:", error);
+        // Don't fail the request if email fails
+      });
+    }
 
     return NextResponse.json(
       { success: true, message: "Enquiry submitted successfully", data: enquiry },
@@ -85,7 +116,7 @@ export async function GET(req: NextRequest) {
     const status = searchParams.get("status");
     const sessionType = searchParams.get("sessionType");
 
-    let query: Record<string, string> = {};
+    const query: Record<string, string> = {};
     if (status && status !== "all") {
       query.status = status;
     }

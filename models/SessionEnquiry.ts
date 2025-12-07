@@ -3,8 +3,6 @@ import mongoose, { Schema, models, model } from "mongoose";
 export interface SessionEnquiryType {
   _id: string;
   fullName: string;
-  address: string;
-  dateOfBirth: string;
   services: string;
   phone: string;
   email: string;
@@ -18,8 +16,6 @@ export interface SessionEnquiryType {
 const SessionEnquirySchema = new Schema<SessionEnquiryType>(
   {
     fullName: { type: String, required: true },
-    address: { type: String, required: true },
-    dateOfBirth: { type: String, required: true },
     services: { type: String, required: true },
     phone: { type: String, required: true },
     email: { type: String, required: true },
@@ -38,6 +34,10 @@ const SessionEnquirySchema = new Schema<SessionEnquiryType>(
   { timestamps: true }
 );
 
-export default (models.SessionEnquiry as mongoose.Model<SessionEnquiryType>) || 
-  model<SessionEnquiryType>("SessionEnquiry", SessionEnquirySchema);
+// Delete the cached model if it exists to ensure fresh schema
+if (models.SessionEnquiry) {
+  delete models.SessionEnquiry;
+}
+
+export default model<SessionEnquiryType>("SessionEnquiry", SessionEnquirySchema);
 

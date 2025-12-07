@@ -27,6 +27,9 @@ const DiscoveryAppointmentPage = () => {
   const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>([])
   const [loadingSlots, setLoadingSlots] = useState(true)
   
+  // User data from database
+  const [userData, setUserData] = useState<{ name: string; email: string; phone: string } | null>(null)
+  
   // Bowl Discovery Form state
   const [hasCrystalBowls, setHasCrystalBowls] = useState<string | null>(null)
   const [notesAndAlchemies, setNotesAndAlchemies] = useState<string>('')
@@ -37,6 +40,34 @@ const DiscoveryAppointmentPage = () => {
   // Form submission state
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // Fetch user data from database
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = localStorage.getItem('userToken') || localStorage.getItem('token')
+        const response = await fetch('/api/auth/me', {
+          credentials: 'include',
+          headers: token ? {
+            'Authorization': `Bearer ${token}`
+          } : {}
+        })
+        const data = await response.json()
+        if (data.success && data.data) {
+          setUserData({
+            name: data.data.name,
+            email: data.data.email,
+            phone: data.data.phone || ''
+          })
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error)
+        // User might not be logged in, which is okay
+      }
+    }
+
+    fetchUserData()
+  }, [])
+
   // Fetch available slots
   useEffect(() => {
     const fetchSlots = async () => {
@@ -44,9 +75,38 @@ const DiscoveryAppointmentPage = () => {
         setLoadingSlots(true)
         const response = await fetch('/api/slots?sessionType=discovery')
         const data = await response.json()
-        
+        console.log('Slots API response:', data)
         if (data.success) {
           setAvailableSlots(data.data || [])
+          
+          // Auto-navigate to the earliest month with available slots
+          if (data.data && data.data.length > 0) {
+            // Parse dates without timezone issues
+            const parsedDates = data.data.map((slot: AvailableSlot) => {
+              const parsed = parseDateString(slot.date.trim())
+              return { ...parsed, dateStr: slot.date.trim() }
+            })
+            
+            console.log('Parsed dates for navigation:', parsedDates)
+            
+            // Find earliest date
+            const earliest = parsedDates.reduce((earliest: { year: number; month: number; day: number; dateStr: string }, current: { year: number; month: number; day: number; dateStr: string }) => {
+              if (earliest.year !== current.year) {
+                return earliest.year < current.year ? earliest : current
+              }
+              if (earliest.month !== current.month) {
+                return earliest.month < current.month ? earliest : current
+              }
+              return earliest.day < current.day ? earliest : current
+            }, parsedDates[0])
+            
+            console.log('Earliest date found:', earliest)
+            
+            // Always navigate to earliest date's month to show available slots
+            setCurrentMonth(earliest.month)
+            setCurrentYear(earliest.year)
+            console.log('Navigated to month:', earliest.month + 1, 'year:', earliest.year)
+          }
         } else {
           console.error('Failed to fetch slots:', data.message)
           toast.error('Failed to load available slots')
@@ -113,22 +173,38 @@ const DiscoveryAppointmentPage = () => {
     return days
   }, [currentMonth, currentYear])
 
+  // Helper function to format date as YYYY-MM-DD without timezone conversion
+  const formatDateLocal = (year: number, month: number, day: number): string => {
+    const monthStr = String(month + 1).padStart(2, '0')
+    const dayStr = String(day).padStart(2, '0')
+    return `${year}-${monthStr}-${dayStr}`
+  }
+
+  // Helper function to parse YYYY-MM-DD date string without timezone issues
+  const parseDateString = (dateStr: string): { year: number; month: number; day: number } => {
+    const [year, month, day] = dateStr.split('-').map(Number)
+    return { year, month: month - 1, day } // month is 0-indexed in JS Date
+  }
+
   // Get available dates from slots (dates that have at least one available time)
   const availableDates = useMemo(() => {
     const dates = new Set<string>()
     availableSlots.forEach(slot => {
-      dates.add(slot.date)
+      // Trim and normalize date string to ensure exact matching
+      const normalizedDate = slot.date.trim()
+      dates.add(normalizedDate)
     })
+    console.log('Available slots:', availableSlots)
+    console.log('Available dates (Set):', Array.from(dates))
+    console.log('Current month/year:', currentMonth + 1, currentYear)
     return dates
-  }, [availableSlots])
+  }, [availableSlots, currentMonth, currentYear])
 
   // Get available time slots for the selected date
   const timeSlots = useMemo(() => {
     if (!selectedDate) return []
     
-    const selectedDateStr = new Date(currentYear, currentMonth, selectedDate)
-      .toISOString()
-      .split('T')[0] // Format: YYYY-MM-DD
+    const selectedDateStr = formatDateLocal(currentYear, currentMonth, selectedDate)
     
     const slots = availableSlots
       .filter(slot => slot.date === selectedDateStr)
@@ -146,11 +222,26 @@ const DiscoveryAppointmentPage = () => {
   const isDateAvailable = (day: number, isCurrentMonth: boolean) => {
     if (!isCurrentMonth) return false
     
-    const dateStr = new Date(currentYear, currentMonth, day)
-      .toISOString()
-      .split('T')[0]
+    const dateStr = formatDateLocal(currentYear, currentMonth, day)
+    const normalizedDateStr = dateStr.trim()
     
-    return availableDates.has(dateStr)
+    // Check if date exists in available dates
+    let isAvailable = availableDates.has(normalizedDateStr)
+    
+    // Also check if any slot matches this date (fallback check)
+    if (!isAvailable) {
+      isAvailable = availableSlots.some(slot => slot.date.trim() === normalizedDateStr)
+    }
+    
+    // Debug logging for specific dates
+    if (day === 6 || day === 7 || day === 10) {
+      console.log(`Checking date ${day}: formatted="${normalizedDateStr}", available=${isAvailable}`)
+      console.log(`  availableDates.has: ${availableDates.has(normalizedDateStr)}`)
+      console.log(`  availableSlots check: ${availableSlots.some(slot => slot.date.trim() === normalizedDateStr)}`)
+      console.log(`  All available dates:`, Array.from(availableDates))
+    }
+    
+    return isAvailable
   }
 
   // Convert 24-hour time to 12-hour format
@@ -222,8 +313,13 @@ const DiscoveryAppointmentPage = () => {
       return
     }
     
-    // Bowl Discovery Form fields are now OPTIONAL
-    // Users can submit with just date/time selection
+    // Check if user data is available
+    if (!userData) {
+      toast.error('Unable to retrieve your user information. Please try logging in again.')
+      return
+    }
+    
+    // Bowl Discovery Form fields are OPTIONAL
     
     setIsSubmitting(true)
     
@@ -247,13 +343,11 @@ const DiscoveryAppointmentPage = () => {
         soundOrEnergy: soundOrEnergy || 'Not provided'
       }
       
-      // Prepare enquiry data (using placeholder values for required API fields)
+      // Prepare enquiry data using user data from database
       const enquiryData = {
-        fullName: 'Discovery Appointment',
-        email: 'discovery@example.com',
-        phone: 'N/A',
-        address: 'N/A',
-        dateOfBirth: 'N/A',
+        fullName: userData.name,
+        email: userData.email,
+        phone: userData.phone,
         services: `Discovery Session - ${formattedDate} at ${selectedTime}`,
         sessionType: 'discovery',
         comment: JSON.stringify(discoveryData)
@@ -275,7 +369,7 @@ const DiscoveryAppointmentPage = () => {
       
       if (data.success) {
         toast.success('Discovery appointment submitted successfully! We will contact you soon.')
-        // Reset form
+        // Reset form (keep user data as it comes from database)
         setSelectedDate(null)
         setSelectedTime(null)
         setHasCrystalBowls(null)
@@ -324,6 +418,43 @@ const DiscoveryAppointmentPage = () => {
                   </h3>
 
                   <div className=" border-2 border-[#E5E7EB] rounded-[16px] p-4">
+                    {/* Month Navigation */}
+                    <div className="flex items-center justify-between mb-4">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (currentMonth === 0) {
+                            setCurrentMonth(11)
+                            setCurrentYear(currentYear - 1)
+                          } else {
+                            setCurrentMonth(currentMonth - 1)
+                          }
+                        }}
+                        className="px-3 py-1 text-[#5B7C99] hover:text-[#1E3A8A] transition-colors"
+                        aria-label="Previous month"
+                      >
+                        ←
+                      </button>
+                      <h4 className="text-[16px] sm:text-[18px] text-[#5B7C99] font-medium">
+                        {new Date(currentYear, currentMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                      </h4>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (currentMonth === 11) {
+                            setCurrentMonth(0)
+                            setCurrentYear(currentYear + 1)
+                          } else {
+                            setCurrentMonth(currentMonth + 1)
+                          }
+                        }}
+                        className="px-3 py-1 text-[#5B7C99] hover:text-[#1E3A8A] transition-colors"
+                        aria-label="Next month"
+                      >
+                        →
+                      </button>
+                    </div>
+                    
                     {/* Days of Week Header */}
                     <div className="grid grid-cols-7 gap-1 mb-2">
                       {daysOfWeek.map((day) => (
@@ -458,9 +589,9 @@ const DiscoveryAppointmentPage = () => {
                     : 'opacity-60 translate-y-4 scale-[0.98]'
                 }`}
               >
-              <div className="rounded-[24px] p-6 md:p-8 lg:p-10 border  shadow-lg transition-shadow duration-500 hover:shadow-2xl">
+              <div className="rounded-[24px] p-6 md:p-8 lg:p-10  transition-shadow duration-500 hover:shadow-2xl">
                 <h2 className="text-[28px] sm:text-[32px] md:text-[36px] text-black font-light mb-4">
-                  Bowl Discovery Form <span className="text-[20px] text-gray-600">(Optional)</span>
+                  Discovery Form
                 </h2>
                 <p className="text-[16px] sm:text-[18px] text-black font-light mb-2">
                   Here Are A Few Questions For You To Fill Out So We Can Better Support You In Finding Your Right Bowl Family.
@@ -473,7 +604,7 @@ const DiscoveryAppointmentPage = () => {
                   {/* Question 1: Do You Have Any Crystal Bowls? */}
                   <div>
                     <label className="block text-[16px] sm:text-[18px] text-black font-normal mb-4">
-                      Do You Have Any Crystal Bowls? (Or Others)
+                      Do You Have Any Crystal Bowls? 
                     </label>
                     <div className="flex gap-6">
                       <label className="flex items-center cursor-pointer">
@@ -630,42 +761,16 @@ const DiscoveryAppointmentPage = () => {
               </div>
               </div>
 
-              {/* Selected Date & Time Summary */}
-              {(selectedDate && selectedTime) && (
-                <div className="mt-8 p-6 rounded-[16px] bg-[#D5B584]/10 border-2 border-[#D5B584]">
-                  <h3 className="text-[18px] sm:text-[20px] text-[#D5B584] font-medium mb-3">
-                    📅 Your Selected Appointment
-                  </h3>
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="flex-1">
-                      <p className="text-[14px] text-[#6B7280] mb-1">Date</p>
-                      <p className="text-[16px] sm:text-[18px] text-[#5B7C99] font-medium">
-                        {new Date(currentYear, currentMonth, selectedDate).toLocaleDateString('en-US', {
-                          weekday: 'long',
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
-                      </p>
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-[14px] text-[#6B7280] mb-1">Time</p>
-                      <p className="text-[16px] sm:text-[18px] text-[#5B7C99] font-medium">
-                        {selectedTime} (Singapore Standard Time)
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
+           
 
               {/* Submit Button */}
               <div className="flex justify-start pt-4 mt-8">
                 <button
                   type="submit"
-                  disabled={isSubmitting || !selectedDate || !selectedTime}
+                  disabled={isSubmitting || !selectedDate || !selectedTime || !userData}
                   className="bg-[#D5B584] text-white px-12 py-4 rounded-lg text-[16px] sm:text-[18px] font-medium hover:bg-[#C4A574] transition-colors duration-300 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isSubmitting ? 'Submitting...' : !selectedDate || !selectedTime ? 'Select Date & Time First' : 'Confirm Appointment'}
+                  {isSubmitting ? 'Submitting...' : !selectedDate || !selectedTime ? 'Select Date & Time First' : !userData ? 'Loading user data...' : 'Confirm Appointment'}
                 </button>
               </div>
             </form>

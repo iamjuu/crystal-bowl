@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import NextImage from "next/image";
 import { useState } from "react";
 
 type ProductFormProps = {
@@ -420,7 +420,7 @@ export default function ProductForm({ productId, initialData, onComplete, onCanc
               />
               {uploadedImages[index] && (
                 <div className="relative  w-full h-32 max-w-[200px] rounded-md border border-zinc-600 overflow-hidden  bg-zinc-900">
-                  <Image
+                  <NextImage
                     src={normalizeImageUrl(uploadedImages[index])}
                     alt={index === 0 ? "Main Preview" : `Preview ${index + 1}`}
                     width={200}

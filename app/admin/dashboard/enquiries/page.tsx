@@ -8,8 +8,6 @@ type TabType = "discovery" | "private" | "corporate";
 type Enquiry = {
   _id: string;
   fullName: string;
-  address: string;
-  dateOfBirth: string;
   services: string;
   phone: string;
   email: string;
@@ -27,6 +25,10 @@ export default function EnquiriesPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
   
   // Add Slot form state
   const [showSlotForm, setShowSlotForm] = useState(false);
@@ -86,6 +88,17 @@ export default function EnquiriesPage() {
 
   // Filter enquiries by active tab
   const filteredEnquiries = enquiries.filter((enquiry) => enquiry.sessionType === activeTab);
+  
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredEnquiries.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedEnquiries = filteredEnquiries.slice(startIndex, endIndex);
+  
+  // Reset to page 1 when changing tabs
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab]);
 
   // Handle status update
   const handleStatusUpdate = async (id: string, newStatus: "pending" | "contacted" | "completed") => {
@@ -551,7 +564,7 @@ export default function EnquiriesPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredEnquiries.map((enquiry) => (
+                    {paginatedEnquiries.map((enquiry) => (
                       <>
                         <tr
                           key={enquiry._id}
@@ -561,7 +574,6 @@ export default function EnquiriesPage() {
                           <td className="px-6 py-4">
                             <div>
                               <p className="font-medium text-white">{enquiry.fullName}</p>
-                              <p className="text-xs text-zinc-500 mt-1">DOB: {enquiry.dateOfBirth}</p>
                             </div>
                           </td>
                           <td className="px-6 py-4">
@@ -643,20 +655,12 @@ export default function EnquiriesPage() {
                                     <p className="text-sm text-white">{enquiry.fullName}</p>
                                   </div>
                                   <div>
-                                    <p className="text-xs text-zinc-500 mb-1">Date of Birth</p>
-                                    <p className="text-sm text-white">{enquiry.dateOfBirth}</p>
-                                  </div>
-                                  <div>
                                     <p className="text-xs text-zinc-500 mb-1">Email</p>
                                     <p className="text-sm text-white">{enquiry.email}</p>
                                   </div>
                                   <div>
                                     <p className="text-xs text-zinc-500 mb-1">Phone</p>
                                     <p className="text-sm text-white">{enquiry.phone}</p>
-                                  </div>
-                                  <div>
-                                    <p className="text-xs text-zinc-500 mb-1">Address</p>
-                                    <p className="text-sm text-white">{enquiry.address}</p>
                                   </div>
                                   <div>
                                     <p className="text-xs text-zinc-500 mb-1">Service Requested</p>
@@ -724,6 +728,77 @@ export default function EnquiriesPage() {
                   </tbody>
                 </table>
               </div>
+              
+              {/* Pagination Controls */}
+              {filteredEnquiries.length > 0 && (
+                <div className="px-6 py-4 border-t border-zinc-700 bg-zinc-900/50">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-zinc-400">
+                      Showing {startIndex + 1} to {Math.min(endIndex, filteredEnquiries.length)} of {filteredEnquiries.length} enquiries
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      {/* Previous Button */}
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className="rounded-md border border-zinc-600 px-3 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                      </button>
+                      
+                      {/* Page Numbers */}
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                          // Show first page, last page, current page, and pages around current
+                          if (
+                            page === 1 ||
+                            page === totalPages ||
+                            (page >= currentPage - 1 && page <= currentPage + 1)
+                          ) {
+                            return (
+                              <button
+                                key={page}
+                                onClick={() => setCurrentPage(page)}
+                                className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+                                  currentPage === page
+                                    ? "bg-emerald-600 text-white"
+                                    : "border border-zinc-600 text-zinc-300 hover:bg-zinc-700"
+                                }`}
+                              >
+                                {page}
+                              </button>
+                            );
+                          } else if (
+                            page === currentPage - 2 ||
+                            page === currentPage + 2
+                          ) {
+                            return (
+                              <span key={page} className="px-2 text-zinc-500">
+                                ...
+                              </span>
+                            );
+                          }
+                          return null;
+                        })}
+                      </div>
+                      
+                      {/* Next Button */}
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                        className="rounded-md border border-zinc-600 px-3 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

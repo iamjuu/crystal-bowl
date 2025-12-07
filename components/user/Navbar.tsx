@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -16,6 +16,16 @@ const Navbar = () => {
   const router = useRouter()
   const { totalQuantity } = useCart()
   const [cartCount, setCartCount] = useState(0)
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    if (typeof window !== "undefined") {
+      return !!localStorage.getItem("userToken");
+    }
+    return false;
+  })
+  const [isShopHovered, setIsShopHovered] = useState(false)
+  const navRef = useRef<HTMLElement>(null)
+  const [dropdownTop, setDropdownTop] = useState(0)
+  const shopHoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Only render cart count after hydration to prevent mismatch
   useEffect(() => {
@@ -28,6 +38,14 @@ const Navbar = () => {
       setCartCount(totalQuantity())
     }
   }, [totalQuantity, mounted])
+
+  // Calculate dropdown position
+  useEffect(() => {
+    if (isShopHovered && navRef.current) {
+      const navRect = navRef.current.getBoundingClientRect()
+      setDropdownTop(navRect.bottom)
+    }
+  }, [isShopHovered])
 
 
   const toggleMobileMenu = () => {
@@ -60,6 +78,26 @@ const Navbar = () => {
     }, 300)
   }
 
+  const handleCartNavigation = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault()
+    
+    // If already on cart page, just refresh
+    if (pathname === '/cart') {
+      window.location.reload()
+      return
+    }
+
+    setIsNavigating(true)
+    setIsMobileMenuOpen(false)
+
+    // Check login status and route accordingly
+    const targetPath = isLoggedIn ? '/cart' : '/login'
+    
+    setTimeout(() => {
+      router.push(targetPath)
+    }, 300)
+  }
+
   return (
     <>
       {/* Page Transition Overlay */}
@@ -81,7 +119,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      <nav className="w-full px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 lg:pt-[43px]">
+      <nav ref={navRef} className="w-full px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 lg:pt-[43px] relative">
         <div className="max-w-[1400px] mx-auto">
         {/* Desktop Layout */}
         <div className="hidden lg:flex gap-8 xl:gap-[60px] 2xl:gap-[100px] justify-center items-center flex-wrap">
@@ -128,15 +166,136 @@ const Navbar = () => {
             >
               Services
             </Link>
-            <Link 
-              href="/shop" 
-              onClick={(e) => handleNavigation(e, '/shop')}
-              className={`text-[#D5B584] hover:text-white transition-all duration-300 text-sm xl:text-base font-normal whitespace-nowrap hover:scale-110 ${
-                pathname === '/shop' ? 'text-white font-semibold scale-110' : ''
-              }`}
+            <div 
+              className="relative  "
+              onMouseEnter={() => {
+                if (shopHoverTimeoutRef.current) {
+                  clearTimeout(shopHoverTimeoutRef.current)
+                  shopHoverTimeoutRef.current = null
+                }
+                setIsShopHovered(true)
+              }}
+              onMouseLeave={() => {
+                shopHoverTimeoutRef.current = setTimeout(() => {
+                  setIsShopHovered(false)
+                }, 200)
+              }}
             >
-              Shop
-            </Link>
+              <Link 
+                href="/shop" 
+                onClick={(e) => handleNavigation(e, '/shop')}
+                className={`text-[#D5B584] hover:text-white transition-all duration-300 text-sm xl:text-base font-normal whitespace-nowrap hover:scale-110 ${
+                  pathname === '/shop' ? 'text-white font-semibold scale-110' : ''
+                }`}
+              >
+                Shop
+              </Link>
+              
+              {/* Shop Dropdown Menu - Full Width */}
+              {isShopHovered && (
+                <div 
+                  className="fixed left-0 right-0 w-full mt-2 bg-white shadow-lg border-t border-gray-200 z-50 pointer-events-auto" 
+                  style={{ top: `${dropdownTop}px` }}
+                  onMouseEnter={() => {
+                    if (shopHoverTimeoutRef.current) {
+                      clearTimeout(shopHoverTimeoutRef.current)
+                      shopHoverTimeoutRef.current = null
+                    }
+                    setIsShopHovered(true)
+                  }}
+                  onMouseLeave={() => {
+                    shopHoverTimeoutRef.current = setTimeout(() => {
+                      setIsShopHovered(false)
+                    }, 200)
+                  }}
+                >
+                  <div className="w-full max-w-7xl   mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                    <div className="flex flex-row justify-between ">
+                      <Link
+                        href="/shop?category=7-chakras-set"
+                        onClick={(e) => {
+                          handleNavigation(e, '/shop?category=7-chakras-set')
+                          setIsShopHovered(false)
+                        }}
+                        className="text-[#1C3163] hover:text-[#D5B584] transition-all text-sm xl:text-base font-normal py-2 hover:translate-x-2 cursor-pointer"
+                      >
+                        7 Chakras Set
+                      </Link>
+                      <Link
+                        href="/shop?category=elements-set"
+                        onClick={(e) => {
+                          handleNavigation(e, '/shop?category=elements-set')
+                          setIsShopHovered(false)
+                        }}
+                        className="text-[#1C3163] hover:text-[#D5B584] transition-all text-sm xl:text-base font-normal py-2 hover:translate-x-2 cursor-pointer"
+                      >
+                        Elements Set
+                      </Link>
+                      <Link
+                        href="/shop?category=endocrine-set"
+                        onClick={(e) => {
+                          handleNavigation(e, '/shop?category=endocrine-set')
+                          setIsShopHovered(false)
+                        }}
+                        className="text-[#1C3163] hover:text-[#D5B584] transition-all text-sm xl:text-base font-normal py-2 hover:translate-x-2 cursor-pointer"
+                      >
+                        Endocrine Set
+                      </Link>
+                      <Link
+                        href="/shop?category=harmonic-binaural-beats-set"
+                        onClick={(e) => {
+                          handleNavigation(e, '/shop?category=harmonic-binaural-beats-set')
+                          setIsShopHovered(false)
+                        }}
+                        className="text-[#1C3163] hover:text-[#D5B584] transition-all text-sm xl:text-base font-normal py-2 hover:translate-x-2 cursor-pointer"
+                      >
+                        Harmonic Binaural Beats Set
+                      </Link>
+                      <Link
+                        href="/shop?category=corporate-wellness-collection"
+                        onClick={(e) => {
+                          handleNavigation(e, '/shop?category=corporate-wellness-collection')
+                          setIsShopHovered(false)
+                        }}
+                        className="text-[#1C3163] hover:text-[#D5B584] transition-all text-sm xl:text-base font-normal py-2 hover:translate-x-2 cursor-pointer"
+                      >
+                        Corporate Wellness Collection
+                      </Link>
+                      <Link
+                        href="/shop?category=crystal-handle"
+                        onClick={(e) => {
+                          handleNavigation(e, '/shop?category=crystal-handle')
+                          setIsShopHovered(false)
+                        }}
+                        className="text-[#1C3163] hover:text-[#D5B584] transition-all text-sm xl:text-base font-normal py-2 hover:translate-x-2 cursor-pointer"
+                      >
+                        Crystal Handle
+                      </Link>
+                      <Link
+                        href="/shop?category=harmonised-set"
+                        onClick={(e) => {
+                          handleNavigation(e, '/shop?category=harmonised-set')
+                          setIsShopHovered(false)
+                        }}
+                        className="text-[#1C3163] hover:text-[#D5B584] transition-all text-sm xl:text-base font-normal py-2 hover:translate-x-2 cursor-pointer"
+                      >
+                        Harmonised Set
+                      </Link>
+                      <Link
+                        href="/shop?category=all"
+                        onClick={(e) => {
+                          handleNavigation(e, '/shop?category=all')
+                          setIsShopHovered(false)
+                        }}
+                        className="text-[#1C3163] hover:text-[#D5B584] transition-all text-sm xl:text-base font-normal py-2 hover:translate-x-2 cursor-pointer"
+                      >
+                        View All Products
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
             <Link 
               href="/events" 
               onClick={(e) => handleNavigation(e, '/events')}
@@ -178,8 +337,8 @@ const Navbar = () => {
             
             {/* Cart Icon */}
             <Link 
-              href="/cart" 
-              onClick={(e) => handleNavigation(e, '/cart')}
+              href={isLoggedIn ? "/cart" : "/login"} 
+              onClick={handleCartNavigation}
               className="relative text-[#D5B584] hover:text-white transition-all duration-300 hover:scale-110"
             >
               <ShoppingCart size={24} />
@@ -220,8 +379,8 @@ const Navbar = () => {
             
             {/* Cart Icon Mobile */}
             <Link 
-              href="/cart" 
-              onClick={(e) => handleNavigation(e, '/cart')}
+              href={isLoggedIn ? "/cart" : "/login"} 
+              onClick={handleCartNavigation}
               className="relative text-[#D5B584] hover:text-white transition-all duration-300"
             >
               <ShoppingCart size={24} />

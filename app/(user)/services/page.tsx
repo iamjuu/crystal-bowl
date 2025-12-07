@@ -31,6 +31,12 @@ const ServicesPage = () => {
   const [privateCurrentIndex, setPrivateCurrentIndex] = useState(0);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    if (typeof window !== "undefined") {
+      return !!localStorage.getItem("userToken");
+    }
+    return false;
+  });
 
   // Fetch sessions
   const fetchSessions = async () => {
@@ -321,7 +327,7 @@ const ServicesPage = () => {
                             </div>
 
                             <button 
-                              onClick={() => router.push('/privateappointment')}
+                              onClick={() => router.push('/form')}
                               className="flex items-center gap-2 text-white text-[14px] sm:text-[15px] font-light hover:gap-3 transition-all duration-300 mt-6"
                             >
                               Enquire Now
@@ -455,7 +461,7 @@ const ServicesPage = () => {
                             </div>
                           )}
                           {/* Default Overlay with Title and Button */}
-                          <div className="absolute bottom-0 left-0 right-0 bg-black/30 to-transparent p-4 sm:p-5 md:p-6 group-hover:opacity-0 transition-opacity duration-300">
+                          <div className="absolute bottom-0 left-0 right-0 to-transparent p-4 sm:p-5 md:p-6 group-hover:opacity-0 transition-opacity duration-300">
                             <h3 className="text-white text-[16px] sm:text-[18px] md:text-[20px] font-normal mb-3 leading-snug">
                               {item.title || "Private Session"}
                             </h3>
@@ -528,7 +534,7 @@ const ServicesPage = () => {
                             </div>
 
                             <button 
-                              onClick={() => router.push('/privateappointment')}
+                              onClick={() => router.push(isLoggedIn ? '/privateappointment' : '/login')}
                               className="flex items-center gap-2 text-white text-[14px] sm:text-[15px] font-light hover:gap-3 transition-all duration-300 mt-6"
                             >
                               Book Now

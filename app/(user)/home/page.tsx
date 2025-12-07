@@ -321,9 +321,11 @@ const Index = () => {
                       {item.description}
                     </p>
                     {/* Arrow Button */}
-                    <button className="size-[18px] sm:size-[20px] md:size-[22px] rounded-full border-1 border-[#1C3163] flex items-center justify-center hover:bg-[#1C3163] transition-colors group">
-                      <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-[#1C3163] hover:text-white" strokeWidth={.9} />
-                    </button>
+                    <Link href="/services" >
+                      <button className="size-[18px] sm:size-[20px] md:size-[22px] rounded-full border-1 border-[#1C3163] flex items-center justify-center hover:bg-[#1C3163] transition-colors group">
+                        <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-[#1C3163] hover:text-white" strokeWidth={.9} />
+                      </button>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -360,9 +362,12 @@ const Index = () => {
                   </h3>
                   <div className="flex-col gap-3 sm:gap-4 md:gap-[27px] flex">
                     {/* Arrow Button */}
+                    <Link href="/services" >
+
                     <button className="size-[18px] sm:size-[20px] md:size-[22px] rounded-full border-1 border-[#1C3163] flex items-center justify-center hover:bg-[#1C3163] hover:text-white transition-colors group">
                       <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 hover:text-white" strokeWidth={.9} />
                     </button>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -459,6 +464,8 @@ const Index = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             {UpcomingEventsData.map((event) => (
               <div key={event.id} className="flex flex-col group">
+                                    <Link href="/events" >
+
                 <div className="relative w-[193px] h-[128px] rounded-2xl overflow-hidden mb-4 group-hover:shadow-2xl transition-all duration-500">
                   <Image
                     src={event.image}
@@ -467,6 +474,7 @@ const Index = () => {
                     className="object-cover group-hover:scale-115 group-hover:-translate-y-2 group-hover:grayscale-0 grayscale transition-all duration-500 ease-out"
                   />
                 </div>
+                </Link>
                 <div className="flex flex-col gap-2">
                   <p className="text-[#1C3163] text-[14px] sm:text-[15px] md:text-[24px] font-normal">
                     {event.date}

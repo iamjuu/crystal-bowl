@@ -73,14 +73,16 @@ const CollectionSection: React.FC<CollectionSectionProps> = ({ products }) => {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-[18px] w-full">
             {products.map((item) => (
               <div key={item._id} className="text-black group">
-                <div className="relative w-full aspect-square group-hover:scale-105 transition-transform duration-300">
-                  <Image 
-                    src={item.imageUrl?.[0] ? normalizeImageUrl(item.imageUrl[0]) : "/placeholder.png"}
-                    alt={item.name}
-                    fill
-                    className="object-cover rounded-lg"
-                  />
-                </div>
+                <Link href={`/shop/${item._id}`}>
+                  <div className="relative w-full aspect-square group-hover:scale-105 transition-transform duration-300 cursor-pointer">
+                    <Image 
+                      src={item.imageUrl?.[0] ? normalizeImageUrl(item.imageUrl[0]) : "/placeholder.png"}
+                      alt={item.name}
+                      fill
+                      className="object-cover rounded-lg"
+                    />
+                  </div>
+                </Link>
                 <div className="leading-5">
                   <p className="pt-4 sm:pt-6 md:pt-[28px] text-[14px] sm:text-[16px] md:text-[18px]">{item.name}</p>
                   <p className="text-[12px] sm:text-[13px] md:text-[14px]">{item.description}</p>

@@ -1,9 +1,131 @@
 'use client'
 
 import React, { useMemo, useState, useRef, useEffect } from 'react'
+import Image from 'next/image'
 import toast from 'react-hot-toast'
 import Navbar from '@/components/user/Navbar'
 import Footer from '@/components/user/Footer'
+import { loadStripe } from '@stripe/stripe-js'
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
+
+// Initialize Stripe
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 
+  'pk_test_51QVQShQdXfO1NmmhvL0Y2jkP4aW7SykZ1h9u6AZr8sXMGJ3cQiNNvWTjVR8nFrBODvjYK8fJnEEfvP9XfF5GZHBe00Ys2cDprS' // Fallback test key
+)
+
+// Payment Form Component
+const PaymentForm = ({ 
+  onPaymentSuccess, 
+  amount, 
+  bookingDetails 
+}: { 
+  onPaymentSuccess: () => void
+  amount: number
+  bookingDetails: { date: string; time: string }
+}) => {
+  const stripe = useStripe()
+  const elements = useElements()
+  const [processing, setProcessing] = useState(false)
+
+  const handleStripePayment = async () => {
+    console.log('Starting payment process...')
+    console.log('Stripe loaded:', !!stripe)
+    console.log('Elements loaded:', !!elements)
+    
+    if (!stripe || !elements) {
+      toast.error('Stripe is not loaded yet. Please refresh the page.')
+      return
+    }
+
+    setProcessing(true)
+
+    try {
+      console.log('Creating payment intent...')
+      // Create payment intent
+      const response = await fetch('/api/create-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: amount,
+          currency: 'usd',
+          description: `Private Session - ${bookingDetails.date} at ${bookingDetails.time}`
+        })
+      })
+
+      const data = await response.json()
+      console.log('Payment intent response:', data)
+
+      if (!data.success) {
+        toast.error(data.message || 'Failed to initialize payment')
+        setProcessing(false)
+        return
+      }
+
+      const cardElement = elements.getElement(CardElement)
+      if (!cardElement) {
+        toast.error('Card element not found')
+        setProcessing(false)
+        return
+      }
+
+      console.log('Confirming payment...')
+      // Confirm payment
+      const { error, paymentIntent } = await stripe.confirmCardPayment(data.clientSecret, {
+        payment_method: {
+          card: cardElement,
+        }
+      })
+
+      console.log('Payment result:', { error, paymentIntent })
+
+      if (error) {
+        console.error('Payment error:', error)
+        toast.error(error.message || 'Payment failed')
+        setProcessing(false)
+      } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+        console.log('Payment successful!')
+        toast.success('Payment successful!')
+        onPaymentSuccess()
+      }
+    } catch (error) {
+      console.error('Payment error:', error)
+      toast.error('Payment failed. Please try again.')
+      setProcessing(false)
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="p-4 border-2 border-gray-300 rounded-lg bg-white">
+        <CardElement
+          options={{
+            style: {
+              base: {
+                fontSize: '16px',
+                color: '#424770',
+                '::placeholder': {
+                  color: '#aab7c4',
+                },
+              },
+              invalid: {
+                color: '#9e2146',
+              },
+            },
+          }}
+        />
+      </div>
+      <button
+        type="button"
+        onClick={handleStripePayment}
+        disabled={!stripe || processing}
+        className="w-full bg-[#D5B584] hover:bg-[#C4A574] text-white rounded-lg px-6 py-4 text-[16px] font-medium transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {processing ? 'Processing...' : `Pay $${amount.toFixed(2)}`}
+      </button>
+    </div>
+  )
+}
 
 type AvailableSlot = {
   _id: string
@@ -32,6 +154,8 @@ const PrivateAppointmentPage = () => {
   
   // Payment options state
   const [showMorePayments, setShowMorePayments] = useState(false)
+  const [showStripeForm, setShowStripeForm] = useState(false)
+  const [bookingAmount] = useState(100) // Set your session price here
 
   // Fetch available slots
   useEffect(() => {
@@ -219,13 +343,11 @@ const PrivateAppointmentPage = () => {
         selectedTime
       }
       
-      // Prepare enquiry data (using placeholder values for required API fields)
+      // Prepare enquiry data
       const enquiryData = {
         fullName: 'Private Appointment',
         email: 'private@example.com',
         phone: 'N/A',
-        address: 'N/A',
-        dateOfBirth: 'N/A',
         services: `Private Session - ${formattedDate} at ${selectedTime}`,
         sessionType: 'private',
         comment: JSON.stringify(privateData)
@@ -426,85 +548,145 @@ const PrivateAppointmentPage = () => {
             <div className=''>
               <div className='rounded-[24px] p-6 md:p-8 lg:p-10 border shadow-lg bg-white/50'>
               
-              {/* Payment Section */}
-              {selectedDate && selectedTime && (
-                <div className="">
-                  <div className=" bg-red-200">
-                    <h2 className="text-[28px] sm:text-[32px] md:text-[36px] text-[#D5B584] font-light mb-8">
-                      Make Your Payment
-                    </h2>
+                {/* Payment Section */}
+                {selectedDate && selectedTime && (
+                  <div className="">
+                    <div className="bg-white/80 p-6 md:p-8 rounded-[20px]">
+                      <h2 className="text-[28px] sm:text-[32px] md:text-[36px] text-[#D5B584] font-light mb-4">
+                        Make Your Payment
+                      </h2>
+                      
+                      <p className="text-[16px] text-gray-700 mb-6">
+                        Session Amount: <span className="text-[#D5B584] font-semibold text-[20px]">${bookingAmount.toFixed(2)}</span>
+                      </p>
 
-                    {/* Google Pay Button */}
-                    <button
-                      type="button"
-                      className=" bg-[#D5B584] hover:bg-[#C4A574] text-white rounded-[12px] px-6 py-4 flex items-center justify-center gap-3 text-[16px] sm:text-[18px] font-medium transition-colors duration-300 mb-4"
-                    >
-                      <span>Pay with</span>
-                      <svg width="48" height="20" viewBox="0 0 48 20" fill="none">
-                        <rect width="48" height="20" rx="4" fill="white"/>
-                        <path d="M20.5 6.5h2.5v7h-2.5v-7zm6.5 4.5c0-1.5 1-2.5 2.5-2.5s2.5 1 2.5 2.5-1 2.5-2.5 2.5-2.5-1-2.5-2.5zm-1.5 0c0 2.5 2 4.5 4.5 4.5s4.5-2 4.5-4.5-2-4.5-4.5-4.5-4.5 2-4.5 4.5z" fill="#4285F4"/>
-                        <path d="M35.5 6.5c-2.5 0-4.5 2-4.5 4.5s2 4.5 4.5 4.5c1.5 0 2.8-.7 3.5-1.8l-2-1.2c-.3.6-1 1-1.5 1-1 0-1.8-.7-2-1.5h5.5c0-.3.1-.7.1-1 0-2.5-2-4.5-4.6-4.5z" fill="#EA4335"/>
-                      </svg>
-                      <span className="text-[#6B7280]">or</span>
-                    </button>
+                      {/* Stripe Payment Form */}
+                      {!showStripeForm ? (
+                        <div className="space-y-4">
+                          {/* Google Pay Button */}
+                          <button
+                            type="button"
+                            onClick={() => toast('Google Pay coming soon!')}
+                            className="w-full bg-black hover:bg-gray-900 text-white rounded-[12px] px-6 py-4 flex items-center justify-center gap-3 text-[16px] sm:text-[18px] font-medium transition-colors duration-300"
+                          >
+                            <Image 
+                              src="/assets/icon/G_Pay_Lockup_1_.svg" 
+                              alt="Google Pay" 
+                              width={67}
+                              height={27}
+                              className="h-[27px] w-auto"
+                            />
+                          </button>
 
-                    {/* More Payment Options */}
-                    <button
-                      type="button"
-                      onClick={() => setShowMorePayments(!showMorePayments)}
-                      className="text-[#5B7C99] text-[14px] sm:text-[16px] font-normal flex items-center gap-2 hover:text-[#4A6B88] transition-colors"
-                    >
-                      More Payment Options
-                      <svg
-                        className={`w-4 h-4 transition-transform duration-300 ${showMorePayments ? 'rotate-180' : ''}`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
+                          <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                              <div className="w-full border-t border-gray-300"></div>
+                            </div>
+                            <div className="relative flex justify-center text-sm">
+                              <span className="px-4 bg-white/80 text-gray-500">Or pay with card</span>
+                            </div>
+                          </div>
 
-                    {/* Additional Payment Options */}
-                    {showMorePayments && (
-                      <div className="mt-6 space-y-3 border-t border-gray-200 pt-6">
-                        <button
-                          type="button"
-                          className=" bg-white border-2 border-gray-300 hover:border-[#D5B584] text-gray-800 rounded-[12px] px-6 py-4 flex items-center justify-center gap-3 text-[16px] font-medium transition-all duration-300"
-                        >
-                          <svg width="40" height="24" viewBox="0 0 40 24" fill="none">
-                            <rect width="40" height="24" rx="4" fill="#0079C1"/>
-                            <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">PayPal</text>
-                          </svg>
-                          Pay with PayPal
-                        </button>
+                          {/* Stripe Card Payment Button */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              console.log('Stripe payment button clicked!')
+                              toast.success('Opening Stripe payment form...')
+                              setShowStripeForm(true)
+                            }}
+                            className="w-full bg-[#635BFF] hover:bg-[#5347E6] text-white rounded-[12px] px-6 py-4 flex items-center justify-center gap-3 text-[16px] font-medium transition-all duration-300 shadow-lg"
+                          >
+                            <svg width="40" height="24" viewBox="0 0 40 24" fill="none">
+                              <rect width="20" height="24" fill="white" rx="2"/>
+                              <text x="10" y="16" textAnchor="middle" fill="#635BFF" fontSize="10" fontWeight="bold">S</text>
+                            </svg>
+                            Pay with Credit/Debit Card
+                          </button>
 
-                        <button
-                          type="button"
-                          className="w-full bg-white border-2 border-gray-300 hover:border-[#D5B584] text-gray-800 rounded-[12px] px-6 py-4 flex items-center justify-center gap-3 text-[16px] font-medium transition-all duration-300"
-                        >
-                          <svg width="40" height="24" viewBox="0 0 40 24" fill="none">
-                            <rect width="40" height="24" rx="4" fill="#635BFF"/>
-                            <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="8" fontWeight="bold">Stripe</text>
-                          </svg>
-                          Pay with Credit/Debit Card
-                        </button>
+                          {/* More Payment Options */}
+                          <button
+                            type="button"
+                            onClick={() => setShowMorePayments(!showMorePayments)}
+                            className="text-[#5B7C99] text-[14px] sm:text-[16px] font-normal flex items-center gap-2 hover:text-[#4A6B88] transition-colors mx-auto"
+                          >
+                            More Payment Options
+                            <svg
+                              className={`w-4 h-4 transition-transform duration-300 ${showMorePayments ? 'rotate-180' : ''}`}
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
 
-                        <button
-                          type="button"
-                          className=" bg-white border-2 border-gray-300 hover:border-[#D5B584] text-gray-800 rounded-[12px] px-6 py-4 flex items-center justify-center gap-3 text-[16px] font-medium transition-all duration-300"
-                        >
-                          <svg width="40" height="24" viewBox="0 0 40 24" fill="none">
-                            <rect width="40" height="24" rx="4" fill="#00BAC7"/>
-                            <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="9" fontWeight="bold">Bank</text>
-                          </svg>
-                          Bank Transfer
-                        </button>
-                      </div>
-                    )}
+                          {/* Additional Payment Options */}
+                          {showMorePayments && (
+                            <div className="mt-4 space-y-3 border-t border-gray-200 pt-4">
+                              <button
+                                type="button"
+                                onClick={() => toast('PayPal coming soon!')}
+                                className="w-full bg-white border-2 border-gray-300 hover:border-[#D5B584] text-gray-800 rounded-[12px] px-6 py-4 flex items-center justify-center gap-3 text-[16px] font-medium transition-all duration-300"
+                              >
+                                <svg width="40" height="24" viewBox="0 0 40 24" fill="none">
+                                  <rect width="40" height="24" rx="4" fill="#0079C1"/>
+                                  <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">PayPal</text>
+                                </svg>
+                                Pay with PayPal
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => toast('Bank transfer details will be sent via email')}
+                                className="w-full bg-white border-2 border-gray-300 hover:border-[#D5B584] text-gray-800 rounded-[12px] px-6 py-4 flex items-center justify-center gap-3 text-[16px] font-medium transition-all duration-300"
+                              >
+                                <svg width="40" height="24" viewBox="0 0 40 24" fill="none">
+                                  <rect width="40" height="24" rx="4" fill="#00BAC7"/>
+                                  <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="9" fontWeight="bold">Bank</text>
+                                </svg>
+                                Bank Transfer
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          <button
+                            type="button"
+                            onClick={() => setShowStripeForm(false)}
+                            className="text-[#5B7C99] text-[14px] font-normal flex items-center gap-2 hover:text-[#4A6B88] transition-colors mb-4"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                            </svg>
+                            Back to payment options
+                          </button>
+                          
+                          <Elements stripe={stripePromise}>
+                            <PaymentForm
+                              amount={bookingAmount}
+                              bookingDetails={{
+                                date: selectedDate ? new Date(currentYear, currentMonth, selectedDate).toLocaleDateString('en-US', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric'
+                                }) : '',
+                                time: selectedTime || ''
+                              }}
+                              onPaymentSuccess={() => {
+                                const syntheticEvent = {
+                                  preventDefault: () => {},
+                                } as React.FormEvent
+                                handleFormSubmit(syntheticEvent)
+                              }}
+                            />
+                          </Elements>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
               </div>
             </div>
           </div>

@@ -54,3 +54,6 @@ export { default as WhatsAppIcon } from './footer/whatsapp.svg';
 export { default as FacebookIcon } from './footer/Vector (9).svg';
 export { default as YouTubeIcon } from './footer/youtube.svg';
 export { default as InstagramIcon } from './footer/Vector (10).svg';
+
+
+export {default as WhatsAppIconSvg} from './icon/whatsapp-svgrepo-com (1).svg'
