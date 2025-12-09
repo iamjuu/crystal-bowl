@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", );
+function getStripeInstance(): Stripe {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  if (!secretKey) {
+    throw new Error("STRIPE_SECRET_KEY is not configured");
+  }
+  return new Stripe(secretKey);
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -26,6 +32,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Create Stripe checkout session
+    const stripe = getStripeInstance();
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: items.map((item: any) => ({

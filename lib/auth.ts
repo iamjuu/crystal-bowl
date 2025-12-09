@@ -13,8 +13,8 @@ const JWT_SECRET: jwt.Secret = envSecret;
 
 export type JwtPayload = { userId: string; role: UserRole; isAdmin?: boolean };
 
-export function signToken(payload: JwtPayload, expiresIn: string = "7d") {
-  const options: jwt.SignOptions = { expiresIn };
+export function signToken(payload: JwtPayload, expiresIn: string | number = "7d") {
+  const options: jwt.SignOptions = { expiresIn: expiresIn as jwt.SignOptions["expiresIn"] };
   return jwt.sign(payload, JWT_SECRET, options);
 }
 
@@ -77,7 +77,7 @@ export async function getAuthUser(req: NextRequest) {
     if (userToken) {
       return getAuthUserFromToken(userToken);
     }
-  } catch (error) {
+  } catch {
     // cookies() might not be available in all contexts, ignore error
   }
   

@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Box from '@mui/material/Box';
-import { alpha, useTheme } from '@mui/material/styles';
+import { alpha } from '@mui/material/styles';
 import { ChartDataProviderPro } from '@mui/x-charts-pro/ChartDataProviderPro';
 import { ChartsSurface } from '@mui/x-charts-pro/ChartsSurface';
 import { LinePlot } from '@mui/x-charts-pro/LineChart';
@@ -29,7 +29,6 @@ type HighlightPeriod = {
 function HighlightBands({ periods }: { periods: HighlightPeriod[] }) {
   const { top, left, width, height } = useDrawingArea();
   const xScale = useXScale();
-  const theme = useTheme();
   const labelFill = alpha('#ffffff', 0.9);
 
   return (
@@ -160,31 +159,32 @@ export default function OrdersLineChart({ data }: OrdersLineChartProps) {
             valueFormatter: (value) => `${value}`,
           },
         ]}
-        sx={{
-          '& .MuiChartsLegend-series text': {
-            fill: 'white !important',
-          },
-          '& .MuiChartsAxis-tickLabel': {
-            fill: 'white !important',
-          },
-          '& .MuiChartsAxis-label': {
-            fill: 'white !important',
-          },
-          '& text': {
-            fill: 'white !important',
-          },
-          '& .MuiChartsAxis-line': {
-            stroke: '#52525b',
-          },
-          '& .MuiChartsAxis-tick': {
-            stroke: '#52525b',
-          },
-        }}
       >
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
           <ChartsLegend />
         </Box>
-        <ChartsSurface>
+        <ChartsSurface
+          sx={{
+            '& .MuiChartsLegend-series text': {
+              fill: 'white !important',
+            },
+            '& .MuiChartsAxis-tickLabel': {
+              fill: 'white !important',
+            },
+            '& .MuiChartsAxis-label': {
+              fill: 'white !important',
+            },
+            '& text': {
+              fill: 'white !important',
+            },
+            '& .MuiChartsAxis-line': {
+              stroke: '#52525b',
+            },
+            '& .MuiChartsAxis-tick': {
+              stroke: '#52525b',
+            },
+          }}
+        >
           <ChartsClipPath id={clipPathId} />
           <HighlightBands periods={highlightPeriods} />
           <ChartsGrid horizontal />

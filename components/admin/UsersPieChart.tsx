@@ -21,7 +21,7 @@ export default function UsersPieChart({ total, verified }: UsersPieChartProps) {
         series={[
           {
             data,
-            highlightScope: { faded: 'global', highlighted: 'item' },
+            highlightScope: { fade: 'global', highlight: 'item' },
             faded: { innerRadius: 30, additionalRadius: -30, color: 'gray' },
             arcLabel: (item) => `${item.value}`,
             arcLabelMinAngle: 35,
@@ -31,13 +31,7 @@ export default function UsersPieChart({ total, verified }: UsersPieChartProps) {
         height={200}
         slotProps={{
           legend: {
-            direction: 'row',
-            position: { vertical: 'bottom', horizontal: 'middle' },
-            padding: 0,
-            labelStyle: {
-              fontSize: 12,
-              fill: 'white',
-            },
+            position: { vertical: 'bottom', horizontal: 'center' },
           },
         }}
         sx={{
