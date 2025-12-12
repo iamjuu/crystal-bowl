@@ -4,46 +4,119 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { X, Eye, EyeOff } from "lucide-react";
+import { X } from "lucide-react";
 import Navbar from "@/components/user/Navbar";
 import Footer from "@/components/user/Footer";
+
 export default function LoginPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [step, setStep] = useState<"email" | "otp">("email");
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Step 1: Send OTP
+  const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
+    if (!email) {
+      setError("Email is required");
+      setLoading(false);
+      return;
+    }
+
     try {
-      const res = await fetch("/api/user/login", {
+      const res = await fetch("/api/auth/login-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ email }),
         credentials: "include",
       });
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.message || "Login failed");
+        setError(data.message || "Failed to send OTP");
+        toast.error(data.message || "Failed to send OTP");
         
-        // If user not registered, show toast and redirect to signup
-        if (res.status === 404 && data.message?.toLowerCase().includes("not registered")) {
-          toast.error("User not registered. Please sign up first.");
+        // If user not registered, redirect to signup
+        if (res.status === 404 && data.message?.toLowerCase().includes("not found")) {
           setTimeout(() => {
             router.push("/signup");
           }, 1500);
-        } else {
-          toast.error(data.message || "Login failed");
         }
         return;
       }
 
-      // Store token in localStorage for client-side auth (user-side)
+      toast.success("OTP sent to your email!");
+      setStep("otp");
+    } catch {
+      setError("Something went wrong. Please try again.");
+      toast.error("Failed to send OTP. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Retry OTP - resend OTP
+  const handleRetryOTP = async () => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/auth/login-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+        credentials: "include",
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.message || "Failed to resend OTP");
+        toast.error(data.message || "Failed to resend OTP");
+        return;
+      }
+
+      toast.success("OTP resent to your email!");
+    } catch {
+      setError("Something went wrong. Please try again.");
+      toast.error("Failed to resend OTP. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Step 2: Verify OTP and login
+  const handleVerifyOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    if (!otp || otp.length !== 6) {
+      setError("Please enter a valid 6-digit OTP");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/auth/verify-login-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp }),
+        credentials: "include",
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.message || "OTP verification failed");
+        toast.error(data.message || "OTP verification failed");
+        return;
+      }
+
+      // Store token in localStorage for client-side auth
       if (data.data?.token) {
         localStorage.setItem("userToken", data.data.token);
         localStorage.setItem("userRole", "user");
@@ -62,7 +135,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex-col bg-gradient-to-b from-[#FEC1A2] to-[#FDECE2]  flex items-center justify-center ">
       <Navbar />
       <div className="w-full mt-[150px]  max-w-lg">
-        <form onSubmit={handleSubmit} className="relative  w-[500px] bg-white p-8 rounded-lg shadow-lg border border-zinc-200">
+        <div className="relative  w-[500px] bg-white p-8 rounded-lg shadow-lg border border-zinc-200">
           {/* Close button */}
           <button
             type="button"
@@ -76,75 +149,104 @@ export default function LoginPage() {
           {/* Title */}
           <h1 className="text-3xl font-[300] text-black mb-6 mt-2">Log In</h1>
 
-          <div className="space-y-5">
-            {/* Email field */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-black mb-1">
-                Email <span className="text-red-500">*</span>
-              </label>
-              <input
-                id="email"
-                type="email"
-                required
-                autoComplete="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full rounded-md border border-[#FEC1A2] px-3 py-2 focus:border-[#FEC1A2] focus:outline-none focus:ring-2 focus:ring-[#FEC1A2]/20 bg-white"
-                placeholder="you@example.com"
-              />
-            </div>
-
-            {/* Password field */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-black mb-1">
-                Password <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
+          {step === "email" && (
+            <form onSubmit={handleSendOTP} className="space-y-5">
+              {/* Email field */}
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-black mb-1">
+                  Email <span className="text-red-500">*</span>
+                </label>
                 <input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
+                  id="email"
+                  type="email"
                   required
-                  autoComplete="current-password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full rounded-md border border-[#FEC1A2] px-3 py-2 pr-10 focus:border-[#FEC1A2] focus:outline-none focus:ring-2 focus:ring-[#FEC1A2]/20 bg-white"
-                  placeholder="Enter your password"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full rounded-md border border-[#FEC1A2] px-3 py-2 focus:border-[#FEC1A2] focus:outline-none focus:ring-2 focus:ring-[#FEC1A2]/20 bg-white"
+                  placeholder="you@example.com"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-black hover:text-zinc-600 transition-colors"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
               </div>
-            </div>
 
-            {/* Error message */}
-            {error && (
-              <div className="text-sm text-red-600">
-                <p>{error}</p>
+              {/* Error message */}
+              {error && (
+                <div className="text-sm text-red-600">
+                  <p>{error}</p>
+                </div>
+              )}
+
+              {/* Submit button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-md bg-[#FEC1A2] border border-[#F5A082] px-4 py-2 text-black font-medium transition-colors hover:bg-[#F5A082] disabled:opacity-50"
+              >
+                {loading ? "Logging in..." : "Login"}
+              </button>
+            </form>
+          )}
+
+          {step === "otp" && (
+            <form onSubmit={handleVerifyOTP} className="space-y-5">
+              {/* OTP field */}
+              <div>
+                <label htmlFor="otp" className="block text-sm font-medium text-black mb-1">
+                  Enter OTP <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="otp"
+                  type="text"
+                  required
+                  maxLength={6}
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  className="w-full rounded-md border border-[#FEC1A2] px-3 py-2 focus:border-[#FEC1A2] focus:outline-none focus:ring-2 focus:ring-[#FEC1A2]/20 bg-white text-center text-2xl tracking-widest"
+                  placeholder="000000"
+                />
+                <p className="text-xs text-zinc-500 mt-1">Check your email for the 6-digit code</p>
               </div>
-            )}
 
-            {/* Submit button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-md bg-[#FEC1A2] border border-[#F5A082] px-4 py-2 text-black font-medium transition-colors hover:bg-[#F5A082] disabled:opacity-50"
-            >
-              {loading ? "Logging in..." : "Log In"}
-            </button>
+              {/* Error message */}
+              {error && (
+                <div className="text-sm text-red-600">
+                  <p>{error}</p>
+                </div>
+              )}
 
-            {/* Forgot password link */}
-            <div className="text-center">
-              <Link href="/forgot-password" className="text-sm text-[#6B7280] hover:text-[#4B5563] transition-colors">
-                Forgot Your Password?
-              </Link>
-            </div>
-          </div>
-        </form>
+              {/* Submit button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-md bg-[#FEC1A2] border border-[#F5A082] px-4 py-2 text-black font-medium transition-colors hover:bg-[#F5A082] disabled:opacity-50"
+              >
+                {loading ? "Verifying..." : "Log In"}
+              </button>
+
+              {/* Retry OTP button */}
+              <button
+                type="button"
+                onClick={handleRetryOTP}
+                disabled={loading}
+                className="w-full text-sm text-[#6B7280] hover:text-black transition-colors disabled:opacity-50"
+              >
+                {loading ? "Resending..." : "Resend OTP"}
+              </button>
+
+              {/* Change email button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setStep("email");
+                  setOtp("");
+                  setError("");
+                }}
+                className="w-full text-sm text-[#6B7280] hover:text-black transition-colors"
+              >
+                Change Email
+              </button>
+            </form>
+          )}
+        </div>
 
         <div className="mt-6 space-y-3 text-center text-sm text-zinc-600">
           <p>
