@@ -200,7 +200,7 @@ const OrdersPageContent = () => {
                             </p>
                           </div>
                           <p className="text-[#1C3163] font-medium">
-                            ₹{(item.price / 100).toLocaleString("en-IN")}
+                            ₹{item.price.toLocaleString("en-IN")}
                           </p>
                         </div>
                       ))}
@@ -213,7 +213,7 @@ const OrdersPageContent = () => {
                           Total Amount
                         </p>
                         <p className="text-[#1C3163] font-semibold text-xl">
-                          ₹{(order.amount / 100).toLocaleString("en-IN")}
+                          ₹{order.amount.toLocaleString("en-IN")}
                         </p>
                       </div>
                       {order.paymentProvider && (

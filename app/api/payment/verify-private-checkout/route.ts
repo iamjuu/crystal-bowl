@@ -2,19 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import connectDB from "@/lib/mongodb";
 import Booking from "@/models/Booking";
-import AvailableSlot from "@/models/AvailableSlot";
+import PrivateSession from "@/models/PrivateSession";
+import SessionEnquiry from "@/models/SessionEnquiry";
 import User from "@/models/User";
 import type { IUser } from "@/types";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", );
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
 
 export async function POST(req: NextRequest) {
   try {
     const authUser = await requireAuth(req);
     await connectDB();
     
-    // Get full user details from database (name, phone, email, etc.)
     const user = await User.findById(authUser._id).lean<IUser>();
     if (!user) {
       return NextResponse.json(
@@ -32,9 +32,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Retrieve the session from Stripe (don't expand shipping_details for private sessions)
+    // Retrieve the session from Stripe
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ['payment_intent', 'customer_details'], // Only expand what we need
+      expand: ['payment_intent', 'customer_details'],
     });
 
     if (!session || session.payment_status !== "paid") {
@@ -56,59 +56,54 @@ export async function POST(req: NextRequest) {
 
     // Get metadata from session
     const metadata = session.metadata;
-    if (!metadata || !metadata.slotId || !metadata.date || !metadata.time) {
+    if (!metadata || !metadata.sessionId || !metadata.enquiryId) {
       return NextResponse.json(
         { success: false, message: "Invalid session metadata" },
         { status: 400 }
       );
     }
 
-    // Check if slot is still available
-    const slot = await AvailableSlot.findById(metadata.slotId);
-    if (!slot) {
+    // Get the private session
+    const privateSession = await PrivateSession.findById(metadata.sessionId);
+    if (!privateSession) {
       return NextResponse.json(
-        { success: false, message: "Slot not found" },
+        { success: false, message: "Private session not found" },
         { status: 404 }
       );
     }
 
-    if (slot.isBooked) {
+    if (privateSession.bookedSeats >= privateSession.totalSeats) {
       return NextResponse.json(
-        { success: false, message: "Slot already booked" },
+        { success: false, message: "Session is already fully booked" },
         { status: 400 }
       );
     }
 
-    // Create the booking
-    console.log("Creating booking with data:", {
-      userId: String(user._id),
-      sessionId: metadata.slotId,
-      amount: session.amount_total || 0,
-      slotId: metadata.slotId,
-    });
+    // Update enquiry status
+    const enquiry = await SessionEnquiry.findById(metadata.enquiryId);
+    if (enquiry) {
+      enquiry.status = "completed";
+      await enquiry.save();
+    }
 
+    // Create the booking
     const booking = await Booking.create({
-      userId: String(user._id), // Ensure it's a string
-      sessionId: metadata.slotId, // Using slotId as sessionId for private sessions
+      userId: String(user._id),
+      sessionId: metadata.sessionId,
+      sessionType: "private",
       seats: 1, // Private sessions are always 1 seat
-      amount: session.amount_total || 0, // Amount in cents from Stripe
+      amount: session.amount_total ? Math.round(session.amount_total / 100) : privateSession.price, // Convert from cents
       status: "confirmed",
       paymentProvider: "stripe",
       paymentRef: sessionId,
       paymentStatus: "paid",
-      sessionType: "private",
-      slotId: metadata.slotId,
-      phone: user.phone || "N/A", // Get from user profile
-      comment: `Private Session - ${metadata.date} at ${metadata.time}`,
+      phone: user.phone || metadata.phone || "N/A",
+      comment: `Private Session - ${privateSession.date} at ${privateSession.startTime}`,
     });
 
-    console.log("Booking created successfully:", booking._id);
-
-    // Mark slot as booked
-    slot.isBooked = true;
-    await slot.save();
-
-    console.log("Slot marked as booked:", slot._id);
+    // Update session booked seats
+    privateSession.bookedSeats = 1;
+    await privateSession.save();
 
     return NextResponse.json({
       success: true,
@@ -120,7 +115,6 @@ export async function POST(req: NextRequest) {
       message: e?.message,
       name: e?.name,
       stack: e?.stack,
-      errors: e?.errors,
     });
     const status = e?.message === "UNAUTHORIZED" ? 401 : 500;
     return NextResponse.json(

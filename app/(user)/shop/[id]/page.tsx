@@ -197,8 +197,8 @@ const ProductDetailPage = () => {
     ? normalizeImageUrl(productImages[safeSelectedImage])
     : null;
   
-  // Convert price from cents to rupees
-  const priceInRupees = (product.price / 100).toFixed(2);
+  // Price is already in rupees
+  const priceInRupees = product.price.toFixed(2);
 
   // Handle Add to Cart
   const handleAddToCart = () => {
@@ -218,7 +218,7 @@ const ProductDetailPage = () => {
     addItem({
       id: product._id,
       name: product.name,
-      price: product.price, // Already in cents
+      price: product.price, // Price in rupees/dollars
       imageUrl: imageUrl,
     });
 
@@ -396,7 +396,7 @@ const ProductDetailPage = () => {
                   const itemImageUrl = item.imageUrl && item.imageUrl.length > 0 
                     ? normalizeImageUrl(item.imageUrl[0])
                     : null;
-                  const itemPriceInRupees = (item.price / 100).toFixed(2);
+                  const itemPriceInRupees = item.price.toFixed(2);
                   
                   return (
                     <div key={item._id} className="group">

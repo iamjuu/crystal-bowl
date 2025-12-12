@@ -161,7 +161,7 @@ export default function OrdersPage() {
   };
 
   const formatCurrency = (amount: number, currency: string = "INR") => {
-    const amountInMainUnit = amount / 100;
+    const amountInMainUnit = amount; // Already in rupees/dollars
     if (currency === "INR") {
       return `₹${amountInMainUnit.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }

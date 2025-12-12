@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
             description: product.description,
             images: validImageUrl ? [validImageUrl] : [],
           },
-          unit_amount: product.price, // Amount in smallest currency unit (paise)
+          unit_amount: Math.round(product.price * 100), // Convert to smallest currency unit (paise)
         },
         quantity: quantity,
       }],

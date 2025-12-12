@@ -77,7 +77,7 @@ const ShopPage = () => {
     addItem({
       id: item._id,
       name: item.name,
-      price: item.price, // Already in cents
+      price: item.price, // Price in rupees/dollars
       imageUrl: imageUrl,
     });
 
@@ -127,8 +127,8 @@ const ShopPage = () => {
                     const imageUrl = item.imageUrl && item.imageUrl.length > 0 
                       ? item.imageUrl[0] 
                       : null;
-                    // Convert price from cents to rupees
-                    const priceInRupees = (item.price / 100).toFixed(2);
+                    // Price is already in rupees
+                    const priceInRupees = item.price.toFixed(2);
                     
                     return (
                       <Link 

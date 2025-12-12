@@ -54,7 +54,7 @@ export interface Product extends WithTimestamps {
   shortDescription?: string; // Brief description
   description: string; // Long description
   category?: string; // Category name
-  price: number; // smallest currency unit
+  price: number; // Price in rupees/dollars (not cents/paise)
   imageUrl: string[]; // Array of base64 image strings
   videoUrl?: string | string[]; // Base64 video string(s) or URL(s) - supports up to 2 videos
 }
@@ -118,6 +118,44 @@ export interface YogaSession extends WithTimestamps {
   benefits?: string[];
 }
 
+export interface DiscoverySession extends WithTimestamps {
+  _id: string;
+  instructorName: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  duration: number; // in minutes
+  totalSeats: number; // Always 1
+  bookedSeats: number; // 0 or 1
+  price: number; // Always 0
+  title: string;
+  description: string;
+  imageUrl?: string;
+  videoUrl?: string;
+  format?: string;
+  benefits?: string[];
+  slotId?: string;
+}
+
+export interface PrivateSession extends WithTimestamps {
+  _id: string;
+  instructorName: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  duration: number; // in minutes
+  totalSeats: number; // Always 1
+  bookedSeats: number; // 0 or 1
+  price: number; // Payment required
+  title: string;
+  description: string;
+  imageUrl?: string;
+  videoUrl?: string;
+  format?: string;
+  benefits?: string[];
+  slotId?: string;
+}
+
 export type BookingStatus = "pending" | "confirmed" | "cancelled";
 
 export interface Booking extends WithTimestamps {
@@ -132,7 +170,7 @@ export interface Booking extends WithTimestamps {
   paymentProvider?: "stripe" | "paypal" | "bank_transfer";
   paymentRef?: string;
   paymentStatus?: "pending" | "paid" | "failed";
-  sessionType?: "regular" | "private" | "corporate";
+  sessionType?: "discovery" | "private" | "corporate";
   slotId?: string;
 }
 

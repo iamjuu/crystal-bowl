@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
               name: item.name,
               images: validImageUrl ? [validImageUrl] : [],
             },
-            unit_amount: item.price, // Amount in smallest currency unit (paise for INR)
+            unit_amount: Math.round(item.price * 100), // Convert to smallest currency unit (paise for INR)
           },
           quantity: item.quantity,
         };

@@ -86,7 +86,7 @@ const CollectionSection: React.FC<CollectionSectionProps> = ({ products }) => {
                 <div className="leading-5">
                   <p className="pt-4 sm:pt-6 md:pt-[28px] text-[14px] sm:text-[16px] md:text-[18px]">{item.name}</p>
                   <p className="text-[12px] sm:text-[13px] md:text-[14px]">{item.description}</p>
-                  <p className="pt-3 sm:pt-4 md:pt-[18px] text-[10px] sm:text-[11px] md:text-[12px]">₹{item.price}</p>
+                  <p className="pt-3 sm:pt-4 md:pt-[18px] text-[10px] sm:text-[11px] md:text-[12px]">₹{item.price.toLocaleString("en-IN")}</p>
                 </div>
               </div>
             ))}

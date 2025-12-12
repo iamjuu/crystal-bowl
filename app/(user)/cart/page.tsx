@@ -21,11 +21,10 @@ const CartPageContent = () => {
     setIsClient(true);
   }, []);
 
-  // Calculate totals
+  // Calculate totals (prices are stored in rupees/dollars)
   const itemsSubtotal = subtotal();
   const shippingCost = itemsSubtotal > 0 ? (itemsSubtotal > 5000 ? 0 : 200) : 0;
-  const tax = Math.round(itemsSubtotal * 0.18); // 18% GST
-  const totalAmount = itemsSubtotal + shippingCost + tax;
+  const totalAmount = itemsSubtotal + shippingCost;
 
   const handleCheckout = async () => {
     if (items.length === 0) {
@@ -59,7 +58,7 @@ const CartPageContent = () => {
             quantity: item.quantity,
             imageUrl: item.imageUrl,
           })),
-          amount: totalAmount,
+          amount: Math.round(totalAmount * 100), // Convert to cents/paise for Stripe
           currency: "INR",
         }),
       });
@@ -254,10 +253,6 @@ const CartPageContent = () => {
                       Add ₹{(5000 - itemsSubtotal).toLocaleString("en-IN")} more for FREE shipping
                     </p>
                   )}
-                  <div className="flex justify-between text-[#2C3E50]">
-                    <span>Tax (GST 18%)</span>
-                    <span>₹{tax.toLocaleString("en-IN")}</span>
-                  </div>
                   <div className="border-t border-gray-200 pt-4">
                     <div className="flex justify-between text-[#1C3163] text-lg font-semibold">
                       <span>Total</span>
