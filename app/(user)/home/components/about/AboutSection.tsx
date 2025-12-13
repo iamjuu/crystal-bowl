@@ -21,18 +21,17 @@ const AboutSectionComponent = () => {
                 <p>
                   Crystal Bowl Studio is created and designed by master sound
                   and energy healer Francesca Wong, fulfilling her dream to
-                  create a range of crystal bowls that are beautifully
-                  designed, with premium crystal quality and sound, with a
-                  powerful resonance and energy. at a more affordable price to
-                  make sound healing more accessible to healers all over the
-                  world.
+                  create a range of crystal bowls that are beautifully designed,
+                  with premium crystal quality and sound, with a powerful
+                  resonance and energy, at a more affordable price to make sound
+                  healing more accessible to healers all over the world.
                 </p>
 
                 <p>
-                  Our Crystal Bowls are 100% clear quartz crystal, with some
-                  of our premium designs infused with other crystals, metals
-                  and earth elements. They are lightweight and come in the
-                  most magical designs and colors to really make your practice
+                  Our Crystal Bowls are 100% clear quartz crystal, with some of
+                  our premium designs infused with other crystals, metals and
+                  earth elements. They are lightweight and come in the most
+                  magical designs and colors to really make your practice
                   unique. Take them with you on your Travels!
                 </p>
 
@@ -81,4 +80,3 @@ const AboutSectionComponent = () => {
 };
 
 export default AboutSectionComponent;
-

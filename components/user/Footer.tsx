@@ -169,9 +169,9 @@ const Footer = () => {
                   <li>
                     <a
                       href="#"
-                      className="text-black hover:text-[black] transition-colors break-words"
+                      className="text-black hover:text-[black] transition-colors "
                     >
-                      mail@frankieyogini@gmail.com{" "}
+                      hello@crystalbowlstudio.com
                     </a>
                   </li>
                 

@@ -91,16 +91,16 @@ const BlogPage = () => {
                 <h2 className="text-[#D5B584] text-[28px] sm:text-[32px] md:text-[40px] font-normal">
                   Blog
                 </h2>
-                <p className="text-[#1C3163] text-[14px] sm:text-[16px] md:text-[18px] font-light">
+                <p className="text-[#6B5D4F] text-[14px] sm:text-[16px] md:text-[18px] font-light">
             Resonances that ground, stabilize, and root you in the wisdom of nature.
                 </p>
               </div>
 
             {/* Blog List */}
             {loading ? (
-              <div className="text-center py-12 text-[#1C3163]">Loading blogs...</div>
+              <div className="text-center py-12 text-[#6B5D4F]">Loading blogs...</div>
             ) : blogsData.length === 0 ? (
-              <div className="text-center py-12 text-[#1C3163]">No blogs available</div>
+              <div className="text-center py-12 text-[#6B5D4F]">No blogs available</div>
             ) : (
               <div className="w-full space-y-6">
                 {blogsData.map((blog) => (

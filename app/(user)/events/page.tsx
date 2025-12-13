@@ -159,7 +159,7 @@ const EventsPage = () => {
               <h1 className="text-[#D5B584] text-[36px] sm:text-[40px]  font-light mb-4">
                 Events
               </h1>
-              <p className="text-[#1C3163] text-[14px] sm:text-[15px] md:text-[16px] font-light max-w-md">
+              <p className="text-[#6B5D4F]  text-[14px] sm:text-[15px] md:text-[16px] font-light max-w-md">
                 Lorem ipsum dolor sit amet consectetur. Eu proin donec est ac
                 velit massa et lobortis.
               </p>
@@ -167,9 +167,9 @@ const EventsPage = () => {
 
             {/* Events List */}
             {loading ? (
-              <div className="text-center py-12 text-[#1C3163]">Loading events...</div>
+              <div className="text-center py-12 text-[#6B5D4F] ">Loading events...</div>
             ) : eventsData.length === 0 ? (
-              <div className="text-center py-12 text-[#1C3163]">No upcoming events</div>
+              <div className="text-center py-12 text-[#6B5D4F] ">No upcoming events</div>
             ) : (
               <div className="">
                 {eventsData.slice(0, 3).map((event) => (
@@ -215,15 +215,15 @@ const EventsPage = () => {
                     {/* Event Details */}
                     <div className="flex-1 flex flex-col justify-between">
                       <div>
-                        <h2 className="text-[#1C3163] text-[24px] sm:text-[28px] md:text-[32px] lg:text-[36px] font-normal mb-4 leading-tight group-hover/card:text-[#D5B584] transition-colors duration-300">
+                        <h2 className="text-[#6B5D4F] text-[24px] sm:text-[28px] md:text-[32px] lg:text-[36px] font-normal mb-4 leading-tight group-hover/card:text-[#D5B584] transition-colors duration-300">
                           {event.title}
                         </h2>
 
                         <div className="space-y-2 mb-4">
-                          <p className="text-[#1C3163] text-[14px] sm:text-[15px] md:text-[16px] font-normal">
+                          <p className="text-[#6B5D4F]  text-[14px] sm:text-[15px] md:text-[16px] font-normal">
                             {event.location}
                           </p>
-                          <p className="text-[#1C3163] text-[14px] sm:text-[15px] md:text-[16px] font-light">
+                          <p className="text-[#6B5D4F] text-[14px] sm:text-[15px] md:text-[16px] font-light">
                             {event.time}
                           </p>
                         </div>
@@ -234,7 +234,7 @@ const EventsPage = () => {
                       </div>
 
                       {/* View Details Button */}
-                      <button className="flex items-center gap-2 text-[#1C3163] text-[14px] sm:text-[15px] md:text-[16px] font-normal hover:gap-3 transition-all duration-300 group w-fit">
+                      <button className="flex items-center gap-2 text-[#6B5D4F] text-[14px] sm:text-[15px] md:text-[16px] font-normal hover:gap-3 transition-all duration-300 group w-fit">
                         View Event Details
                         <ArrowRight
                           className="w-5 h-5 group-hover:translate-x-1 transition-transform"
@@ -255,7 +255,7 @@ const EventsPage = () => {
               <h1 className="text-[#D5B584] text-[36px] sm:text-[40px]  font-light mb-4">
                 Past Events
               </h1>
-              <p className="text-[#1C3163] text-[14px] sm:text-[15px] md:text-[16px] font-light max-w-md">
+              <p className="text-[#6B5D4F]  text-[14px] sm:text-[15px] md:text-[16px] font-light max-w-md">
                 Lorem ipsum dolor sit amet consectetur. Eu proin donec est ac
                 velit massa et lobortis.
               </p>
@@ -263,9 +263,9 @@ const EventsPage = () => {
 
             {/* Events List */}
             {loading ? (
-              <div className="text-center py-12 text-[#1C3163]">Loading events...</div>
+              <div className="text-center py-12 text-[#6B5D4F] ">Loading events...</div>
             ) : pastEventsData.length === 0 ? (
-              <div className="text-center py-12 text-[#1C3163]">No past events</div>
+              <div className="text-center py-12 text-[#6B5D4F] ">No past events</div>
             ) : (
               <div className="">
                 {pastEventsData.map((event) => (
@@ -311,15 +311,15 @@ const EventsPage = () => {
                     {/* Event Details */}
                     <div className="flex-1 flex flex-col justify-between">
                       <div>
-                        <h2 className="text-[#1C3163] text-[24px] sm:text-[28px] md:text-[32px] lg:text-[36px] font-normal mb-4 leading-tight group-hover/card:text-[#D5B584] transition-colors duration-300">
+                        <h2 className="text-[#6B5D4F] text-[24px] sm:text-[28px] md:text-[32px] lg:text-[36px] font-normal mb-4 leading-tight group-hover/card:text-[#D5B584] transition-colors duration-300">
                           {event.title}
                         </h2>
 
                         <div className="space-y-2 mb-4">
-                          <p className="text-[#1C3163] text-[14px] sm:text-[15px] md:text-[16px] font-normal">
+                          <p className="text-[#6B5D4F] text-[14px] sm:text-[15px] md:text-[16px] font-normal">
                             {event.location}
                           </p>
-                          <p className="text-[#1C3163] text-[14px] sm:text-[15px] md:text-[16px] font-light">
+                          <p className="text-[#6B5D4F] text-[14px] sm:text-[15px] md:text-[16px] font-light">
                             {event.time}
                           </p>
                         </div>
@@ -330,7 +330,7 @@ const EventsPage = () => {
                       </div>
 
                       {/* View Details Button */}
-                      <button className="flex items-center gap-2 text-[#1C3163] text-[14px] sm:text-[15px] md:text-[16px] font-normal hover:gap-3 transition-all duration-300 group w-fit">
+                      <button className="flex items-center gap-2 text-[#6B5D4F] text-[14px] sm:text-[15px] md:text-[16px] font-normal hover:gap-3 transition-all duration-300 group w-fit">
                         View Event Details
                         <ArrowRight
                           className="w-5 h-5 group-hover:translate-x-1 transition-transform"

@@ -70,7 +70,7 @@ const AboutPage = () => {
               <span className="text-[#D5B584] italic text-[18px] sm:text-[22px] md:text-[30px] ">
                 Crystal Bowl Studio
               </span>{" "}
-              <span className="text-[#1C3163] text-[16px] sm:text-[18px] md:text-[20px] lg:text-[22px]">
+              <span className="text-black text-[16px] sm:text-[18px] md:text-[20px] lg:text-[22px]">
                 is created and designed by master sound and energy healer
                 Francesca Wong, fulfilling her dream to create a range of
                 crystal bowls that are beautifully designed, with premium
@@ -79,7 +79,7 @@ const AboutPage = () => {
                 to healers all over the world.
               </span>
             </h1>
-            <div className="flex flex-col text-[14px] sm:text-[15px] md:text-[16px] font-[300] gap-[20px] sm:gap-[25px] md:gap-[30px]">
+            <div className="flex  mt-5 flex-col text-[14px] sm:text-[15px] md:text-[16px] font-[300] gap-[20px] text-[#6B5D4F]  sm:gap-[25px] md:gap-[30px]">
               <p>
                 Our Crystal Bowls are 100% clear quartz crystal, with some of
                 our premium designs infused with other crystals, metals and
@@ -93,17 +93,17 @@ const AboutPage = () => {
                 aesthetic as a healer.
               </p>
 
-              <h2 className="text-[20px] sm:text-[24px] md:text-[28px] lg:text-[30px] text-[#D5B584] font-[500]">
+              <h1 className="text-[20px] sm:text-[24px] md:text-[28px] lg:text-[30px] text-black font-[400]">
                 Yogi & music healer inspired by ancient traditions & modern
                 well-being. 
-              </h2>
+              </h1>
 
               <div>
-                <h1 className="text-[20px] sm:text-[24px] md:text-[28px] lg:text-[30px] text-[#1C3163] font-[500]">
+                <h1 className="text-[20px] sm:text-[24px] md:text-[28px] lg:text-[30px] text-black  font-[400]">
                   Find Balance. Heal Through Yoga & Sound. Awaken Your True
                   Self.
                 </h1>
-                <p className="font-[300] text-[14px] sm:text-[15px] md:text-[16px]">
+                <p className="font-[300] text-[14px]  text-[#6B5D4F]  sm:text-[15px] md:text-[16px]">
                   Discover the power of sound healing, yoga, and meditation to
                   restore harmony within. Whether you&apos;re seeking relaxation,
                   stress relief, emotional release, or deep transformation,
@@ -111,12 +111,12 @@ const AboutPage = () => {
                   reconnect you to your essence.
                 </p>
               </div>
-              <p className="text-[14px] sm:text-[15px] md:text-[16px] font-[300] text-[#1C3163]"> Based in Singapore | Available for global retreats & corporate wellness</p>
+              <p className="text-[14px] sm:text-[15px] md:text-[16px] font-[300] text-black "> Based in Singapore | Available for global retreats & corporate wellness</p>
             </div>
           </div>
         </div>
       </div>
-<div></div>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-[60px] sm:py-[80px] md:py-[100px]">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           {/* Left Content */}
@@ -143,11 +143,6 @@ const AboutPage = () => {
           {/* Right Image */}
           <div className="relative w-full flex justify-center lg:justify-end py-8 sm:py-12 md:py-16">
             <div className="relative w-full max-w-[240px] sm:max-w-[280px] md:max-w-[300px] group">
-              {/* Decorative Cards - Plus Icon Pattern */}
-              {/* Vertical Card - Same dimensions as image, slightly offset */}
-              {/* <div className="absolute top-1/2 left-1/2 w-full aspect-[3/4] bg-[#1C3163] rounded-[15px] sm:rounded-[18px] md:rounded-[20px] -translate-x-[45%] -translate-y-1/2 rotate-[8deg] shadow-lg"></div> */}
-              
-              {/* Horizontal Card - Rotated 90 degrees */}
               <div className="absolute top-1/2 left-1/2 w-full aspect-[3/4] bg-[#1C3163] rounded-[15px] sm:rounded-[18px] md:rounded-[20px] -translate-x-[50%] -translate-y-1/2 rotate-90 group-hover:rotate-60 transition-transform duration-300 ease-out shadow-lg"></div>
               
               {/* Main Image */}
