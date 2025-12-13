@@ -66,13 +66,13 @@ export async function POST(req: NextRequest) {
       payment_method_types: ["card"],
       line_items: [{
         price_data: {
-          currency: "inr",
+          currency: "usd",
           product_data: {
             name: product.name,
             description: product.description,
             images: validImageUrl ? [validImageUrl] : [],
           },
-          unit_amount: product.price, // Amount in smallest currency unit (paise)
+          unit_amount: Math.round(product.price * 100), // Convert to smallest currency unit (cents)
         },
         quantity: quantity,
       }],

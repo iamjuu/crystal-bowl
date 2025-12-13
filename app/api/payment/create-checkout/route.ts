@@ -58,12 +58,12 @@ export async function POST(req: NextRequest) {
         
         return {
           price_data: {
-            currency: currency?.toLowerCase() || "inr",
+            currency: currency?.toLowerCase() || "usd",
             product_data: {
               name: item.name,
               images: validImageUrl ? [validImageUrl] : [],
             },
-            unit_amount: item.price, // Amount in smallest currency unit (paise for INR)
+            unit_amount: Math.round(item.price * 100), // Convert to smallest currency unit (cents for USD)
           },
           quantity: item.quantity,
         };

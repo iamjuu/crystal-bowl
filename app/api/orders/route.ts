@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
       return { productId: String(p._id), name: p.name, price: p.price, quantity: i.quantity };
     });
 
-    const order = await Order.create({ userId: user._id, items: orderItems, amount, currency: "INR", status: "pending" });
+    const order = await Order.create({ userId: user._id, items: orderItems, amount, currency: "USD", status: "pending" });
 
     return NextResponse.json({ success: true, data: order }, { status: 201 });
   } catch (e: any) {

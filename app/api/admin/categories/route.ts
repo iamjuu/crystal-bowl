@@ -8,11 +8,18 @@ export async function GET() {
   try {
     await connectDB();
     
-    const categories = await Category.find({}).sort({ name: 1 });
+    const categories = await Category.find({}).sort({ name: 1 }).lean();
+    
+    // Ensure all categories have the new fields
+    const categoriesWithDefaults = categories.map((cat: any) => ({
+      ...cat,
+      imageUrl: cat.imageUrl || undefined,
+      isFeatured: cat.isFeatured === true, // Explicitly set boolean
+    }));
     
     return NextResponse.json({
       success: true,
-      data: categories,
+      data: categoriesWithDefaults,
     });
   } catch (error: any) {
     console.error("Error fetching categories:", error);
@@ -30,13 +37,25 @@ export async function POST(request: NextRequest) {
     await connectDB();
     
     const body = await request.json();
-    const { name, description } = body;
+    const { name, imageUrl, isFeatured } = body;
     
     if (!name) {
       return NextResponse.json(
         { success: false, message: "Category name is required" },
         { status: 400 }
       );
+    }
+
+    // Check if trying to set as featured
+    if (isFeatured === true) {
+      // Count existing featured categories
+      const featuredCount = await Category.countDocuments({ isFeatured: true });
+      if (featuredCount >= 4) {
+        return NextResponse.json(
+          { success: false, message: "Maximum 4 featured categories allowed. Please unfeature another category first." },
+          { status: 400 }
+        );
+      }
     }
     
     // Helper to capitalize
@@ -60,18 +79,87 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Use new + save() to trigger pre-save hooks
-    const category = new Category({
-      name: capitalizedName,
-      description: description?.trim(),
-    });
+    // Prepare category data - ALWAYS explicitly set all fields
+    // CRITICAL: Always set isFeatured and imageUrl explicitly, never undefined
+    const isFeaturedValue = isFeatured === true || isFeatured === "true" || isFeatured === 1;
     
+    console.log("Received data:", {
+      name,
+      isFeatured,
+      isFeaturedType: typeof isFeatured,
+      imageUrl: imageUrl ? `${imageUrl.substring(0, 50)}...` : imageUrl === "" ? "empty string" : "undefined",
+      imageUrlLength: imageUrl?.length || 0
+    }); // Debug log
+    
+    const newCategoryData: any = {
+      name: capitalizedName,
+      isFeatured: Boolean(isFeaturedValue), // ALWAYS boolean: true or false
+    };
+    
+    // Only add imageUrl if it has a value (MongoDB won't save empty strings)
+    if (imageUrl && imageUrl.trim().length > 0) {
+      newCategoryData.imageUrl = imageUrl.trim();
+    }
+    
+    console.log("Creating category with data:", JSON.stringify({
+      ...newCategoryData,
+      imageUrl: newCategoryData.imageUrl ? `${newCategoryData.imageUrl.substring(0, 50)}...` : "not included"
+    }, null, 2)); // Debug log (truncate image)
+    console.log("isFeatured value:", newCategoryData.isFeatured, "Type:", typeof newCategoryData.isFeatured); // Debug log
+    console.log("imageUrl length:", imageUrl?.length || 0); // Debug log
+    
+    // Create category instance
+    const category = new Category(newCategoryData);
+    
+    // CRITICAL: Directly assign to ensure fields are saved
+    // MongoDB/Mongoose might skip fields set via constructor if they're falsy
+    category.isFeatured = Boolean(isFeaturedValue);
+    
+    // Only set imageUrl if it has a value (don't set empty string)
+    if (imageUrl && imageUrl.trim().length > 0) {
+      category.imageUrl = imageUrl.trim();
+    }
+    
+    console.log("Category before save:", {
+      name: category.name,
+      isFeatured: category.isFeatured,
+      isFeaturedType: typeof category.isFeatured,
+      imageUrl: category.imageUrl ? `${category.imageUrl.substring(0, 50)}...` : "not set",
+      isNew: category.isNew
+    }); // Debug log
+    
+    // Save the category
     await category.save();
+    
+    // CRITICAL: Reload from database to verify what was actually saved
+    const savedCategory = await Category.findById(category._id).lean();
+    
+    if (!savedCategory) {
+      return NextResponse.json(
+        { success: false, message: "Failed to save category" },
+        { status: 500 }
+      );
+    }
+    
+    console.log("Category saved to DB (reloaded):", JSON.stringify({
+      _id: savedCategory._id,
+      name: savedCategory.name,
+      isFeatured: savedCategory.isFeatured,
+      imageUrl: savedCategory.imageUrl ? `${savedCategory.imageUrl.substring(0, 50)}...` : "not set",
+      slug: savedCategory.slug
+    }, null, 2)); // Debug log
+    
+    // Ensure response includes all fields with defaults
+    const categoryWithDefaults = {
+      ...savedCategory,
+      imageUrl: savedCategory.imageUrl || undefined,
+      isFeatured: savedCategory.isFeatured === true,
+    };
     
     return NextResponse.json({
       success: true,
       message: "Category created successfully",
-      data: category,
+      data: categoryWithDefaults,
     }, { status: 201 });
     
   } catch (error: any) {

@@ -40,14 +40,24 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
     if (name !== undefined) updateData.name = String(name).trim();
     if (description !== undefined) updateData.description = String(description).trim();
     if (price !== undefined) {
-      const priceInCents = Math.round(Number(price) * 100);
-      if (isNaN(priceInCents) || priceInCents <= 0) {
+      const priceString = String(price).trim();
+      const priceInRupees = parseFloat(priceString);
+      
+      console.log("=== PRODUCT UPDATE DEBUG ===");
+      console.log("Raw price received:", price);
+      console.log("Price type:", typeof price);
+      console.log("Price string:", priceString);
+      console.log("Parsed price:", priceInRupees);
+      console.log("Is NaN?", isNaN(priceInRupees));
+      console.log("==============================");
+      
+      if (isNaN(priceInRupees) || priceInRupees <= 0) {
         return NextResponse.json(
           { success: false, message: "Invalid price" },
           { status: 400 }
         );
       }
-      updateData.price = priceInCents;
+      updateData.price = priceInRupees;
     }
     if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
     if (videoUrl !== undefined) {

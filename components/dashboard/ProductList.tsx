@@ -18,7 +18,7 @@ type Props = {
   onRefresh: () => void;
 };
 
-const formatCurrency = (amount: number) => `₹${(amount / 100).toFixed(2)}`;
+const formatCurrency = (amount: number) => `$${amount.toFixed(2)}`;
 
 const getMainImageUrl = (product: ProductListItem) => {
   const img = product.imageUrl?.[0];
@@ -97,7 +97,7 @@ export default function ProductList({ products: initialProducts, onRefresh }: Pr
                       initialData={{
                         name: product.name,
                         description: product.description,
-                        price: (product.price / 100).toString(),
+                        price: product.price.toString(),
                         imageUrl: product.imageUrl || [],
                         videoUrl: product.videoUrl,
                       }}

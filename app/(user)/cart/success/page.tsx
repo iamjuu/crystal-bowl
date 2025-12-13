@@ -122,7 +122,7 @@ function SuccessContent() {
                   <div className="flex justify-between">
                     <span className="text-gray-600">Total Amount:</span>
                     <span className="text-[#1C3163] font-semibold">
-                      ₹{orderDetails.amount?.toLocaleString("en-IN")}
+                      ${orderDetails.amount?.toLocaleString("en-US")}
                     </span>
                   </div>
                 </div>

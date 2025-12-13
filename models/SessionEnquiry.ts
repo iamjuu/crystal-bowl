@@ -9,6 +9,9 @@ export interface SessionEnquiryType {
   comment?: string;
   status: "pending" | "contacted" | "completed";
   sessionType: "discovery" | "private" | "corporate";
+  sessionId?: string; // Reference to DiscoverySession or PrivateSession
+  bookedDate?: string; // Date of the booked session (YYYY-MM-DD)
+  bookedTime?: string; // Time of the booked session (HH:mm)
   createdAt: Date;
   updatedAt: Date;
 }
@@ -30,6 +33,9 @@ const SessionEnquirySchema = new Schema<SessionEnquiryType>(
       enum: ["discovery", "private", "corporate"], 
       default: "discovery" 
     },
+    sessionId: { type: String }, // Reference to session
+    bookedDate: { type: String }, // Date of booked session
+    bookedTime: { type: String }, // Time of booked session
   },
   { timestamps: true }
 );

@@ -22,7 +22,7 @@ const OrderSchema = new Schema<OrderType>(
     userId: { type: String, required: true, index: true },
     items: { type: [OrderItemSchema], required: true },
     amount: { type: Number, required: true },
-    currency: { type: String, default: "INR" },
+    currency: { type: String, default: "USD" },
     status: { type: String, enum: ["pending", "paid", "shipped", "delivered", "cancelled", "refunded"], default: "pending" },
     paymentProvider: { type: String },
     paymentRef: { type: String, index: true },

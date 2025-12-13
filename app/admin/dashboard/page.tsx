@@ -10,13 +10,13 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const formatCurrency = (amount: number) => {
-  const value = amount / 100;
+  const value = amount; // Already in dollars
   if (value >= 1000000) {
-    return `₹${(value / 1000000).toFixed(1)}M`;
+    return `$${(value / 1000000).toFixed(1)}M`;
   } else if (value >= 1000) {
-    return `₹${(value / 1000).toFixed(1)}K`;
+    return `$${(value / 1000).toFixed(1)}K`;
   }
-  return `₹${value.toFixed(2)}`;
+  return `$${value.toFixed(2)}`;
 };
 
 const MetricCard = ({

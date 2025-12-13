@@ -127,7 +127,7 @@ const SuccessPageContent = () => {
                 <div>
                   <p className="text-sm text-gray-600">Amount Paid</p>
                   <p className="font-semibold text-[#D5B584] text-lg">
-                    ${(bookingDetails.amount / 100).toFixed(2)}
+                    ${bookingDetails.amount.toFixed(2)}
                   </p>
                 </div>
                 

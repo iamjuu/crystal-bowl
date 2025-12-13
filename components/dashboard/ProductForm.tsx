@@ -340,6 +340,11 @@ export default function ProductForm({ productId, initialData, onComplete, onCanc
       
       const method = isEdit ? "PATCH" : "POST";
 
+      // Log price before sending
+      console.log("Form submitting price:", formData.price, "Type:", typeof formData.price);
+      const priceValue = formData.price.trim();
+      console.log("Price value after trim:", priceValue);
+
       const response = await fetch(url, {
         method,
         headers: {
@@ -350,7 +355,7 @@ export default function ProductForm({ productId, initialData, onComplete, onCanc
           shortDescription: formData.shortDescription.trim() || undefined,
           description: formData.description.trim(),
           category: formData.category || undefined,
-          price: formData.price,
+          price: priceValue,
           imageUrl: formData.images,
           videoUrl: formData.videos.length > 0 ? formData.videos : undefined,
         }),
@@ -455,7 +460,7 @@ export default function ProductForm({ productId, initialData, onComplete, onCanc
 
       <div className="space-y-1">
         <label htmlFor="product-price" className="text-sm font-medium text-white">
-          Price (₹) <span className="text-red-500">*</span>
+          Price ($) <span className="text-red-500">*</span>
         </label>
         <input
           id="product-price"
@@ -466,8 +471,11 @@ export default function ProductForm({ productId, initialData, onComplete, onCanc
           value={formData.price}
           onChange={(e) => setFormData({ ...formData, price: e.target.value })}
           className="w-full rounded-md border border-zinc-600 bg-zinc-900 px-3 py-2 text-sm text-white focus:border-white focus:outline-none"
-          placeholder="2999.00"
+          placeholder="29.99"
         />
+        <p className="text-xs text-zinc-400">
+          Enter price in dollars (e.g., 29.99 for $29.99)
+        </p>
       </div>
 
       <div className="space-y-1">

@@ -332,9 +332,13 @@ const DiscoveryAppointmentPage = () => {
         day: 'numeric'
       })
       
+      // Also get date in YYYY-MM-DD format for API
+      const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(selectedDate).padStart(2, '0')}`
+      
       // Prepare discovery form data (only include if provided)
       const discoveryData = {
         selectedDate: formattedDate,
+        selectedDateISO: dateStr, // ISO format for API
         selectedTime,
         hasCrystalBowls: hasCrystalBowls || 'Not specified',
         notesAndAlchemies: notesAndAlchemies || 'Not provided',
