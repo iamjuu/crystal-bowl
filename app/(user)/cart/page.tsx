@@ -59,7 +59,7 @@ const CartPageContent = () => {
             imageUrl: item.imageUrl,
           })),
           amount: Math.round(totalAmount * 100), // Convert to cents/paise for Stripe
-          currency: "INR",
+          currency: "USD",
         }),
       });
 
@@ -184,7 +184,7 @@ const CartPageContent = () => {
                         </div>
 
                         <p className="text-[#2C3E50] text-lg md:text-xl font-semibold mb-3">
-                          ₹{item.price.toLocaleString("en-IN")}
+                          ${item.price.toLocaleString("en-US")}
                         </p>
 
                         {/* Quantity Controls */}
@@ -210,7 +210,7 @@ const CartPageContent = () => {
                             </button>
                           </div>
                           <span className="text-sm text-gray-600">
-                            Subtotal: ₹{(item.price * item.quantity).toLocaleString("en-IN")}
+                            Subtotal: ${(item.price * item.quantity).toLocaleString("en-US")}
                           </span>
                         </div>
                       </div>
@@ -240,23 +240,23 @@ const CartPageContent = () => {
                 <div className="space-y-4 mb-6">
                   <div className="flex justify-between text-[#2C3E50]">
                     <span>Subtotal ({totalQuantity()} items)</span>
-                    <span>₹{itemsSubtotal.toLocaleString("en-IN")}</span>
+                    <span>${itemsSubtotal.toLocaleString("en-US")}</span>
                   </div>
                   <div className="flex justify-between text-[#2C3E50]">
                     <span>Shipping</span>
                     <span className={shippingCost === 0 ? "text-green-600 font-medium" : ""}>
-                      {shippingCost === 0 ? "FREE" : `₹${shippingCost}`}
+                      {shippingCost === 0 ? "FREE" : `$${shippingCost}`}
                     </span>
                   </div>
                   {shippingCost > 0 && (
                     <p className="text-xs text-green-600">
-                      Add ₹{(5000 - itemsSubtotal).toLocaleString("en-IN")} more for FREE shipping
+                      Add ${(5000 - itemsSubtotal).toLocaleString("en-US")} more for FREE shipping
                     </p>
                   )}
                   <div className="border-t border-gray-200 pt-4">
                     <div className="flex justify-between text-[#1C3163] text-lg font-semibold">
                       <span>Total</span>
-                      <span>₹{totalAmount.toLocaleString("en-IN")}</span>
+                      <span>${totalAmount.toLocaleString("en-US")}</span>
                     </div>
                   </div>
                 </div>

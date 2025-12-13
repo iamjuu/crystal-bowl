@@ -18,7 +18,7 @@ type Props = {
   onRefresh: () => void;
 };
 
-const formatCurrency = (amount: number) => `₹${amount.toFixed(2)}`;
+const formatCurrency = (amount: number) => `$${amount.toFixed(2)}`;
 
 const getMainImageUrl = (product: ProductListItem) => {
   const img = product.imageUrl?.[0];

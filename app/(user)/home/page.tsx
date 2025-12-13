@@ -32,28 +32,28 @@ const Data = [
     image: Bucket1,
     title: "Bucket 1",
     description: "Bucket 1 description",
-    price: "₹1000"
+    price: "$1000"
   },
   {
     id: 2,
     image: Bucket2,
     title: "Bucket 2",
     description: "Bucket 2 description",
-    price: "₹2000"
+    price: "$2000"
   },
   {
     id: 3,
     image: Bucket3,
     title: "Bucket 3",
     description: "Bucket 3 description",
-    price: "₹3000"
+    price: "$3000"
   },
   {
     id: 4,
     image: Bucket2,
     title: "Bucket 2",
     description: "Bucket 2 description",
-    price: "₹5000"
+    price: "$5000"
   }
 ];
 

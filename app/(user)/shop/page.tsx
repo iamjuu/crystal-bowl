@@ -174,7 +174,7 @@ const ShopPage = () => {
                               </span>
                             </p>
                             <p className="pt-3 sm:pt-4 md:pt-[18px] text-[10px] sm:text-[11px] md:text-[12px]">
-                              ₹{priceInRupees}
+                              ${priceInRupees}
                             </p>
                           </div>
                         </div>

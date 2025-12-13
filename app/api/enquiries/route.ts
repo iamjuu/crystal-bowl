@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
         line_items: [
           {
             price_data: {
-              currency: "inr", // or "usd" based on your preference
+              currency: "usd",
               product_data: {
                 name: privateSession.title || "Private Yoga Session",
                 description: privateSession.description || `Private Session on ${privateSession.date} at ${privateSession.startTime}`,

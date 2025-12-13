@@ -14,6 +14,7 @@ type AvailableSlot = {
   date: string
   time: string
   isBooked: boolean
+  price?: number // Price for private sessions
 }
 
 const PrivateAppointmentPage = () => {
@@ -32,7 +33,7 @@ const PrivateAppointmentPage = () => {
   
   // Payment state
   const [isLoading, setIsLoading] = useState(false)
-  const [bookingAmount] = useState(10000) // $100 in cents (like products)
+  const [bookingAmount, setBookingAmount] = useState<number | null>(null) // Will be set from selected slot
 
   // Fetch available slots
   useEffect(() => {
@@ -132,7 +133,8 @@ const PrivateAppointmentPage = () => {
       .map(slot => ({
         time: slot.time,
         available: true,
-        _id: slot._id
+        _id: slot._id,
+        price: slot.price || 0 // Include price in time slots
       }))
       .sort((a, b) => a.time.localeCompare(b.time))
     
@@ -184,9 +186,15 @@ const PrivateAppointmentPage = () => {
     }
   }
 
-  const handleTimeClick = (time: string, available: boolean) => {
+  const handleTimeClick = (time: string, available: boolean, price?: number) => {
     if (available) {
       setSelectedTime(time)
+      // Set the booking amount from the selected slot's price
+      if (price !== undefined && price > 0) {
+        setBookingAmount(price)
+      } else {
+        setBookingAmount(null)
+      }
       
       // Smooth scroll to form with animation after a short delay
       setTimeout(() => {
@@ -203,6 +211,12 @@ const PrivateAppointmentPage = () => {
     // Check if date and time are selected
     if (!selectedDate || !selectedTime || !selectedSlotId) {
       toast.error('Please select both date and time')
+      return
+    }
+
+    // Check if booking amount is available
+    if (!bookingAmount || bookingAmount <= 0) {
+      toast.error('Invalid session price. Please select a different session.')
       return
     }
 
@@ -225,6 +239,10 @@ const PrivateAppointmentPage = () => {
         day: 'numeric'
       })
 
+      // Convert price to cents for Stripe (if price is in dollars, multiply by 100)
+      // Assuming price is stored in dollars in database, convert to cents
+      const amountInCents = Math.round(bookingAmount * 100)
+
       // Create Stripe checkout session
       const response = await fetch("/api/payment/create-private-checkout", {
         method: "POST",
@@ -234,7 +252,7 @@ const PrivateAppointmentPage = () => {
         },
         body: JSON.stringify({
           slotId: selectedSlotId,
-          amount: bookingAmount,
+          amount: amountInCents,
           date: formattedDate,
           time: selectedTime,
         }),
@@ -385,7 +403,7 @@ const PrivateAppointmentPage = () => {
                           <button
                             type="button"
                             key={index}
-                            onClick={() => handleTimeClick(slot.time, slot.available)}
+                            onClick={() => handleTimeClick(slot.time, slot.available, slot.price)}
                             disabled={!slot.available}
                             className={`
                               py-4 px-6 rounded-lg text-[16px] sm:text-[18px] font-medium
@@ -420,7 +438,7 @@ const PrivateAppointmentPage = () => {
               <div className='rounded-[24px] p-6 md:p-8 lg:p-10 border shadow-lg bg-white/50'>
               
                 {/* Payment Section */}
-                {selectedDate && selectedTime && (
+                {selectedDate && selectedTime && bookingAmount !== null && bookingAmount > 0 && (
                   <div className="">
                     <div className="bg-white/80 p-6 md:p-8 rounded-[20px]">
                       <h2 className="text-[28px] sm:text-[32px] md:text-[36px] text-[#D5B584] font-light mb-4">
@@ -435,7 +453,7 @@ const PrivateAppointmentPage = () => {
                       <button
                         type="button"
                         onClick={handleCheckout}
-                        disabled={isLoading}
+                        disabled={isLoading || !bookingAmount || bookingAmount <= 0}
                         className="w-full bg-[#635BFF] hover:bg-[#5347E6] text-white rounded-[12px] px-6 py-4 flex items-center justify-center gap-3 text-[18px] font-medium transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isLoading ? (

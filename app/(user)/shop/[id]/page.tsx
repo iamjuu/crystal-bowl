@@ -197,8 +197,8 @@ const ProductDetailPage = () => {
     ? normalizeImageUrl(productImages[safeSelectedImage])
     : null;
   
-  // Price is already in rupees
-  const priceInRupees = product.price.toFixed(2);
+  // Price is already in dollars
+  const priceInDollars = product.price.toFixed(2);
 
   // Handle Add to Cart
   const handleAddToCart = () => {
@@ -218,7 +218,7 @@ const ProductDetailPage = () => {
     addItem({
       id: product._id,
       name: product.name,
-      price: product.price, // Price in rupees/dollars
+      price: product.price, // Price in dollars
       imageUrl: imageUrl,
     });
 
@@ -331,7 +331,7 @@ const ProductDetailPage = () => {
 
               <div className="mb-6">
                 <p className="text-[#1C3163] text-[24px] sm:text-[28px] lg:text-[32px] font-medium">
-                  ₹{priceInRupees}
+                  ${priceInDollars}
                 </p>
               </div>
 
@@ -424,7 +424,7 @@ const ProductDetailPage = () => {
                           </p>
                           <div className="flex items-center justify-between">
                             <p className="text-[#1C3163] text-[12px] sm:text-[14px]">
-                              ₹{itemPriceInRupees}
+                              ${itemPriceInRupees}
                             </p>
                             <button 
                               onClick={(e) => {

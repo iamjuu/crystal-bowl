@@ -122,6 +122,7 @@ export async function GET(req: NextRequest) {
           date: session.date,
           time: session.startTime,
           isBooked: (session.bookedSeats || 0) >= (session.totalSeats || 1),
+          price: session.price || 0, // Include price from session
         }));
 
       slots = [...slots, ...privateSlots];

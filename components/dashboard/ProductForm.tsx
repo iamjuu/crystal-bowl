@@ -460,7 +460,7 @@ export default function ProductForm({ productId, initialData, onComplete, onCanc
 
       <div className="space-y-1">
         <label htmlFor="product-price" className="text-sm font-medium text-white">
-          Price (₹ or $) <span className="text-red-500">*</span>
+          Price ($) <span className="text-red-500">*</span>
         </label>
         <input
           id="product-price"
@@ -474,7 +474,7 @@ export default function ProductForm({ productId, initialData, onComplete, onCanc
           placeholder="29.99"
         />
         <p className="text-xs text-zinc-400">
-          Enter price in main currency unit (e.g., 29.99 for $29.99 or ₹29.99)
+          Enter price in dollars (e.g., 29.99 for $29.99)
         </p>
       </div>
 

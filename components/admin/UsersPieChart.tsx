@@ -35,10 +35,6 @@ export default function UsersPieChart({ total, verified }: UsersPieChartProps) {
             direction: 'row',
             position: { vertical: 'bottom', horizontal: 'middle' },
             padding: 0,
-            labelStyle: {
-              fontSize: 12,
-              fill: 'white',
-            },
           },
         }}
         sx={{

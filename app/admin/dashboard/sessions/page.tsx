@@ -1058,7 +1058,7 @@ export default function SessionsPage() {
             {activeTab === "private" && (
               <div className="space-y-1">
                 <label htmlFor="price" className="text-sm font-medium text-white">
-                  Price (₹) <span className="text-red-500">*</span>
+                  Price ($) <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="price"
@@ -1069,7 +1069,7 @@ export default function SessionsPage() {
                   value={formData.price}
                   onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                   className="w-full rounded-md border border-zinc-600 bg-zinc-900 px-3 py-2 text-sm text-white focus:border-white focus:outline-none"
-                  placeholder="Enter price in rupees"
+                  placeholder="Enter price in dollars"
                 />
               </div>
             )}
