@@ -244,11 +244,8 @@ export default function CategoriesPage() {
     const existingImageUrl = category.imageUrl ? getImageUrl(category.imageUrl) : "";
     console.log("Existing image URL:", existingImageUrl); // Debug log
     
-    // Handle isFeatured - check for true, "true", or 1
-    const isFeaturedValue = category.isFeatured === true || 
-                           category.isFeatured === "true" || 
-                           category.isFeatured === 1 ||
-                           String(category.isFeatured).toLowerCase() === "true";
+    // Handle isFeatured - it's already a boolean, just check if it's true
+    const isFeaturedValue = category.isFeatured === true;
     console.log("Setting isFeatured to:", isFeaturedValue); // Debug log
     
     // Reset form data completely

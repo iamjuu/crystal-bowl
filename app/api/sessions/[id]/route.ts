@@ -13,7 +13,7 @@ export async function GET(_req: NextRequest, context: RouteContext) {
     const { id } = await context.params;
     
     // Try to find in all collections
-    let session = await DiscoverySession.findById(id).lean();
+    let session: any = await DiscoverySession.findById(id).lean();
     if (session) {
       return NextResponse.json({ success: true, data: { ...session, sessionType: "discovery" } });
     }

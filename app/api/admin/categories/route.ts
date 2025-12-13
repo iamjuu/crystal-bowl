@@ -133,12 +133,20 @@ export async function POST(request: NextRequest) {
     
     // CRITICAL: Reload from database to verify what was actually saved
     const savedCategory = await Category.findById(category._id).lean();
+    
+    if (!savedCategory) {
+      return NextResponse.json(
+        { success: false, message: "Failed to save category" },
+        { status: 500 }
+      );
+    }
+    
     console.log("Category saved to DB (reloaded):", JSON.stringify({
-      _id: savedCategory?._id,
-      name: savedCategory?.name,
-      isFeatured: savedCategory?.isFeatured,
-      imageUrl: savedCategory?.imageUrl ? `${savedCategory.imageUrl.substring(0, 50)}...` : "not set",
-      slug: savedCategory?.slug
+      _id: savedCategory._id,
+      name: savedCategory.name,
+      isFeatured: savedCategory.isFeatured,
+      imageUrl: savedCategory.imageUrl ? `${savedCategory.imageUrl.substring(0, 50)}...` : "not set",
+      slug: savedCategory.slug
     }, null, 2)); // Debug log
     
     // Ensure response includes all fields with defaults

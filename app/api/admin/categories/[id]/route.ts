@@ -158,22 +158,27 @@ export async function PUT(
     
     // CRITICAL: Reload from database to verify what was actually saved
     const reloadedCategory = await Category.findById(id).lean();
-    console.log("Category updated in DB (reloaded):", JSON.stringify({
-      _id: reloadedCategory?._id,
-      name: reloadedCategory?.name,
-      isFeatured: reloadedCategory?.isFeatured,
-      imageUrl: reloadedCategory?.imageUrl ? `${reloadedCategory.imageUrl.substring(0, 50)}...` : "not set",
-      slug: reloadedCategory?.slug
-    }, null, 2)); // Debug log
     
-    // Use reloaded category for response
-    const categoryForResponse = reloadedCategory || category;
+    if (!reloadedCategory) {
+      return NextResponse.json(
+        { success: false, message: "Failed to update category" },
+        { status: 500 }
+      );
+    }
+    
+    console.log("Category updated in DB (reloaded):", JSON.stringify({
+      _id: reloadedCategory._id,
+      name: reloadedCategory.name,
+      isFeatured: reloadedCategory.isFeatured,
+      imageUrl: reloadedCategory.imageUrl ? `${reloadedCategory.imageUrl.substring(0, 50)}...` : "not set",
+      slug: reloadedCategory.slug
+    }, null, 2)); // Debug log
     
     // Ensure response includes all fields with defaults
     const categoryWithDefaults = {
-      ...categoryForResponse,
-      imageUrl: categoryForResponse?.imageUrl || undefined,
-      isFeatured: categoryForResponse?.isFeatured === true,
+      ...reloadedCategory,
+      imageUrl: reloadedCategory.imageUrl || undefined,
+      isFeatured: reloadedCategory.isFeatured === true,
     };
     
     return NextResponse.json({
