@@ -53,8 +53,8 @@ export interface Product extends WithTimestamps {
   name: string;
   shortDescription?: string; // Brief description
   description: string; // Long description
-  category?: string; // Category name
-  price: number; // smallest currency unit
+  category?: string | Category; // Category reference (can be ObjectId string or populated Category object)
+  price: number; // Price in rupees/dollars (not cents/paise)
   imageUrl: string[]; // Array of base64 image strings
   videoUrl?: string | string[]; // Base64 video string(s) or URL(s) - supports up to 2 videos
 }
@@ -98,6 +98,28 @@ export interface Order extends WithTimestamps {
   customerName?: string;
 }
 
+export interface CorporateSession extends WithTimestamps {
+  _id: string;
+  companyName: string;
+  contactPerson: string;
+  email: string;
+  phone: string;
+  employeeCount: number;
+  date: string;
+  startTime: string;
+  endTime: string;
+  duration: number;
+  price: number;
+  sessionName?: string;
+  title?: string;
+  description?: string;
+  imageUrl?: string;
+  videoUrl?: string;
+  format?: string;
+  benefits?: string[];
+  status?: string;
+}
+
 export interface YogaSession extends WithTimestamps {
   _id: string;
   instructor: string;
@@ -118,6 +140,44 @@ export interface YogaSession extends WithTimestamps {
   benefits?: string[];
 }
 
+export interface DiscoverySession extends WithTimestamps {
+  _id: string;
+  instructorName: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  duration: number; // in minutes
+  totalSeats: number; // Always 1
+  bookedSeats: number; // 0 or 1
+  price: number; // Always 0
+  title: string;
+  description: string;
+  imageUrl?: string;
+  videoUrl?: string;
+  format?: string;
+  benefits?: string[];
+  slotId?: string;
+}
+
+export interface PrivateSession extends WithTimestamps {
+  _id: string;
+  instructorName: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  duration: number; // in minutes
+  totalSeats: number; // Always 1
+  bookedSeats: number; // 0 or 1
+  price: number; // Payment required
+  title: string;
+  description: string;
+  imageUrl?: string;
+  videoUrl?: string;
+  format?: string;
+  benefits?: string[];
+  slotId?: string;
+}
+
 export type BookingStatus = "pending" | "confirmed" | "cancelled";
 
 export interface Booking extends WithTimestamps {
@@ -129,6 +189,11 @@ export interface Booking extends WithTimestamps {
   status: BookingStatus;
   phone?: string;
   comment?: string;
+  paymentProvider?: "stripe" | "paypal" | "bank_transfer";
+  paymentRef?: string;
+  paymentStatus?: "pending" | "paid" | "failed";
+  sessionType?: "discovery" | "private" | "corporate";
+  slotId?: string;
 }
 
 export type CartItem = {

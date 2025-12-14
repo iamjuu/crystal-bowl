@@ -1,75 +1,77 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
-import { hashPassword } from "@/lib/auth";
-import { sendVerificationEmail } from "@/lib/email";
+import { sendOTPEmail } from "@/lib/email";
 import crypto from "crypto";
 
+// Register endpoint - just sends OTP (no password needed)
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, email, password } = body as { name?: string; email?: string; password?: string };
-    if (!name || !email || !password) {
-      return NextResponse.json({ success: false, message: "Missing fields" }, { status: 400 });
+    const { email } = body as { email?: string };
+    
+    if (!email) {
+      return NextResponse.json({ success: false, message: "Email is required" }, { status: 400 });
     }
 
     await connectDB();
-    const existing = await User.findOne({ email });
-    if (existing) return NextResponse.json({ success: false, message: "Email already in use" }, { status: 409 });
-
-    const hashed = await hashPassword(password);
-    // Generate verification token
-    const verificationToken = crypto.randomBytes(32).toString("hex");
     
-    // Auto-verify in development, require verification in production
-    const autoVerify = process.env.NODE_ENV === "development";
-    
-    const user = await User.create({
-      name,
-      email,
-      password: hashed,
-      role: "user",
-      emailVerified: autoVerify,
-      verificationToken: autoVerify ? null : verificationToken,
-    });
+    // Check if user already exists and is fully registered
+    const existingUser = await User.findOne({ email, registered: true });
+    if (existingUser) {
+      return NextResponse.json(
+        { success: false, message: "Email already registered. Please login instead." },
+        { status: 409 }
+      );
+    }
 
-    // In production, send email with verification link
-    // In development, auto-verify
-    if (autoVerify) {
-      return NextResponse.json({
-        success: true,
-        data: {
-          id: user._id,
-          email: user.email,
-          message: "Account created successfully! You can now login.",
-        },
-      });
+    // Generate 6-digit OTP
+    const otp = crypto.randomInt(100000, 999999).toString();
+
+    // Check if there's a pending signup (registered = false)
+    let pendingUser = await User.findOne({ email, registered: false });
+    
+    if (pendingUser) {
+      // Update existing pending user with new OTP
+      pendingUser.verificationToken = otp;
+      await pendingUser.save();
     } else {
-      const verificationUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/verify-email?token=${verificationToken}`;
-      
-      // Send verification email in production
-      try {
-        await sendVerificationEmail(user.email, user.name, verificationUrl);
-      } catch (emailError) {
-        console.error("Failed to send verification email:", emailError);
-        // Continue even if email fails - user can resend later
-      }
-      
-      return NextResponse.json({
-        success: true,
-        data: {
-          id: user._id,
-          email: user.email,
-          message: "Please check your email to verify your account",
-          verificationUrl: process.env.NODE_ENV === "development" ? verificationUrl : undefined,
-        },
+      // Create new pending user (will complete registration after OTP verification)
+      pendingUser = await User.create({
+        email,
+        name: "", // Will be set after OTP verification
+        password: crypto.randomBytes(32).toString("hex"), // Dummy password (not used)
+        role: "user",
+        emailVerified: false,
+        registered: false, // Will be set to true after OTP verification and profile completion
+        verificationToken: otp,
       });
     }
+
+    // Send OTP email
+    try {
+      await sendOTPEmail(email, otp, "User");
+    } catch (emailError) {
+      console.error("Failed to send OTP email:", emailError);
+      return NextResponse.json(
+        { success: false, message: "Failed to send OTP email. Please try again." },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "OTP sent to your email",
+      data: {
+        email,
+        expiresIn: 600, // 10 minutes in seconds
+      },
+    });
   } catch (err) {
     console.error("Registration error:", err);
     const errorMessage = err instanceof Error ? err.message : "Server error";
     return NextResponse.json(
-      { success: false, message: errorMessage, error: process.env.NODE_ENV === "development" ? String(err) : undefined },
+      { success: false, message: errorMessage },
       { status: 500 }
     );
   }

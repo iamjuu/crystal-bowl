@@ -10,6 +10,8 @@ type Product = {
   price: number;
   createdAt: string;
   description?: string;
+  shortDescription?: string;
+  category?: string | { _id: string; name: string; slug: string };
   imageUrl?: string[];
   videoUrl?: string | string[];
 };

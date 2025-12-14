@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Booking from "@/models/Booking";
 import User from "@/models/User";
-import YogaSession from "@/models/YogaSession";
+import CorporateSession from "@/models/CorporateSession";
+import PrivateSession from "@/models/PrivateSession";
+import DiscoverySession from "@/models/DiscoverySession";
 import { requireAdmin } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
@@ -25,10 +27,22 @@ export async function GET(req: NextRequest) {
     // Populate user and session information
     const bookingsWithDetails = await Promise.all(
       bookings.map(async (booking) => {
-        const [user, session] = await Promise.all([
-          User.findById(booking.userId).select("name email phone").lean(),
-          YogaSession.findById(booking.sessionId).lean(),
-        ]);
+        const user = await User.findById(booking.userId).select("name email phone").lean();
+        
+        // Try to find session across all collections based on sessionType
+        let session = null;
+        if (booking.sessionType === "discovery") {
+          session = await DiscoverySession.findById(booking.sessionId).lean();
+        } else if (booking.sessionType === "private") {
+          session = await PrivateSession.findById(booking.sessionId).lean();
+        } else if (booking.sessionType === "corporate") {
+          session = await CorporateSession.findById(booking.sessionId).lean();
+        } else {
+          // If sessionType is not specified, try all collections
+          session = await DiscoverySession.findById(booking.sessionId).lean();
+          if (!session) session = await PrivateSession.findById(booking.sessionId).lean();
+          if (!session) session = await CorporateSession.findById(booking.sessionId).lean();
+        }
 
         // Type guard to ensure user is a single document, not an array
         const userDoc = user && !Array.isArray(user) ? user : null;

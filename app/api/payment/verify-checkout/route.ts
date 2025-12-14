@@ -27,7 +27,8 @@ export async function POST(req: NextRequest) {
     // Retrieve the checkout session from Stripe
     console.log("🔄 Retrieving session from Stripe...");
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ['line_items', 'payment_intent', 'customer_details', 'shipping_details'],
+      expand: ['line_items', 'payment_intent', 'customer_details'],
+      // Note: shipping_details may not always be available, so we handle it conditionally
     });
     console.log("✅ Session retrieved:", {
       id: session.id,
@@ -98,8 +99,8 @@ export async function POST(req: NextRequest) {
     const orderData = {
       userId: user._id,
       items: items,
-      amount: session.amount_total || 0,
-      currency: session.currency?.toUpperCase() || "INR",
+      amount: session.amount_total ? Math.round(session.amount_total / 100) : 0, // Convert from cents to dollars
+      currency: session.currency?.toUpperCase() || "USD",
       status: "paid",
       paymentProvider: "stripe",
       paymentRef: sessionId,

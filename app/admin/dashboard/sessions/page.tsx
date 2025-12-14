@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
+import { Calendar, Clock } from "lucide-react";
 
 type TabType = "discovery" | "private" | "corporate";
 type MediaType = "image" | "video" | null;
@@ -17,6 +18,13 @@ type Session = {
   benefits?: string[];
   createdAt: string;
   updatedAt: string;
+  // Discovery and Private session fields
+  instructorName?: string;
+  date?: string;
+  startTime?: string;
+  endTime?: string;
+  duration?: number;
+  price?: number;
 };
 
 export default function SessionsPage() {
@@ -30,6 +38,11 @@ export default function SessionsPage() {
     video: "" as string | File | null,
     format: "",
     benefits: [""],
+    instructorName: "",
+    duration: "",
+    price: "",
+    date: "",
+    startTime: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,30 +52,118 @@ export default function SessionsPage() {
   const [sessionsLoading, setSessionsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const calendarRef = useRef<HTMLDivElement>(null);
+  const timePickerRef = useRef<HTMLDivElement>(null);
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [selectedHour, setSelectedHour] = useState<number>(9);
+  const [selectedMinute, setSelectedMinute] = useState<number>(0);
+  const [selectedAmPm, setSelectedAmPm] = useState<"AM" | "PM">("AM");
 
-  // Slot Management state
-  const [showSlotsList, setShowSlotsList] = useState(false);
-  const [showSlotForm, setShowSlotForm] = useState(false);
-  const [slotFormData, setSlotFormData] = useState({
-    month: '',
-    date: '',
-    time: ''
-  });
-  const [submittingSlot, setSubmittingSlot] = useState(false);
-  
-  // Slots list state
-  type Slot = {
-    _id: string;
-    sessionType: string;
-    month: string;
-    date: string;
-    time: string;
-    isBooked: boolean;
+  // Helper function to convert 12-hour to 24-hour format
+  const convertTo24Hour = (hour: number, minute: number, amPm: "AM" | "PM"): string => {
+    let h24 = hour;
+    if (amPm === "PM" && hour !== 12) h24 = hour + 12;
+    if (amPm === "AM" && hour === 12) h24 = 0;
+    return `${String(h24).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
   };
-  
-  const [slots, setSlots] = useState<Slot[]>([]);
-  const [loadingSlots, setLoadingSlots] = useState(false);
-  const [deletingSlotId, setDeletingSlotId] = useState<string | null>(null);
+
+  // Helper function to convert 24-hour to 12-hour format
+  const convertTo12Hour = (time24: string): { hour: number; minute: number; amPm: "AM" | "PM" } => {
+    if (!time24) return { hour: 9, minute: 0, amPm: "AM" };
+    const [h, m] = time24.split(':').map(Number);
+    let hour = h;
+    let amPm: "AM" | "PM" = "AM";
+    if (h === 0) {
+      hour = 12;
+    } else if (h === 12) {
+      amPm = "PM";
+    } else if (h > 12) {
+      hour = h - 12;
+      amPm = "PM";
+    }
+    return { hour, minute: m, amPm };
+  };
+
+  // Get Singapore time
+  const getSingaporeDate = () => {
+    const now = new Date();
+    const singaporeTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Singapore" }));
+    return singaporeTime;
+  };
+
+  // Calendar days generation
+  const getCalendarDays = () => {
+    const firstDay = new Date(currentYear, currentMonth, 1);
+    const lastDay = new Date(currentYear, currentMonth + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = (firstDay.getDay() + 6) % 7; // Monday = 0
+
+    const days: Array<{ day: number; isCurrentMonth: boolean }> = [];
+    
+    // Previous month days
+    const prevMonth = new Date(currentYear, currentMonth, 0);
+    const prevMonthDays = prevMonth.getDate();
+    for (let i = startingDayOfWeek - 1; i >= 0; i--) {
+      days.push({ day: prevMonthDays - i, isCurrentMonth: false });
+    }
+
+    // Current month days
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push({ day, isCurrentMonth: true });
+    }
+
+    // Next month days to fill the grid (6 weeks * 7 days = 42)
+    const totalCells = 42;
+    const remainingDays = totalCells - days.length;
+    for (let day = 1; day <= remainingDays; day++) {
+      days.push({ day, isCurrentMonth: false });
+    }
+
+    return days;
+  };
+
+  // Handle date selection
+  const handleDateSelect = (day: number, isCurrentMonth: boolean) => {
+    if (!isCurrentMonth) return;
+    const selectedDate = new Date(currentYear, currentMonth, day);
+    const dateStr = selectedDate.toISOString().split('T')[0];
+    setFormData({ ...formData, date: dateStr });
+    setShowCalendar(false);
+  };
+
+  // Handle time selection
+  const handleTimeSelect = () => {
+    const time24 = convertTo24Hour(selectedHour, selectedMinute, selectedAmPm);
+    setFormData({ ...formData, startTime: time24 });
+    setShowTimePicker(false);
+  };
+
+  // Initialize time picker when startTime changes
+  useEffect(() => {
+    if (formData.startTime) {
+      const { hour, minute, amPm } = convertTo12Hour(formData.startTime);
+      setSelectedHour(hour);
+      setSelectedMinute(minute);
+      setSelectedAmPm(amPm);
+    }
+  }, [formData.startTime]);
+
+  // Close calendar/time picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (calendarRef.current && !calendarRef.current.contains(event.target as Node)) {
+        setShowCalendar(false);
+      }
+      if (timePickerRef.current && !timePickerRef.current.contains(event.target as Node)) {
+        setShowTimePicker(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const tabs = [
     { id: "discovery" as TabType, label: "Discovery" },
@@ -330,6 +431,11 @@ export default function SessionsPage() {
       video: session.videoUrl || "",
       format: session.format || "",
       benefits: session.benefits && session.benefits.length > 0 ? session.benefits : [""],
+      instructorName: (session as any).instructorName || "",
+      duration: (session as any).duration?.toString() || "",
+      price: (session as any).price?.toString() || "",
+      date: (session as any).date || "",
+      startTime: (session as any).startTime || "",
     });
     
     // Set media type based on what exists
@@ -401,6 +507,11 @@ export default function SessionsPage() {
         videoUrl?: string;
         format?: string;
         benefits?: string[];
+        instructorName?: string;
+        duration?: number;
+        price?: number;
+        date?: string;
+        startTime?: string;
       } = {
         title: formData.title.trim(),
         description: formData.description.trim(),
@@ -408,6 +519,18 @@ export default function SessionsPage() {
         format: formData.format.trim() || undefined,
         benefits: formData.benefits.filter(b => b.trim().length > 0),
       };
+
+      // Add new fields conditionally
+      if (activeTab === "discovery" || activeTab === "private") {
+        requestBody.instructorName = formData.instructorName.trim();
+        requestBody.duration = Number(formData.duration);
+        requestBody.date = formData.date;
+        requestBody.startTime = formData.startTime;
+      }
+
+      if (activeTab === "private") {
+        requestBody.price = Number(formData.price);
+      }
 
       if (isEdit) {
         // When editing, preserve existing media if not changed, or update if new media is provided
@@ -449,7 +572,19 @@ export default function SessionsPage() {
       }
 
       setSuccess(`Session ${isEdit ? "updated" : "created"} successfully!`);
-      setFormData({ title: "", description: "", image: "", video: "", format: "", benefits: [""] });
+      setFormData({ 
+        title: "", 
+        description: "", 
+        image: "", 
+        video: "", 
+        format: "", 
+        benefits: [""],
+        instructorName: "",
+        duration: "",
+        price: "",
+        date: "",
+        startTime: "",
+      });
       setMediaType(null);
       setPreviewUrl("");
       setEditingId(null);
@@ -470,7 +605,19 @@ export default function SessionsPage() {
 
   const handleCancel = () => {
     setShowAddForm(false);
-    setFormData({ title: "", description: "", image: "", video: "", format: "", benefits: [""] });
+    setFormData({ 
+      title: "", 
+      description: "", 
+      image: "", 
+      video: "", 
+      format: "", 
+      benefits: [""],
+      instructorName: "",
+      duration: "",
+      price: "",
+      date: "",
+      startTime: "",
+    });
     setMediaType(null);
     setPreviewUrl("");
     setEditingId(null);
@@ -478,117 +625,6 @@ export default function SessionsPage() {
     setSuccess(null);
   };
 
-  // Handle slot form submission
-  const handleSlotSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmittingSlot(true);
-    
-    try {
-      const response = await fetch('/api/slots', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          sessionType: activeTab, 
-          ...slotFormData 
-        })
-      });
-
-      const data = await response.json();
-      
-      if (data.success) {
-        toast.success(`Slot added successfully for ${activeTab} session!`);
-        
-        // Reset form
-        setSlotFormData({ month: '', date: '', time: '' });
-        setShowSlotForm(false);
-        
-        // Refresh slots list if it's visible
-        if (showSlotsList) {
-          fetchSlots();
-        }
-      } else {
-        toast.error(data.message || 'Failed to add slot. Please try again.');
-      }
-    } catch (error) {
-      console.error('Failed to add slot:', error);
-      toast.error('Failed to add slot. Please try again.');
-    } finally {
-      setSubmittingSlot(false);
-    }
-  };
-
-  // Handle slot form cancel
-  const handleSlotCancel = () => {
-    setSlotFormData({ month: '', date: '', time: '' });
-    setShowSlotForm(false);
-  };
-
-  // Fetch slots
-  const fetchSlots = async () => {
-    try {
-      setLoadingSlots(true);
-      const response = await fetch(`/api/slots?sessionType=${activeTab}&showAll=true`);
-      const data = await response.json();
-      
-      if (data.success) {
-        setSlots(data.data || []);
-      } else {
-        console.error('Failed to fetch slots:', data.message);
-        toast.error('Failed to fetch slots');
-      }
-    } catch (error) {
-      console.error('Error fetching slots:', error);
-      toast.error('Failed to fetch slots');
-    } finally {
-      setLoadingSlots(false);
-    }
-  };
-
-  // Handle show slots toggle
-  const handleShowSlots = () => {
-    if (!showSlotsList) {
-      fetchSlots();
-    }
-    setShowSlotsList(!showSlotsList);
-  };
-
-  // Convert 24-hour time to 12-hour format
-  const formatTime12Hour = (time24: string) => {
-    if (!time24) return '';
-    
-    const [hours, minutes] = time24.split(':');
-    const hour = parseInt(hours, 10);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const hour12 = hour % 12 || 12;
-    
-    return `${hour12}:${minutes} ${ampm}`;
-  };
-
-  // Handle delete slot
-  const handleDeleteSlot = async (slotId: string) => {
-    if (!confirm('Are you sure you want to delete this slot?')) return;
-
-    setDeletingSlotId(slotId);
-    try {
-      const response = await fetch(`/api/slots/${slotId}`, {
-        method: 'DELETE',
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        toast.success('Slot deleted successfully');
-        fetchSlots(); // Refresh the list
-      } else {
-        toast.error(data.message || 'Failed to delete slot');
-      }
-    } catch (error) {
-      console.error('Failed to delete slot:', error);
-      toast.error('Failed to delete slot');
-    } finally {
-      setDeletingSlotId(null);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-zinc-900 p-6 sm:p-8">
@@ -604,14 +640,23 @@ export default function SessionsPage() {
                 onClick={() => {
                   setActiveTab(tab.id);
                   setShowAddForm(false);
-                  setFormData({ title: "", description: "", image: "", video: "", format: "", benefits: [""] });
+                  setFormData({ 
+                    title: "", 
+                    description: "", 
+                    image: "", 
+                    video: "", 
+                    format: "", 
+                    benefits: [""],
+                    instructorName: "",
+                    duration: "",
+                    price: "",
+                    date: "",
+                    startTime: "",
+                  });
                   setMediaType(null);
                   setPreviewUrl("");
                   setError(null);
                   setSuccess(null);
-                  setShowSlotForm(false);
-                  setSlotFormData({ month: '', date: '', time: '' });
-                  setShowSlotsList(false);
                 }}
                 className={`
                   whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium transition-colors
@@ -628,235 +673,13 @@ export default function SessionsPage() {
           </nav>
         </div>
 
-        {/* Stats & Slot Management Buttons */}
-        <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        {/* Stats */}
+        <div className="mb-6">
           <div className="text-xs text-zinc-500">
             Total Sessions: {sessions.length} | Showing: {filteredSessions.length} for {activeTab}
           </div>
-          
-          {/* Slot Management Buttons - Only show for Discovery and Private */}
-          {(activeTab === 'discovery' || activeTab === 'private') && (
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleShowSlots}
-                className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition-all hover:bg-blue-700 hover:shadow-lg flex items-center gap-2"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                  <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
-                </svg>
-                {showSlotsList ? 'Hide Slots' : 'Show Slots'}
-              </button>
-              
-              <button
-                onClick={() => {
-                  console.log('Add Slot button clicked, activeTab:', activeTab);
-                  setShowSlotForm(!showSlotForm);
-                }}
-                className="rounded-lg bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition-all hover:bg-emerald-700 hover:shadow-lg flex items-center gap-2"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                </svg>
-                {showSlotForm ? 'Cancel' : 'Add Slot'}
-              </button>
-            </div>
-          )}
         </div>
 
-        {/* Add Slot Form */}
-        {showSlotForm && (activeTab === 'discovery' || activeTab === 'private') && (
-          <div className="mb-6 rounded-lg border border-zinc-700 bg-zinc-800 p-6">
-            <h2 className="text-xl font-semibold text-white mb-4">
-              Add Available Slot for {activeTab === 'discovery' ? 'Discovery' : 'Private'} Session
-            </h2>
-            
-            <form onSubmit={handleSlotSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Month Selection */}
-                <div>
-                  <label htmlFor="month" className="block text-sm font-medium text-zinc-300 mb-2">
-                    Month <span className="text-red-400">*</span>
-                  </label>
-                  <select
-                    id="month"
-                    required
-                    value={slotFormData.month}
-                    onChange={(e) => setSlotFormData({ ...slotFormData, month: e.target.value })}
-                    className="w-full rounded-md border border-zinc-600 bg-zinc-900 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none"
-                  >
-                    <option value="">Select Month</option>
-                    <option value="January">January</option>
-                    <option value="February">February</option>
-                    <option value="March">March</option>
-                    <option value="April">April</option>
-                    <option value="May">May</option>
-                    <option value="June">June</option>
-                    <option value="July">July</option>
-                    <option value="August">August</option>
-                    <option value="September">September</option>
-                    <option value="October">October</option>
-                    <option value="November">November</option>
-                    <option value="December">December</option>
-                  </select>
-                </div>
-
-                {/* Date Selection */}
-                <div>
-                  <label htmlFor="date" className="block text-sm font-medium text-zinc-300 mb-2">
-                    Date <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    id="date"
-                    type="date"
-                    required
-                    value={slotFormData.date}
-                    onChange={(e) => setSlotFormData({ ...slotFormData, date: e.target.value })}
-                    className="w-full rounded-md border border-zinc-600 bg-zinc-900 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none"
-                  />
-                </div>
-
-                {/* Time Selection */}
-                <div>
-                  <label htmlFor="time" className="block text-sm font-medium text-zinc-300 mb-2">
-                    Time <span className="text-red-400">*</span>
-                  </label>
-                  <select
-                    id="time"
-                    required
-                    value={slotFormData.time}
-                    onChange={(e) => setSlotFormData({ ...slotFormData, time: e.target.value })}
-                    className="w-full rounded-md border border-zinc-600 bg-zinc-900 px-3 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none"
-                  >
-                    <option value="">Select Time</option>
-                    <option value="09:00">9:00 AM</option>
-                    <option value="09:30">9:30 AM</option>
-                    <option value="10:00">10:00 AM</option>
-                    <option value="10:30">10:30 AM</option>
-                    <option value="11:00">11:00 AM</option>
-                    <option value="11:30">11:30 AM</option>
-                    <option value="12:00">12:00 PM</option>
-                    <option value="12:30">12:30 PM</option>
-                    <option value="13:00">1:00 PM</option>
-                    <option value="13:30">1:30 PM</option>
-                    <option value="14:00">2:00 PM</option>
-                    <option value="14:30">2:30 PM</option>
-                    <option value="15:00">3:00 PM</option>
-                    <option value="15:30">3:30 PM</option>
-                    <option value="16:00">4:00 PM</option>
-                    <option value="16:30">4:30 PM</option>
-                    <option value="17:00">5:00 PM</option>
-                    <option value="17:30">5:30 PM</option>
-                    <option value="18:00">6:00 PM</option>
-                    <option value="18:30">6:30 PM</option>
-                    <option value="19:00">7:00 PM</option>
-                    <option value="19:30">7:30 PM</option>
-                    <option value="20:00">8:00 PM</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Form Actions */}
-              <div className="flex items-center gap-3 pt-2">
-                <button
-                  type="submit"
-                  disabled={submittingSlot}
-                  className="rounded-md bg-emerald-600 px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {submittingSlot ? 'Adding...' : 'Add Slot'}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSlotCancel}
-                  className="rounded-md border border-zinc-600 px-6 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-700"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        {/* Available Slots List */}
-        {showSlotsList && (activeTab === 'discovery' || activeTab === 'private') && (
-          <div className="mb-6 rounded-lg border border-zinc-700 bg-zinc-800 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-white">
-                Available Slots for {activeTab === 'discovery' ? 'Discovery' : 'Private'} Sessions
-              </h2>
-              <button
-                onClick={fetchSlots}
-                className="rounded-md bg-zinc-700 px-4 py-2 text-xs font-medium text-zinc-300 transition-colors hover:bg-zinc-600"
-              >
-                Refresh
-              </button>
-            </div>
-            
-            {loadingSlots ? (
-              <div className="text-center py-8">
-                <p className="text-zinc-400">Loading slots...</p>
-              </div>
-            ) : slots.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-zinc-400">No available slots found for {activeTab} sessions.</p>
-                <p className="text-zinc-500 text-sm mt-2">Click &quot;Add Slot&quot; to create new slots.</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-zinc-700 text-left text-xs uppercase tracking-wide text-zinc-400">
-                      <th className="px-4 py-3 font-medium">Month</th>
-                      <th className="px-4 py-3 font-medium">Date</th>
-                      <th className="px-4 py-3 font-medium">Time</th>
-                      <th className="px-4 py-3 font-medium">Status</th>
-                      <th className="px-4 py-3 font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {slots.map((slot) => (
-                      <tr
-                        key={slot._id}
-                        className="border-b border-zinc-700 last:border-0 hover:bg-zinc-900/50"
-                      >
-                        <td className="px-4 py-3 text-zinc-300">{slot.month}</td>
-                        <td className="px-4 py-3 text-zinc-300">
-                          {new Date(slot.date).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric'
-                          })}
-                        </td>
-                        <td className="px-4 py-3 text-zinc-300">{formatTime12Hour(slot.time)}</td>
-                        <td className="px-4 py-3">
-                          <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
-                            slot.isBooked 
-                              ? 'bg-red-500/10 text-red-400' 
-                              : 'bg-green-500/10 text-green-400'
-                          }`}>
-                            {slot.isBooked ? 'Booked' : 'Available'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <button
-                            onClick={() => handleDeleteSlot(slot._id)}
-                            disabled={deletingSlotId === slot._id || slot.isBooked}
-                            className="rounded-md border border-red-600 px-3 py-1 text-xs font-medium text-red-400 transition-colors hover:bg-red-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {deletingSlotId === slot._id ? '...' : 'Delete'}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <div className="mt-4 text-xs text-zinc-500">
-                  Total Slots: {slots.length} | Available: {slots.filter(s => !s.isBooked).length} | Booked: {slots.filter(s => s.isBooked).length}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Add Button and Debug Info */}
         {!showAddForm && (
@@ -900,8 +723,14 @@ export default function SessionsPage() {
                       <tr className="border-b border-zinc-700 bg-zinc-900 text-left text-xs uppercase tracking-wide text-zinc-400">
                         <th className="px-6 py-3 font-medium">Media</th>
                         <th className="px-6 py-3 font-medium">Title</th>
-                        <th className="px-6 py-3 font-medium">Description</th>
-                        <th className="px-6 py-3 font-medium">Created</th>
+                        {(activeTab === "discovery" || activeTab === "private") ? (
+                          <>
+                            <th className="px-6 py-3 font-medium">Date & Time</th>
+                            <th className="px-6 py-3 font-medium">Instructor</th>
+                          </>
+                        ) : (
+                          <th className="px-6 py-3 font-medium">Description</th>
+                        )}
                         <th className="px-6 py-3 font-medium">Actions</th>
                       </tr>
                     </thead>
@@ -944,22 +773,51 @@ export default function SessionsPage() {
                               )}
                             </div>
                           </td>
-                          <td className="px-6 py-4">
-                            {session.description ? (
-                              <p className="line-clamp-2 text-xs text-zinc-400 max-w-md">
-                                {session.description}
-                              </p>
-                            ) : (
-                              <span className="text-zinc-500 text-xs">No description</span>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 text-zinc-400">
-                            {new Date(session.createdAt).toLocaleDateString(undefined, {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            })}
-                          </td>
+                          {(activeTab === "discovery" || activeTab === "private") ? (
+                            <>
+                              <td className="px-6 py-4 text-zinc-400">
+                                {session.date && session.startTime ? (
+                                  <div className="text-xs">
+                                    <div className="font-medium text-white">
+                                      {new Date(session.date + 'T00:00:00').toLocaleDateString('en-US', {
+                                        year: "numeric",
+                                        month: "short",
+                                        day: "numeric",
+                                        timeZone: 'Asia/Singapore'
+                                      })}
+                                    </div>
+                                    <div className="text-zinc-500 mt-1">
+                                      {(() => {
+                                        const { hour, minute, amPm } = convertTo12Hour(session.startTime);
+                                        return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')} ${amPm}`;
+                                      })()}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <span className="text-zinc-500 text-xs">Not set</span>
+                                )}
+                              </td>
+                              <td className="px-6 py-4">
+                                {session.instructorName ? (
+                                  <p className="text-xs text-white font-medium">
+                                    {session.instructorName}
+                                  </p>
+                                ) : (
+                                  <span className="text-zinc-500 text-xs">Not set</span>
+                                )}
+                              </td>
+                            </>
+                          ) : (
+                            <td className="px-6 py-4">
+                              {session.description ? (
+                                <p className="line-clamp-2 text-xs text-zinc-400 max-w-md">
+                                  {session.description}
+                                </p>
+                              ) : (
+                                <span className="text-zinc-500 text-xs">No description</span>
+                              )}
+                            </td>
+                          )}
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
                               <button
@@ -1155,6 +1013,294 @@ export default function SessionsPage() {
                 placeholder="Enter session format (e.g., Online, In-person, Hybrid)"
               />
             </div>
+
+            {/* Instructor Name - For Discovery and Private */}
+            {(activeTab === "discovery" || activeTab === "private") && (
+              <div className="space-y-1">
+                <label htmlFor="instructor-name" className="text-sm font-medium text-white">
+                  Instructor Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="instructor-name"
+                  type="text"
+                  required={activeTab === "discovery" || activeTab === "private"}
+                  value={formData.instructorName}
+                  onChange={(e) => setFormData({ ...formData, instructorName: e.target.value })}
+                  className="w-full rounded-md border border-zinc-600 bg-zinc-900 px-3 py-2 text-sm text-white focus:border-white focus:outline-none"
+                  placeholder="Enter instructor name"
+                />
+              </div>
+            )}
+
+            {/* Duration - For Discovery and Private */}
+            {(activeTab === "discovery" || activeTab === "private") && (
+              <div className="space-y-1">
+                <label htmlFor="duration" className="text-sm font-medium text-white">
+                  Duration (minutes) <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="duration"
+                  required={activeTab === "discovery" || activeTab === "private"}
+                  value={formData.duration}
+                  onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                  className="w-full rounded-md border border-zinc-600 bg-zinc-900 px-3 py-2 text-sm text-white focus:border-white focus:outline-none"
+                >
+                  <option value="">Select Duration</option>
+                  <option value="30">30 minutes</option>
+                  <option value="60">1 hour (60 minutes)</option>
+                  <option value="90">1.5 hours (90 minutes)</option>
+                  <option value="120">2 hours (120 minutes)</option>
+                </select>
+              </div>
+            )}
+
+            {/* Price - For Private Only */}
+            {activeTab === "private" && (
+              <div className="space-y-1">
+                <label htmlFor="price" className="text-sm font-medium text-white">
+                  Price ($) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="price"
+                  type="number"
+                  required={activeTab === "private"}
+                  min="0"
+                  step="0.01"
+                  value={formData.price}
+                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  className="w-full rounded-md border border-zinc-600 bg-zinc-900 px-3 py-2 text-sm text-white focus:border-white focus:outline-none"
+                  placeholder="Enter price in dollars"
+                />
+              </div>
+            )}
+
+            {/* Date - For Discovery and Private */}
+            {(activeTab === "discovery" || activeTab === "private") && (
+              <div className="space-y-1 relative">
+                <label htmlFor="date" className="text-sm font-medium text-white">
+                  Date <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    id="date"
+                    type="text"
+                    required={activeTab === "discovery" || activeTab === "private"}
+                    value={formData.date ? new Date(formData.date + 'T00:00:00').toLocaleDateString('en-US', { 
+                      month: '2-digit', 
+                      day: '2-digit', 
+                      year: 'numeric',
+                      timeZone: 'Asia/Singapore'
+                    }) : ""}
+                    readOnly
+                    onClick={() => setShowCalendar(!showCalendar)}
+                    placeholder="mm/dd/yyyy"
+                    className="w-full rounded-md border border-zinc-600 bg-zinc-900 px-3 py-2 pr-10 text-sm text-white focus:border-white focus:outline-none cursor-pointer"
+                  />
+                  <Calendar 
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 pointer-events-none" 
+                  />
+                </div>
+                
+                {/* Calendar Picker */}
+                {showCalendar && (
+                  <div 
+                    ref={calendarRef}
+                    className="absolute z-50 mt-2 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl p-4 w-80"
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <button
+                        onClick={() => {
+                          if (currentMonth === 0) {
+                            setCurrentMonth(11);
+                            setCurrentYear(currentYear - 1);
+                          } else {
+                            setCurrentMonth(currentMonth - 1);
+                          }
+                        }}
+                        className="p-1 hover:bg-zinc-700 rounded"
+                      >
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                      </button>
+                      <h3 className="text-white font-semibold">
+                        {new Date(currentYear, currentMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                      </h3>
+                      <button
+                        onClick={() => {
+                          if (currentMonth === 11) {
+                            setCurrentMonth(0);
+                            setCurrentYear(currentYear + 1);
+                          } else {
+                            setCurrentMonth(currentMonth + 1);
+                          }
+                        }}
+                        className="p-1 hover:bg-zinc-700 rounded"
+                      >
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-7 gap-1 mb-2">
+                      {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                        <div key={day} className="text-center text-xs text-zinc-400 font-medium py-1">
+                          {day}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="grid grid-cols-7 gap-1">
+                      {getCalendarDays().map(({ day, isCurrentMonth }, idx) => {
+                        const dateStr = new Date(currentYear, currentMonth, day).toISOString().split('T')[0];
+                        const isSelected = formData.date === dateStr;
+                        const today = new Date();
+                        const isToday = day === today.getDate() && 
+                                       currentMonth === today.getMonth() && 
+                                       currentYear === today.getFullYear() &&
+                                       isCurrentMonth;
+                        const isPast = isCurrentMonth && new Date(currentYear, currentMonth, day) < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+                        return (
+                          <button
+                            key={idx}
+                            onClick={() => !isPast && handleDateSelect(day, isCurrentMonth)}
+                            disabled={isPast || !isCurrentMonth}
+                            className={`
+                              p-2 text-sm rounded
+                              ${!isCurrentMonth ? 'text-zinc-600' : ''}
+                              ${isPast ? 'text-zinc-600 cursor-not-allowed' : 'text-white hover:bg-zinc-700 cursor-pointer'}
+                              ${isSelected ? 'bg-white text-zinc-900 font-semibold' : ''}
+                              ${isToday && !isSelected ? 'ring-2 ring-zinc-500' : ''}
+                            `}
+                          >
+                            {day}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Start Time - For Discovery and Private */}
+            {(activeTab === "discovery" || activeTab === "private") && (
+              <div className="space-y-1 relative">
+                <label htmlFor="start-time" className="text-sm font-medium text-white">
+                  Start Time <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    id="start-time"
+                    type="text"
+                    required={activeTab === "discovery" || activeTab === "private"}
+                    value={formData.startTime ? (() => {
+                      const { hour, minute, amPm } = convertTo12Hour(formData.startTime);
+                      return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')} ${amPm}`;
+                    })() : ""}
+                    readOnly
+                    onClick={() => setShowTimePicker(!showTimePicker)}
+                    placeholder="--:-- --"
+                    className="w-full rounded-md border border-zinc-600 bg-zinc-900 px-3 py-2 pr-10 text-sm text-white focus:border-white focus:outline-none cursor-pointer"
+                  />
+                  <Clock 
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 pointer-events-none" 
+                  />
+                </div>
+
+                {/* Time Picker */}
+                {showTimePicker && (
+                  <div 
+                    ref={timePickerRef}
+                    className="absolute z-50 mt-2 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl p-4 w-64"
+                  >
+                    <div className="flex items-center justify-center gap-4 mb-4">
+                      {/* Hour */}
+                      <div className="flex flex-col items-center">
+                        <label className="text-xs text-zinc-400 mb-2">Hour</label>
+                        <div className="flex flex-col gap-1 max-h-32 overflow-y-auto">
+                          {Array.from({ length: 12 }, (_, i) => i + 1).map(hour => (
+                            <button
+                              key={hour}
+                              onClick={() => setSelectedHour(hour)}
+                              className={`px-3 py-1 rounded text-sm ${
+                                selectedHour === hour
+                                  ? 'bg-white text-zinc-900 font-semibold'
+                                  : 'text-white hover:bg-zinc-700'
+                              }`}
+                            >
+                              {String(hour).padStart(2, '0')}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Minute */}
+                      <div className="flex flex-col items-center">
+                        <label className="text-xs text-zinc-400 mb-2">Minute</label>
+                        <div className="flex flex-col gap-1 max-h-32 overflow-y-auto">
+                          {[0, 15, 30, 45].map(minute => (
+                            <button
+                              key={minute}
+                              onClick={() => setSelectedMinute(minute)}
+                              className={`px-3 py-1 rounded text-sm ${
+                                selectedMinute === minute
+                                  ? 'bg-white text-zinc-900 font-semibold'
+                                  : 'text-white hover:bg-zinc-700'
+                              }`}
+                            >
+                              {String(minute).padStart(2, '0')}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* AM/PM */}
+                      <div className="flex flex-col items-center">
+                        <label className="text-xs text-zinc-400 mb-2">Period</label>
+                        <div className="flex flex-col gap-1">
+                          <button
+                            onClick={() => setSelectedAmPm("AM")}
+                            className={`px-3 py-1 rounded text-sm ${
+                              selectedAmPm === "AM"
+                                ? 'bg-white text-zinc-900 font-semibold'
+                                : 'text-white hover:bg-zinc-700'
+                            }`}
+                          >
+                            AM
+                          </button>
+                          <button
+                            onClick={() => setSelectedAmPm("PM")}
+                            className={`px-3 py-1 rounded text-sm ${
+                              selectedAmPm === "PM"
+                                ? 'bg-white text-zinc-900 font-semibold'
+                                : 'text-white hover:bg-zinc-700'
+                            }`}
+                          >
+                            PM
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 mt-4">
+                      <button
+                        onClick={handleTimeSelect}
+                        className="flex-1 bg-white text-zinc-900 py-2 rounded font-medium hover:bg-zinc-100 transition"
+                      >
+                        Set Time
+                      </button>
+                      <button
+                        onClick={() => setShowTimePicker(false)}
+                        className="flex-1 bg-zinc-700 text-white py-2 rounded font-medium hover:bg-zinc-600 transition"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="space-y-1">
               <label className="text-sm font-medium text-white">

@@ -35,10 +35,6 @@ export default function OrdersPieChart({ paid, pending, cancelled }: OrdersPieCh
             direction: 'row',
             position: { vertical: 'bottom', horizontal: 'middle' },
             padding: 0,
-            labelStyle: {
-              fontSize: 12,
-              fill: 'white',
-            },
           },
         }}
         sx={{

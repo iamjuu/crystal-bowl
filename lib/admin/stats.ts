@@ -5,7 +5,9 @@ import User from "@/models/User";
 import Product from "@/models/Product";
 import Blog from "@/models/Blog";
 import Event from "@/models/Event";
-import YogaSession from "@/models/YogaSession";
+import CorporateSession from "@/models/CorporateSession";
+import PrivateSession from "@/models/PrivateSession";
+import DiscoverySession from "@/models/DiscoverySession";
 
 export type DashboardStats = {
   revenue: {
@@ -67,7 +69,7 @@ export type DashboardStats = {
 export async function getDashboardStats(): Promise<DashboardStats> {
   await connectDB();
 
-  const [orders, bookings, users, totalUsers, verifiedUsers, totalProducts, blogs, events, yogaSessions] = await Promise.all([
+  const [orders, bookings, users, totalUsers, verifiedUsers, totalProducts, blogs, events, corporateSessions, privateSessions, discoverySessions] = await Promise.all([
     Order.find().lean(),
     Booking.find().lean(),
     User.find().lean(),
@@ -76,8 +78,17 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     Product.countDocuments(),
     Blog.find().lean(),
     Event.find().lean(),
-    YogaSession.find().lean(),
+    CorporateSession.find().lean(),
+    PrivateSession.find().lean(),
+    DiscoverySession.find().lean(),
   ]);
+
+  // Combine all sessions for yoga session data
+  const yogaSessions = [
+    ...(corporateSessions as any[]).map((s: any) => ({ ...s, sessionType: "corporate" })),
+    ...(privateSessions as any[]).map((s: any) => ({ ...s, sessionType: "private" })),
+    ...(discoverySessions as any[]).map((s: any) => ({ ...s, sessionType: "discovery" })),
+  ];
 
   const totalRevenue = orders.filter((o) => o.status === "paid").reduce((sum, o) => sum + o.amount, 0);
   const bookingRevenue = bookings.filter((b) => b.status === "confirmed").reduce((sum, b) => sum + b.amount, 0);
@@ -241,9 +252,9 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   const bookedSeats = (yogaSessions as any[]).reduce((sum, s: any) => sum + (s.bookedSeats || 0), 0);
 
   // Calculate stats by session type
-  const regularSessions = (yogaSessions as any[]).filter((s: any) => s.sessionType === "regular");
-  const corporateSessions = (yogaSessions as any[]).filter((s: any) => s.sessionType === "corporate");
-  const privateSessions = (yogaSessions as any[]).filter((s: any) => s.sessionType === "private");
+  const regularSessions = (discoverySessions as any[]); // Discovery sessions are "regular"
+  const corporateSessionsFiltered = (corporateSessions as any[]);
+  const privateSessionsFiltered = (privateSessions as any[]);
 
   const yogaSessionsByType = {
     regular: {
@@ -252,14 +263,14 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       totalSeats: regularSessions.reduce((sum: number, s: any) => sum + (s.totalSeats || 0), 0),
     },
     corporate: {
-      count: corporateSessions.length,
-      bookedSeats: corporateSessions.reduce((sum: number, s: any) => sum + (s.bookedSeats || 0), 0),
-      totalSeats: corporateSessions.reduce((sum: number, s: any) => sum + (s.totalSeats || 0), 0),
+      count: corporateSessionsFiltered.length,
+      bookedSeats: corporateSessionsFiltered.reduce((sum: number, s: any) => sum + (s.bookedSeats || 0), 0),
+      totalSeats: corporateSessionsFiltered.reduce((sum: number, s: any) => sum + (s.totalSeats || 0), 0),
     },
     private: {
-      count: privateSessions.length,
-      bookedSeats: privateSessions.reduce((sum: number, s: any) => sum + (s.bookedSeats || 0), 0),
-      totalSeats: privateSessions.reduce((sum: number, s: any) => sum + (s.totalSeats || 0), 0),
+      count: privateSessionsFiltered.length,
+      bookedSeats: privateSessionsFiltered.reduce((sum: number, s: any) => sum + (s.bookedSeats || 0), 0),
+      totalSeats: privateSessionsFiltered.reduce((sum: number, s: any) => sum + (s.totalSeats || 0), 0),
     },
   };
 

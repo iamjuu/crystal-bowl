@@ -7,10 +7,10 @@ const ProductSchema = new Schema<ProductType>(
     shortDescription: { type: String, required: false }, // Brief description
     description: { type: String, required: true }, // Long description
     category: { 
-      type: String, 
-      required: false,
-      ref: 'Category'
-    }, // Category name
+      type: Schema.Types.ObjectId, 
+      ref: 'Category',
+      required: false
+    }, // Category reference (ObjectId)
     price: { type: Number, required: true },
     imageUrl: { type: [String], default: [] } as any, // Array of base64 image strings (max 3)
     videoUrl: { type: Schema.Types.Mixed, default: [] } as any, // Can be string or array of strings (max 2 videos)

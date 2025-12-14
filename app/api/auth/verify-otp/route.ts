@@ -3,12 +3,15 @@ import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
 import { signToken } from "@/lib/auth";
 
+// Verify OTP - works for both signup and login
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { email, otp } = body as {
+    const { email, otp, name, phone } = body as {
       email?: string;
       otp?: string;
+      name?: string; // For first-time registration
+      phone?: string; // For first-time registration
     };
 
     if (!email || !otp) {
@@ -20,10 +23,10 @@ export async function POST(req: NextRequest) {
 
     await connectDB();
 
-    // This endpoint is only for signup - find pending user
-    const pendingUser = await User.findOne({ email, registered: false });
+    // Find user by email (could be pending signup or registered user)
+    const user = await User.findOne({ email });
 
-    if (!pendingUser) {
+    if (!user) {
       return NextResponse.json(
         { success: false, message: "Invalid or expired OTP. Please start signup again." },
         { status: 400 }
@@ -31,7 +34,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify OTP
-    if (pendingUser.verificationToken !== otp) {
+    if (user.verificationToken !== otp) {
       return NextResponse.json(
         { success: false, message: "Invalid or expired OTP" },
         { status: 400 }
@@ -39,34 +42,76 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if OTP is expired (10 minutes)
-    const createdAt = new Date(pendingUser.createdAt);
+    const createdAt = new Date(user.createdAt);
     const now = new Date();
     const diffMinutes = (now.getTime() - createdAt.getTime()) / (1000 * 60);
 
     if (diffMinutes > 10) {
-      await User.deleteOne({ _id: pendingUser._id });
+      // Only delete if it's a pending signup
+      if (!user.registered) {
+        await User.deleteOne({ _id: user._id });
+      }
       return NextResponse.json(
         { success: false, message: "OTP has expired. Please request a new one." },
         { status: 400 }
       );
     }
 
-    // After OTP verification, complete signup
-    // Name and phone should already be set during send-otp, but verify
-    if (!pendingUser.name || !pendingUser.phone) {
+    // Clear OTP after verification
+    user.verificationToken = null;
+
+    // If user is already registered, just log them in
+    if (user.registered) {
+      user.emailVerified = true; // Mark as verified
+      await user.save();
+
+      const token = signToken({ userId: String(user._id), role: user.role });
+
+      const res = NextResponse.json({
+        success: true,
+        message: "Login successful!",
+        data: {
+          token,
+          user: {
+            id: String(user._id),
+            email: user.email,
+            name: user.name,
+            role: user.role,
+          },
+        },
+      });
+
+      res.cookies.set({
+        name: "token",
+        value: token,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7, // 7 days
+      });
+
+      return res;
+    }
+
+    // If user is NOT registered (first-time signup), complete registration
+    if (!name || !phone) {
       return NextResponse.json(
-        { success: false, message: "Signup incomplete. Please start signup again." },
+        { 
+          success: false, 
+          message: "Please provide name and phone to complete registration",
+          requiresRegistration: true 
+        },
         { status: 400 }
       );
     }
 
     // Complete registration - set registered = true and emailVerified = true
-    pendingUser.emailVerified = true; // OTP verified
-    pendingUser.registered = true; // Signup form completed
-    pendingUser.verificationToken = null;
-    await pendingUser.save();
-
-    const user = pendingUser;
+    user.name = name;
+    user.phone = phone.trim();
+    user.emailVerified = true; // OTP verified
+    user.registered = true; // Registration completed
+    await user.save();
 
     // Generate JWT token for auto-login
     const token = signToken({ userId: String(user._id), role: user.role });
@@ -86,7 +131,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Set token as HTTP-only cookie (same as login)
+    // Set token as HTTP-only cookie
     res.cookies.set({
       name: "token",
       value: token,

@@ -63,7 +63,7 @@ export async function PUT(
     
     const { id } = await context.params;
     const body = await request.json();
-    const { name, description } = body;
+    const { name, imageUrl, isFeatured } = body;
     
     if (!name) {
       return NextResponse.json(
@@ -78,6 +78,21 @@ export async function PUT(
         { success: false, message: "Category not found" },
         { status: 404 }
       );
+    }
+
+    // Check if trying to set as featured
+    if (isFeatured === true && oldCategory.isFeatured !== true) {
+      // Count existing featured categories (excluding current one)
+      const featuredCount = await Category.countDocuments({ 
+        isFeatured: true,
+        _id: { $ne: id }
+      });
+      if (featuredCount >= 4) {
+        return NextResponse.json(
+          { success: false, message: "Maximum 4 featured categories allowed. Please unfeature another category first." },
+          { status: 400 }
+        );
+      }
     }
     
     // Helper to capitalize
@@ -110,19 +125,66 @@ export async function PUT(
       );
     }
     
+    // Build update object - ALWAYS explicitly set all fields
+    const updateData: any = { 
+      name: capitalizedName,
+      isFeatured: Boolean(isFeatured), // ALWAYS set to true or false (never undefined)
+    };
+
+    // Handle imageUrl - only include if it has a value
+    if (imageUrl !== undefined) {
+      // imageUrl was explicitly provided in the request
+      if (imageUrl && imageUrl.trim().length > 0) {
+        updateData.imageUrl = imageUrl.trim();
+      }
+      // If empty string, don't include it (will preserve existing or leave undefined)
+    } else {
+      // imageUrl not in request - preserve existing value if any
+      if (oldCategory.imageUrl) {
+        updateData.imageUrl = oldCategory.imageUrl;
+      }
+    }
+
+    console.log("Updating category with data:", JSON.stringify(updateData, null, 2)); // Debug log
+    console.log("isFeatured value:", updateData.isFeatured, "Type:", typeof updateData.isFeatured); // Debug log
+    console.log("Old category:", JSON.stringify(oldCategory.toObject(), null, 2)); // Debug log
+
+    // Use $set to explicitly update fields - this ensures fields are saved
     const category = await Category.findByIdAndUpdate(
       id,
-      { 
-        name: capitalizedName,
-        description: description?.trim(),
-      },
-      { new: true }
-    );
+      { $set: updateData },
+      { new: true, runValidators: true, upsert: false }
+    ).lean();
+    
+    // CRITICAL: Reload from database to verify what was actually saved
+    const reloadedCategory = await Category.findById(id).lean();
+    
+    if (!reloadedCategory) {
+      return NextResponse.json(
+        { success: false, message: "Failed to update category" },
+        { status: 500 }
+      );
+    }
+    
+    console.log("Category updated in DB (reloaded):", JSON.stringify({
+      _id: reloadedCategory._id,
+      name: reloadedCategory.name,
+      isFeatured: reloadedCategory.isFeatured,
+      imageUrl: reloadedCategory.imageUrl ? `${reloadedCategory.imageUrl.substring(0, 50)}...` : "not set",
+      slug: reloadedCategory.slug
+    }, null, 2)); // Debug log
+    
+    // Ensure response includes all fields with defaults
+    const categoryWithDefaults = {
+      ...reloadedCategory,
+      imageUrl: reloadedCategory.imageUrl || undefined,
+      isFeatured: reloadedCategory.isFeatured === true,
+    };
     
     return NextResponse.json({
       success: true,
       message: "Category updated successfully",
-      data: category,
+      data: categoryWithDefaults,
     });
     
   } catch (error: any) {

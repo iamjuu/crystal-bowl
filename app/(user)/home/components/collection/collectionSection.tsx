@@ -4,18 +4,17 @@ import Image from 'next/image';
 import { ArrowRight } from "lucide-react";
 import { PremiumQuality, UniqueToYou, LightWeight, Intention } from "@/public/assets";
 
-type Product = {
+type Category = {
   _id: string;
   name: string;
-  price: number;
-  createdAt: string;
-  description?: string;
-  imageUrl?: string[];
-  videoUrl?: string;
+  slug: string;
+  imageUrl?: string;
+  isFeatured?: boolean;
 };
 
 interface CollectionSectionProps {
-  products: Product[];
+  categories: Category[];
+  loading?: boolean;
 }
 
 const Icons = [
@@ -54,16 +53,16 @@ const normalizeImageUrl = (url: string): string => {
   return `data:image/jpeg;base64,${url}`;
 };
 
-const CollectionSection: React.FC<CollectionSectionProps> = ({ products }) => {
+const CollectionSection: React.FC<CollectionSectionProps> = ({ categories, loading }) => {
   return (
     <section className="w-full py-[40px] md:py-[68px] ">
       <div className="max-w-6xl items-center flex flex-col mx-auto px-4">
         <div className="flex w-full items-center justify-between mb-8 md:mb-0">
           <h2 className="text-[24px] sm:text-[28px] md:text-[32px] lg:text-[36px] xl:text-[40px] pb-4 sm:pb-5 md:pb-6 text-[#D5B584] font-normal">
-            Collection
+            Collections
           </h2>
           <Link
-            href="/shop"
+            href="/shop?category=all"
             className="text-[#D5B584] flex gap-2 text-[14px] sm:text-[16px] md:text-[18px]"
           >
             View All
@@ -72,16 +71,39 @@ const CollectionSection: React.FC<CollectionSectionProps> = ({ products }) => {
         </div>
         <div className="flex flex-col gap-12 md:gap-16 lg:gap-[80px]">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-[18px] w-full">
-            {products.map((item) => (
-              <div key={item._id} className="text-black group">
-                <Link href={`/shop/${item._id}`}>
-                  <div className="relative w-full aspect-square group-hover:scale-105 transition-transform duration-300 cursor-pointer">
-                    <Image 
-                      src={item.imageUrl?.[0] ? normalizeImageUrl(item.imageUrl[0]) : "/placeholder.png"}
-                      alt={item.name}
-                      fill
-                      className="object-cover rounded-lg"
-                    />
+            {loading ? (
+              <div className="col-span-2 md:col-span-3 lg:col-span-4 text-center py-12 text-[#1C3163]">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-[#D5B584] mx-auto mb-4"></div>
+                <p>Loading categories...</p>
+              </div>
+            ) : categories.length === 0 ? (
+              <div className="col-span-2 md:col-span-3 lg:col-span-4 text-center py-12 text-[#1C3163]">
+                <p>No featured categories available</p>
+              </div>
+            ) : (
+              categories.map((category) => (
+                <div key={category._id} className="text-black group">
+                  <Link href={`/shop?category=${category.slug}`}>
+                    <div className="relative w-full aspect-square group-hover:scale-105 transition-transform duration-300 cursor-pointer">
+                      {category.imageUrl ? (
+                        <Image 
+                          src={normalizeImageUrl(category.imageUrl)}
+                          alt={category.name}
+                          fill
+                          className="object-cover rounded-lg"
+                          unoptimized
+                        />
+                      ) : (
+                        <div className="w-full h-full rounded-lg bg-gradient-to-br from-[#D5B584] to-[#FEC1A2] flex items-center justify-center">
+                          <p className="text-white text-lg font-semibold">{category.name}</p>
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+                  <div className="leading-5">
+                    <p className="pt-4 sm:pt-6 md:pt-[28px] text-center text-[14px] sm:text-[16px] md:text-[18px]">
+                      {category.name}
+                    </p>
                   </div>
                 </Link>
                 <div className="leading-5">
@@ -89,8 +111,8 @@ const CollectionSection: React.FC<CollectionSectionProps> = ({ products }) => {
                   {/* <p className="text-[12px] sm:text-[13px] md:text-[14px]">{item.description}</p> */}
                   <p className="pt-3 sm:pt-4 md:pt-[18px] text-[10px] sm:text-[11px] md:text-[12px]">₹{item.price}</p>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
 
           <div className="w-full pt-12 md:pt-16 lg:pt-[80px] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 md:gap-12 lg:gap-[54px] border-t border-black">

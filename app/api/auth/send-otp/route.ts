@@ -4,6 +4,7 @@ import User from "@/models/User";
 import { sendOTPEmail } from "@/lib/email";
 import crypto from "crypto";
 
+// Send OTP - works for both signup and login
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -15,23 +16,37 @@ export async function POST(req: NextRequest) {
 
     await connectDB();
 
-    // Check if user already exists and is registered (completed signup form)
+    // Check if user already exists and is registered
     const existingUser = await User.findOne({ email, registered: true });
     
     if (existingUser) {
-      // If emailVerified is false, they need to complete OTP verification via login
-      if (!existingUser.emailVerified) {
+      // User is registered - this is for login, just send OTP
+      const otp = crypto.randomInt(100000, 999999).toString();
+      existingUser.verificationToken = otp;
+      await existingUser.save();
+
+      try {
+        await sendOTPEmail(email, otp, existingUser.name);
+      } catch (emailError: any) {
+        console.error("Email send error:", emailError);
         return NextResponse.json(
-          { success: false, message: "Please login to complete OTP verification." },
-          { status: 409 }
+          { success: false, message: "Failed to send OTP email. Please try again." },
+          { status: 500 }
         );
       }
-      // If fully registered and verified, tell them to login
-      return NextResponse.json(
-        { success: false, message: "Email already registered. Please login instead." },
-        { status: 409 }
-      );
+
+      return NextResponse.json({
+        success: true,
+        message: "OTP sent to your email",
+        data: {
+          email,
+          expiresIn: 600, // 10 minutes in seconds
+          isLogin: true, // Indicates this is for login
+        },
+      });
     }
+
+    // User doesn't exist or is not registered - this is for signup
 
     // For signup, name and phone are required
     if (!name || !phone) {
@@ -54,7 +69,7 @@ export async function POST(req: NextRequest) {
       pendingUser.verificationToken = otp;
       await pendingUser.save();
     } else {
-      // Create user with signup details, but registered = false until OTP verified
+      // Create new pending user with signup details
       pendingUser = await User.create({
         email,
         name,
@@ -68,13 +83,11 @@ export async function POST(req: NextRequest) {
 
     // Send OTP email
     try {
-      await sendOTPEmail(email, otp, "User");
+      await sendOTPEmail(email, otp, name);
     } catch (emailError: any) {
       console.error("Email send error:", emailError);
-      // Don't fail the request if email fails, but log it
-      // In production, you might want to handle this differently
       return NextResponse.json(
-        { success: false, message: "Failed to send OTP email. Please check your email configuration." },
+        { success: false, message: "Failed to send OTP email. Please try again." },
         { status: 500 }
       );
     }
@@ -85,6 +98,7 @@ export async function POST(req: NextRequest) {
       data: {
         email,
         expiresIn: 600, // 10 minutes in seconds
+        isLogin: false, // Indicates this is for signup
       },
     });
   } catch (err: any) {

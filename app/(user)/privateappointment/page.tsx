@@ -1,130 +1,11 @@
 'use client'
 
 import React, { useMemo, useState, useRef, useEffect } from 'react'
-import Image from 'next/image'
 import toast from 'react-hot-toast'
 import Navbar from '@/components/user/Navbar'
 import Footer from '@/components/user/Footer'
-import { loadStripe } from '@stripe/stripe-js'
-import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
-
-// Initialize Stripe
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
-)
-
-// Payment Form Component
-const PaymentForm = ({ 
-  onPaymentSuccess, 
-  amount, 
-  bookingDetails 
-}: { 
-  onPaymentSuccess: () => void
-  amount: number
-  bookingDetails: { date: string; time: string }
-}) => {
-  const stripe = useStripe()
-  const elements = useElements()
-  const [processing, setProcessing] = useState(false)
-
-  const handleStripePayment = async () => {
-    console.log('Starting payment process...')
-    console.log('Stripe loaded:', !!stripe)
-    console.log('Elements loaded:', !!elements)
-    
-    if (!stripe || !elements) {
-      toast.error('Stripe is not loaded yet. Please refresh the page.')
-      return
-    }
-
-    setProcessing(true)
-
-    try {
-      console.log('Creating payment intent...')
-      // Create payment intent
-      const response = await fetch('/api/create-payment-intent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: amount,
-          currency: 'usd',
-          description: `Private Session - ${bookingDetails.date} at ${bookingDetails.time}`
-        })
-      })
-
-      const data = await response.json()
-      console.log('Payment intent response:', data)
-
-      if (!data.success) {
-        toast.error(data.message || 'Failed to initialize payment')
-        setProcessing(false)
-        return
-      }
-
-      const cardElement = elements.getElement(CardElement)
-      if (!cardElement) {
-        toast.error('Card element not found')
-        setProcessing(false)
-        return
-      }
-
-      console.log('Confirming payment...')
-      // Confirm payment
-      const { error, paymentIntent } = await stripe.confirmCardPayment(data.clientSecret, {
-        payment_method: {
-          card: cardElement,
-        }
-      })
-
-      console.log('Payment result:', { error, paymentIntent })
-
-      if (error) {
-        console.error('Payment error:', error)
-        toast.error(error.message || 'Payment failed')
-        setProcessing(false)
-      } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-        console.log('Payment successful!')
-        toast.success('Payment successful!')
-        onPaymentSuccess()
-      }
-    } catch (error) {
-      console.error('Payment error:', error)
-      toast.error('Payment failed. Please try again.')
-      setProcessing(false)
-    }
-  }
-
-  return (
-    <div className="space-y-4">
-      <div className="p-4 border-2 border-gray-300 rounded-lg bg-white">
-        <CardElement
-          options={{
-            style: {
-              base: {
-                fontSize: '16px',
-                color: '#424770',
-                '::placeholder': {
-                  color: '#aab7c4',
-                },
-              },
-              invalid: {
-                color: '#9e2146',
-              },
-            },
-          }}
-        />
-      </div>
-      <button
-        type="button"
-        onClick={handleStripePayment}
-        disabled={!stripe || processing}
-        className="w-full bg-[#D5B584] hover:bg-[#C4A574] text-white rounded-lg px-6 py-4 text-[16px] font-medium transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {processing ? 'Processing...' : `Pay $${amount.toFixed(2)}`}
-      </button>
-    </div>
-  )
-}
+import ProtectedRoute from '@/components/user/ProtectedRoute'
+import { useRouter } from 'next/navigation'
 
 type AvailableSlot = {
   _id: string
@@ -133,9 +14,11 @@ type AvailableSlot = {
   date: string
   time: string
   isBooked: boolean
+  price?: number // Price for private sessions
 }
 
 const PrivateAppointmentPage = () => {
+  const router = useRouter()
   const [selectedDate, setSelectedDate] = useState<number | null>(null)
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth())
@@ -148,13 +31,9 @@ const PrivateAppointmentPage = () => {
   const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>([])
   const [loadingSlots, setLoadingSlots] = useState(true)
   
-  // Form submission state
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  
-  // Payment options state
-  const [showMorePayments, setShowMorePayments] = useState(false)
-  const [showStripeForm, setShowStripeForm] = useState(false)
-  const [bookingAmount] = useState(100) // Set your session price here
+  // Payment state
+  const [isLoading, setIsLoading] = useState(false)
+  const [bookingAmount, setBookingAmount] = useState<number | null>(null) // Will be set from selected slot
 
   // Fetch available slots
   useEffect(() => {
@@ -250,16 +129,24 @@ const PrivateAppointmentPage = () => {
       .split('T')[0] // Format: YYYY-MM-DD
     
     const slots = availableSlots
-      .filter(slot => slot.date === selectedDateStr)
+      .filter(slot => slot.date === selectedDateStr && !slot.isBooked)
       .map(slot => ({
         time: slot.time,
         available: true,
-        _id: slot._id
+        _id: slot._id,
+        price: slot.price || 0 // Include price in time slots
       }))
       .sort((a, b) => a.time.localeCompare(b.time))
     
     return slots
   }, [selectedDate, availableSlots, currentMonth, currentYear])
+
+  // Get selected slot ID
+  const selectedSlotId = useMemo(() => {
+    if (!selectedTime) return null
+    const slot = timeSlots.find(s => s.time === selectedTime)
+    return slot?._id || null
+  }, [selectedTime, timeSlots])
 
   // Check if a date has available slots
   const isDateAvailable = (day: number, isCurrentMonth: boolean) => {
@@ -299,9 +186,15 @@ const PrivateAppointmentPage = () => {
     }
   }
 
-  const handleTimeClick = (time: string, available: boolean) => {
+  const handleTimeClick = (time: string, available: boolean, price?: number) => {
     if (available) {
       setSelectedTime(time)
+      // Set the booking amount from the selected slot's price
+      if (price !== undefined && price > 0) {
+        setBookingAmount(price)
+      } else {
+        setBookingAmount(null)
+      }
       
       // Smooth scroll to form with animation after a short delay
       setTimeout(() => {
@@ -314,19 +207,29 @@ const PrivateAppointmentPage = () => {
     }
   }
 
-  const handleFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    // Validate calendar selection (REQUIRED)
-    console.log('Form submit - selectedDate:', selectedDate, 'selectedTime:', selectedTime)
-    
-    if (!selectedDate || !selectedTime) {
-      toast.error('Please select both date and time before submitting')
+  const handleCheckout = async () => {
+    // Check if date and time are selected
+    if (!selectedDate || !selectedTime || !selectedSlotId) {
+      toast.error('Please select both date and time')
       return
     }
-    
-    setIsSubmitting(true)
-    
+
+    // Check if booking amount is available
+    if (!bookingAmount || bookingAmount <= 0) {
+      toast.error('Invalid session price. Please select a different session.')
+      return
+    }
+
+    // Check if user is logged in
+    const token = localStorage.getItem("userToken")
+    if (!token) {
+      toast.error("Please login to book a session")
+      router.push("/login")
+      return
+    }
+
+    setIsLoading(true)
+
     try {
       // Format the selected date
       const selectedDateObj = new Date(currentYear, currentMonth, selectedDate)
@@ -335,58 +238,45 @@ const PrivateAppointmentPage = () => {
         month: 'long',
         day: 'numeric'
       })
-      
-      // Prepare private appointment data
-      const privateData = {
-        selectedDate: formattedDate,
-        selectedTime
-      }
-      
-      // Prepare enquiry data
-      const enquiryData = {
-        fullName: 'Private Appointment',
-        email: 'private@example.com',
-        phone: 'N/A',
-        services: `Private Session - ${formattedDate} at ${selectedTime}`,
-        sessionType: 'private',
-        comment: JSON.stringify(privateData)
-      }
-      
-      console.log('Submitting enquiry:', enquiryData)
-      
-      // Submit to API
-      const response = await fetch('/api/enquiries', {
-        method: 'POST',
+
+      // Convert price to cents for Stripe (if price is in dollars, multiply by 100)
+      // Assuming price is stored in dollars in database, convert to cents
+      const amountInCents = Math.round(bookingAmount * 100)
+
+      // Create Stripe checkout session
+      const response = await fetch("/api/payment/create-private-checkout", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(enquiryData),
+        body: JSON.stringify({
+          slotId: selectedSlotId,
+          amount: amountInCents,
+          date: formattedDate,
+          time: selectedTime,
+        }),
       })
-      
+
       const data = await response.json()
-      console.log('API response:', data)
-      
-      if (data.success) {
-        toast.success('Private appointment submitted successfully! We will contact you soon.')
-        // Reset form
-        setSelectedDate(null)
-        setSelectedTime(null)
-        
-        // Scroll to top smoothly
-        window.scrollTo({ top: 0, behavior: 'smooth' })
+
+      if (data.success && data.data?.url) {
+        // Redirect to Stripe checkout
+        window.location.href = data.data.url
       } else {
-        toast.error(data.message || 'Failed to submit appointment. Please try again.')
+        toast.error(data.message || "Failed to create checkout session")
+        setIsLoading(false)
       }
     } catch (error) {
-      console.error('Error submitting form:', error)
-      toast.error('Failed to submit appointment. Please try again.')
-    } finally {
-      setIsSubmitting(false)
+      console.error("Checkout error:", error)
+      toast.error("Something went wrong. Please try again.")
+      setIsLoading(false)
     }
   }
   return (
-    <div className='bg-gradient-to-r from-[#FDECE2] to-[#FEC1A2] min-h-screen'>
-      <Navbar />
+    <ProtectedRoute>
+      <div className='bg-gradient-to-r from-[#FDECE2] to-[#FEC1A2] min-h-screen'>
+        <Navbar />
       <div className="w-full">
         <section className="w-full px-4 md:px-0 py-[68px]">
           <div className="max-w-6xl pb-[106px] mx-auto">
@@ -400,8 +290,8 @@ const PrivateAppointmentPage = () => {
               </p>
             </div>
 
-            {/* Combined Form */}
-            <form onSubmit={handleFormSubmit}>
+            {/* Calendar and Payment Section */}
+            <div>
               {/* Calendar and Time Selection Container */}
               <div className="rounded-[24px] p-6 md:p-8 lg:p-10 border">
                 <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
@@ -513,7 +403,7 @@ const PrivateAppointmentPage = () => {
                           <button
                             type="button"
                             key={index}
-                            onClick={() => handleTimeClick(slot.time, slot.available)}
+                            onClick={() => handleTimeClick(slot.time, slot.available, slot.price)}
                             disabled={!slot.available}
                             className={`
                               py-4 px-6 rounded-lg text-[16px] sm:text-[18px] font-medium
@@ -541,14 +431,14 @@ const PrivateAppointmentPage = () => {
               </div>
 
 
-            </form>
+            </div>
           </div>
           <div className='max-w-6xl mx-auto'>
             <div className=''>
               <div className='rounded-[24px] p-6 md:p-8 lg:p-10 border shadow-lg bg-white/50'>
               
                 {/* Payment Section */}
-                {selectedDate && selectedTime && (
+                {selectedDate && selectedTime && bookingAmount !== null && bookingAmount > 0 && (
                   <div className="">
                     <div className="bg-white/80 p-6 md:p-8 rounded-[20px]">
                       <h2 className="text-[28px] sm:text-[32px] md:text-[36px] text-[#D5B584] font-light mb-4">
@@ -559,130 +449,35 @@ const PrivateAppointmentPage = () => {
                         Session Amount: <span className="text-[#D5B584] font-semibold text-[20px]">${bookingAmount.toFixed(2)}</span>
                       </p>
 
-                      {/* Stripe Payment Form */}
-                      {!showStripeForm ? (
-                        <div className="space-y-4">
-                          {/* Google Pay Button */}
-                          <button
-                            type="button"
-                            onClick={() => toast('Google Pay coming soon!')}
-                            className="w-full bg-black hover:bg-gray-900 text-white rounded-[12px] px-6 py-4 flex items-center justify-center gap-3 text-[16px] sm:text-[18px] font-medium transition-colors duration-300"
-                          >
-                            <Image 
-                              src="/assets/icon/G_Pay_Lockup_1_.svg" 
-                              alt="Google Pay" 
-                              width={67}
-                              height={27}
-                              className="h-[27px] w-auto"
-                            />
-                          </button>
-
-                          <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                              <div className="w-full border-t border-gray-300"></div>
-                            </div>
-                            <div className="relative flex justify-center text-sm">
-                              <span className="px-4 bg-white/80 text-gray-500">Or pay with card</span>
-                            </div>
-                          </div>
-
-                          {/* Stripe Card Payment Button */}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              console.log('Stripe payment button clicked!')
-                              toast.success('Opening Stripe payment form...')
-                              setShowStripeForm(true)
-                            }}
-                            className="w-full bg-[#635BFF] hover:bg-[#5347E6] text-white rounded-[12px] px-6 py-4 flex items-center justify-center gap-3 text-[16px] font-medium transition-all duration-300 shadow-lg"
-                          >
+                      {/* Stripe Checkout Button */}
+                      <button
+                        type="button"
+                        onClick={handleCheckout}
+                        disabled={isLoading || !bookingAmount || bookingAmount <= 0}
+                        className="w-full bg-[#635BFF] hover:bg-[#5347E6] text-white rounded-[12px] px-6 py-4 flex items-center justify-center gap-3 text-[18px] font-medium transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isLoading ? (
+                          <>
+                            <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                            Processing...
+                          </>
+                        ) : (
+                          <>
                             <svg width="40" height="24" viewBox="0 0 40 24" fill="none">
                               <rect width="20" height="24" fill="white" rx="2"/>
                               <text x="10" y="16" textAnchor="middle" fill="#635BFF" fontSize="10" fontWeight="bold">S</text>
                             </svg>
-                            Pay with Credit/Debit Card
-                          </button>
-
-                          {/* More Payment Options */}
-                          <button
-                            type="button"
-                            onClick={() => setShowMorePayments(!showMorePayments)}
-                            className="text-[#5B7C99] text-[14px] sm:text-[16px] font-normal flex items-center gap-2 hover:text-[#4A6B88] transition-colors mx-auto"
-                          >
-                            More Payment Options
-                            <svg
-                              className={`w-4 h-4 transition-transform duration-300 ${showMorePayments ? 'rotate-180' : ''}`}
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                          </button>
-
-                          {/* Additional Payment Options */}
-                          {showMorePayments && (
-                            <div className="mt-4 space-y-3 border-t border-gray-200 pt-4">
-                              <button
-                                type="button"
-                                onClick={() => toast('PayPal coming soon!')}
-                                className="w-full bg-white border-2 border-gray-300 hover:border-[#D5B584] text-gray-800 rounded-[12px] px-6 py-4 flex items-center justify-center gap-3 text-[16px] font-medium transition-all duration-300"
-                              >
-                                <svg width="40" height="24" viewBox="0 0 40 24" fill="none">
-                                  <rect width="40" height="24" rx="4" fill="#0079C1"/>
-                                  <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">PayPal</text>
-                                </svg>
-                                Pay with PayPal
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() => toast('Bank transfer details will be sent via email')}
-                                className="w-full bg-white border-2 border-gray-300 hover:border-[#D5B584] text-gray-800 rounded-[12px] px-6 py-4 flex items-center justify-center gap-3 text-[16px] font-medium transition-all duration-300"
-                              >
-                                <svg width="40" height="24" viewBox="0 0 40 24" fill="none">
-                                  <rect width="40" height="24" rx="4" fill="#00BAC7"/>
-                                  <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="9" fontWeight="bold">Bank</text>
-                                </svg>
-                                Bank Transfer
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          <button
-                            type="button"
-                            onClick={() => setShowStripeForm(false)}
-                            className="text-[#5B7C99] text-[14px] font-normal flex items-center gap-2 hover:text-[#4A6B88] transition-colors mb-4"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                            </svg>
-                            Back to payment options
-                          </button>
-                          
-                          <Elements stripe={stripePromise}>
-                            <PaymentForm
-                              amount={bookingAmount}
-                              bookingDetails={{
-                                date: selectedDate ? new Date(currentYear, currentMonth, selectedDate).toLocaleDateString('en-US', {
-                                  year: 'numeric',
-                                  month: 'long',
-                                  day: 'numeric'
-                                }) : '',
-                                time: selectedTime || ''
-                              }}
-                              onPaymentSuccess={() => {
-                                const syntheticEvent = {
-                                  preventDefault: () => {},
-                                } as React.FormEvent
-                                handleFormSubmit(syntheticEvent)
-                              }}
-                            />
-                          </Elements>
-                        </div>
-                      )}
+                            Proceed to Payment
+                          </>
+                        )}
+                      </button>
+                      
+                      <p className="text-center text-sm text-gray-600 mt-4">
+                        🔒 Secure payment powered by Stripe
+                      </p>
                     </div>
                   </div>
                 )}
@@ -695,6 +490,7 @@ const PrivateAppointmentPage = () => {
       </div>
       <Footer />
     </div>
+    </ProtectedRoute>
   )
 }
 

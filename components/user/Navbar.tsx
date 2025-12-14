@@ -8,6 +8,25 @@ import { CryselLogo } from '@/public/assets'
 import { ShoppingCart, User } from 'lucide-react'
 import { useCart } from '@/stores/useCart'
 
+// Navigation items array
+const navigationItems = [
+  { href: '/', label: 'Home' },
+  { href: '/about', label: 'About Us' },
+  { href: '/services', label: 'Services' },
+  { href: '/shop', label: 'Shop', hasDropdown: true },
+  { href: '/events', label: 'Events' },
+  { href: '/blog', label: 'Blog' },
+  // { href: '/faq', label: 'FAQ' },
+]
+
+type Category = {
+  _id: string;
+  name: string;
+  slug: string;
+  imageUrl?: string;
+  isFeatured?: boolean;
+}
+
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isNavigating, setIsNavigating] = useState(false)
@@ -26,6 +45,26 @@ const Navbar = () => {
   const navRef = useRef<HTMLElement>(null)
   const [dropdownTop, setDropdownTop] = useState(0)
   const shopHoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const [categories, setCategories] = useState<Category[]>([])
+
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('/api/categories')
+        const data = await response.json()
+        if (data.success) {
+          setCategories(data.data || [])
+        }
+      } catch (error) {
+        console.error('Failed to fetch categories:', error)
+      }
+    }
+    
+    if (mounted) {
+      fetchCategories()
+    }
+  }, [mounted])
 
   // Only render cart count after hydration to prevent mismatch
   useEffect(() => {
@@ -139,181 +178,104 @@ const Navbar = () => {
 
           {/* Navigation Links */}
           <div className="flex items-center gap-6 lg:gap-8 xl:gap-[40px] 2xl:gap-[68px] flex-wrap justify-center">
-            <Link 
-              href="/" 
-              onClick={(e) => handleNavigation(e, '/')}
-              className={`text-[#D5B584] hover:text-white transition-all duration-300 text-sm xl:text-base font-normal whitespace-nowrap hover:scale-110 ${
-                pathname === '/' ? 'text-white font-semibold scale-110' : ''
-              }`}
-            >
-              Home
-            </Link>
-            <Link 
-              href="/about" 
-              onClick={(e) => handleNavigation(e, '/about')}
-              className={`text-[#D5B584] hover:text-white transition-all duration-300 text-sm xl:text-base font-normal whitespace-nowrap hover:scale-110 ${
-                pathname === '/about' ? 'text-white font-semibold scale-110' : ''
-              }`}
-            >
-              About Us
-            </Link>
-            <Link 
-              href="/services" 
-              onClick={(e) => handleNavigation(e, '/services')}
-              className={`text-[#D5B584] hover:text-white transition-all duration-300 text-sm xl:text-base font-normal whitespace-nowrap hover:scale-110 ${
-                pathname === '/services' ? 'text-white font-semibold scale-110' : ''
-              }`}
-            >
-              Services
-            </Link>
-            <div 
-              className="relative  "
-              onMouseEnter={() => {
-                if (shopHoverTimeoutRef.current) {
-                  clearTimeout(shopHoverTimeoutRef.current)
-                  shopHoverTimeoutRef.current = null
-                }
-                setIsShopHovered(true)
-              }}
-              onMouseLeave={() => {
-                shopHoverTimeoutRef.current = setTimeout(() => {
-                  setIsShopHovered(false)
-                }, 200)
-              }}
-            >
-              <Link 
-                href="/shop" 
-                onClick={(e) => handleNavigation(e, '/shop')}
-                className={`text-[#D5B584] hover:text-white transition-all duration-300 text-sm xl:text-base font-normal whitespace-nowrap hover:scale-110 ${
-                  pathname === '/shop' ? 'text-white font-semibold scale-110' : ''
-                }`}
-              >
-                Shop
-              </Link>
-              
-              {/* Shop Dropdown Menu - Full Width */}
-              {isShopHovered && (
-                <div 
-                  className="fixed left-0 right-0 w-full mt-2 bg-white shadow-lg border-t border-gray-200 z-50 pointer-events-auto" 
-                  style={{ top: `${dropdownTop}px` }}
-                  onMouseEnter={() => {
-                    if (shopHoverTimeoutRef.current) {
-                      clearTimeout(shopHoverTimeoutRef.current)
-                      shopHoverTimeoutRef.current = null
-                    }
-                    setIsShopHovered(true)
-                  }}
-                  onMouseLeave={() => {
-                    shopHoverTimeoutRef.current = setTimeout(() => {
-                      setIsShopHovered(false)
-                    }, 200)
-                  }}
-                >
-                  <div className="w-full max-w-7xl   mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                    <div className="flex flex-row justify-between ">
-                      <Link
-                        href="/shop?category=7-chakras-set"
-                        onClick={(e) => {
-                          handleNavigation(e, '/shop?category=7-chakras-set')
-                          setIsShopHovered(false)
+            {navigationItems.map((item) => {
+              // Handle Shop with dropdown
+              if (item.hasDropdown) {
+                return (
+                  <div 
+                    key={item.href}
+                    className="relative"
+                    onMouseEnter={() => {
+                      if (shopHoverTimeoutRef.current) {
+                        clearTimeout(shopHoverTimeoutRef.current)
+                        shopHoverTimeoutRef.current = null
+                      }
+                      setIsShopHovered(true)
+                    }}
+                    onMouseLeave={() => {
+                      shopHoverTimeoutRef.current = setTimeout(() => {
+                        setIsShopHovered(false)
+                      }, 200)
+                    }}
+                  >
+                    <Link 
+                      href={item.href} 
+                      onClick={(e) => handleNavigation(e, item.href)}
+                      className={`text-[#D5B584] hover:text-white transition-all duration-300 text-sm xl:text-base font-normal whitespace-nowrap hover:scale-110 ${
+                        pathname === item.href || pathname.startsWith('/shop') ? 'text-white font-semibold scale-110' : ''
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                    
+                    {/* Shop Dropdown Menu - Full Width */}
+                    {isShopHovered && (
+                      <div 
+                        className="fixed left-0 right-0 w-full mt-2 bg-white shadow-lg border-t border-gray-200 z-50 pointer-events-auto" 
+                        style={{ top: `${dropdownTop}px` }}
+                        onMouseEnter={() => {
+                          if (shopHoverTimeoutRef.current) {
+                            clearTimeout(shopHoverTimeoutRef.current)
+                            shopHoverTimeoutRef.current = null
+                          }
+                          setIsShopHovered(true)
                         }}
-                        className="text-[#1C3163] hover:text-[#D5B584] transition-all text-sm xl:text-base font-normal py-2 hover:translate-x-2 cursor-pointer"
-                      >
-                        7 Chakras Set
-                      </Link>
-                      <Link
-                        href="/shop?category=elements-set"
-                        onClick={(e) => {
-                          handleNavigation(e, '/shop?category=elements-set')
-                          setIsShopHovered(false)
+                        onMouseLeave={() => {
+                          shopHoverTimeoutRef.current = setTimeout(() => {
+                            setIsShopHovered(false)
+                          }, 200)
                         }}
-                        className="text-[#1C3163] hover:text-[#D5B584] transition-all text-sm xl:text-base font-normal py-2 hover:translate-x-2 cursor-pointer"
                       >
-                        Elements Set
-                      </Link>
-                      <Link
-                        href="/shop?category=endocrine-set"
-                        onClick={(e) => {
-                          handleNavigation(e, '/shop?category=endocrine-set')
-                          setIsShopHovered(false)
-                        }}
-                        className="text-[#1C3163] hover:text-[#D5B584] transition-all text-sm xl:text-base font-normal py-2 hover:translate-x-2 cursor-pointer"
-                      >
-                        Endocrine Set
-                      </Link>
-                      <Link
-                        href="/shop?category=harmonic-binaural-beats-set"
-                        onClick={(e) => {
-                          handleNavigation(e, '/shop?category=harmonic-binaural-beats-set')
-                          setIsShopHovered(false)
-                        }}
-                        className="text-[#1C3163] hover:text-[#D5B584] transition-all text-sm xl:text-base font-normal py-2 hover:translate-x-2 cursor-pointer"
-                      >
-                        Harmonic Binaural Beats Set
-                      </Link>
-                      <Link
-                        href="/shop?category=corporate-wellness-collection"
-                        onClick={(e) => {
-                          handleNavigation(e, '/shop?category=corporate-wellness-collection')
-                          setIsShopHovered(false)
-                        }}
-                        className="text-[#1C3163] hover:text-[#D5B584] transition-all text-sm xl:text-base font-normal py-2 hover:translate-x-2 cursor-pointer"
-                      >
-                        Corporate Wellness Collection
-                      </Link>
-                      <Link
-                        href="/shop?category=crystal-handle"
-                        onClick={(e) => {
-                          handleNavigation(e, '/shop?category=crystal-handle')
-                          setIsShopHovered(false)
-                        }}
-                        className="text-[#1C3163] hover:text-[#D5B584] transition-all text-sm xl:text-base font-normal py-2 hover:translate-x-2 cursor-pointer"
-                      >
-                        Crystal Handle
-                      </Link>
-                      <Link
-                        href="/shop?category=harmonised-set"
-                        onClick={(e) => {
-                          handleNavigation(e, '/shop?category=harmonised-set')
-                          setIsShopHovered(false)
-                        }}
-                        className="text-[#1C3163] hover:text-[#D5B584] transition-all text-sm xl:text-base font-normal py-2 hover:translate-x-2 cursor-pointer"
-                      >
-                        Harmonised Set
-                      </Link>
-                      <Link
-                        href="/shop?category=all"
-                        onClick={(e) => {
-                          handleNavigation(e, '/shop?category=all')
-                          setIsShopHovered(false)
-                        }}
-                        className="text-[#1C3163] hover:text-[#D5B584] transition-all text-sm xl:text-base font-normal py-2 hover:translate-x-2 cursor-pointer"
-                      >
-                        View All Products
-                      </Link>
-                    </div>
+                        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                          <div className="grid grid-cols-3 gap-4">
+                            {/* All Products Option */}
+                            <Link
+                              href="/shop?category=all"
+                              onClick={(e) => {
+                                // Don't use handleNavigation for same-page navigation
+                                setIsShopHovered(false)
+                              }}
+                              className="text-[#1C3163] hover:text-[#D5B584] transition-all text-sm xl:text-base font-normal py-2 hover:translate-x-2 cursor-pointer"
+                            >
+                              All Products
+                            </Link>
+                            {/* Dynamic Categories */}
+                            {categories.slice(0, 8).map((category) => (
+                              <Link
+                                key={category._id}
+                                href={`/shop?category=${category.slug}`}
+                                onClick={(e) => {
+                                  // Don't use handleNavigation for query param changes (same page)
+                                  // Just close the dropdown and let the link navigate
+                                  setIsShopHovered(false)
+                                }}
+                                className="text-[#1C3163] hover:text-[#D5B584] transition-all text-sm xl:text-base font-normal py-2 hover:translate-x-2 cursor-pointer"
+                              >
+                                {category.name}
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
-              )}
-            </div>
-            <Link 
-              href="/events" 
-              onClick={(e) => handleNavigation(e, '/events')}
-              className={`text-[#D5B584] hover:text-white transition-all duration-300 text-sm xl:text-base font-normal whitespace-nowrap hover:scale-110 ${
-                pathname === '/events' ? 'text-white font-semibold scale-110' : ''
-              }`}
-            >
-              Events
-            </Link>
-            <Link 
-              href="/blog" 
-              onClick={(e) => handleNavigation(e, '/blog')}
-              className={`text-[#D5B584] hover:text-white transition-all duration-300 text-sm xl:text-base font-normal whitespace-nowrap hover:scale-110 ${
-                pathname === '/blog' ? 'text-white font-semibold scale-110' : ''
-              }`}
-            >
-              Blog
-            </Link>
+                )
+              }
+              
+              // Regular navigation items
+              return (
+                <Link 
+                  key={item.href}
+                  href={item.href} 
+                  onClick={(e) => handleNavigation(e, item.href)}
+                  className={`text-[#D5B584] hover:text-white transition-all duration-300 text-sm xl:text-base font-normal whitespace-nowrap hover:scale-110 ${
+                    pathname === item.href ? 'text-white font-semibold scale-110' : ''
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              )
+            })}
             <Link 
               href="/book" 
               onClick={(e) => handleNavigation(e, '/book')}
@@ -431,60 +393,18 @@ const Navbar = () => {
           }`}
         >
           <div className="flex flex-col gap-4 py-4 px-2">
-            <Link 
-              href="/" 
-              onClick={(e) => handleNavigation(e, '/')}
-              className={`text-[#D5B584] hover:text-white transition-all duration-300 text-base font-normal py-2 px-4 hover:bg-white/5 rounded hover:translate-x-2 ${
-                pathname === '/' ? 'bg-white/10 text-white font-semibold translate-x-2' : ''
-              }`}
-            >
-              Home
-            </Link>
-            <Link 
-              href="/about" 
-              onClick={(e) => handleNavigation(e, '/about')}
-              className={`text-[#D5B584] hover:text-white transition-all duration-300 text-base font-normal py-2 px-4 hover:bg-white/5 rounded hover:translate-x-2 ${
-                pathname === '/about' ? 'bg-white/10 text-white font-semibold translate-x-2' : ''
-              }`}
-            >
-              About Us
-            </Link>
-            <Link 
-              href="/services" 
-              onClick={(e) => handleNavigation(e, '/services')}
-              className={`text-[#D5B584] hover:text-white transition-all duration-300 text-base font-normal py-2 px-4 hover:bg-white/5 rounded hover:translate-x-2 ${
-                pathname === '/services' ? 'bg-white/10 text-white font-semibold translate-x-2' : ''
-              }`}
-            >
-              Services
-            </Link>
-            <Link 
-              href="/shop" 
-              onClick={(e) => handleNavigation(e, '/shop')}
-              className={`text-[#D5B584] hover:text-white transition-all duration-300 text-base font-normal py-2 px-4 hover:bg-white/5 rounded hover:translate-x-2 ${
-                pathname === '/shop' ? 'bg-white/10 text-white font-semibold translate-x-2' : ''
-              }`}
-            >
-              Shop
-            </Link>
-            <Link 
-              href="/events" 
-              onClick={(e) => handleNavigation(e, '/events')}
-              className={`text-[#D5B584] hover:text-white transition-all duration-300 text-base font-normal py-2 px-4 hover:bg-white/5 rounded hover:translate-x-2 ${
-                pathname === '/events' ? 'bg-white/10 text-white font-semibold translate-x-2' : ''
-              }`}
-            >
-              Events
-            </Link>
-            <Link 
-              href="/blog" 
-              onClick={(e) => handleNavigation(e, '/blog')}
-              className={`text-[#D5B584] hover:text-white transition-all duration-300 text-base font-normal py-2 px-4 hover:bg-white/5 rounded hover:translate-x-2 ${
-                pathname === '/blog' ? 'bg-white/10 text-white font-semibold translate-x-2' : ''
-              }`}
-            >
-              Blog
-            </Link>
+            {navigationItems.map((item) => (
+              <Link 
+                key={item.href}
+                href={item.href} 
+                onClick={(e) => handleNavigation(e, item.href)}
+                className={`text-[#D5B584] hover:text-white transition-all duration-300 text-base font-normal py-2 px-4 hover:bg-white/5 rounded hover:translate-x-2 ${
+                  pathname === item.href || (item.href === '/shop' && pathname.startsWith('/shop')) ? 'bg-white/10 text-white font-semibold translate-x-2' : ''
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
             <div className='px-2 pt-2'>
               <Link 
                 href="/book" 

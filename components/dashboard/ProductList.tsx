@@ -9,6 +9,8 @@ type ProductListItem = {
   price: number;
   createdAt: string;
   description?: string;
+  shortDescription?: string;
+  category?: string | { _id: string; name: string; slug: string };
   imageUrl?: string[];
   videoUrl?: string | string[];
 };
@@ -18,7 +20,7 @@ type Props = {
   onRefresh: () => void;
 };
 
-const formatCurrency = (amount: number) => `₹${(amount / 100).toFixed(2)}`;
+const formatCurrency = (amount: number) => `$${amount.toFixed(2)}`;
 
 const getMainImageUrl = (product: ProductListItem) => {
   const img = product.imageUrl?.[0];
@@ -96,8 +98,10 @@ export default function ProductList({ products: initialProducts, onRefresh }: Pr
                       productId={product._id}
                       initialData={{
                         name: product.name,
+                        shortDescription: product.shortDescription,
                         description: product.description,
-                        price: (product.price / 100).toString(),
+                        category: product.category,
+                        price: product.price.toString(),
                         imageUrl: product.imageUrl || [],
                         videoUrl: product.videoUrl,
                       }}

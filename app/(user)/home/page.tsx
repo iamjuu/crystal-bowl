@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Navbar from "@/components/user/Navbar";
 import Image from "next/image";
+import localFont from "next/font/local";
 import {
   Bucket1,
   Bucket2,
@@ -29,6 +30,55 @@ import Link from "next/link";
 import { ArrowRight, Volume2, VolumeX } from "lucide-react";
 import AboutSectionComponent from "./components/about/AboutSection";
 import CollectionSection from "./components/collection/collectionSection"
+
+// Ivy Mode font configuration
+const ivyMode = localFont({
+  src: [
+    {
+      path: "../../../font/Cinzel,DM_Sans,Inter,Manrope,Montserrat,etc (7)/ivy-mode/IvyMode-Regular.woff2",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../../../font/Cinzel,DM_Sans,Inter,Manrope,Montserrat,etc (7)/ivy-mode/IvyMode-Italic.woff2",
+      weight: "400",
+      style: "italic",
+    },
+    {
+      path: "../../../font/Cinzel,DM_Sans,Inter,Manrope,Montserrat,etc (7)/ivy-mode/IvyMode-Light.woff2",
+      weight: "300",
+      style: "normal",
+    },
+    {
+      path: "../../../font/Cinzel,DM_Sans,Inter,Manrope,Montserrat,etc (7)/ivy-mode/IvyMode-LightItalic.woff2",
+      weight: "300",
+      style: "italic",
+    },
+    {
+      path: "../../../font/Cinzel,DM_Sans,Inter,Manrope,Montserrat,etc (7)/ivy-mode/IvyMode-SemiBold.woff2",
+      weight: "600",
+      style: "normal",
+    },
+    {
+      path: "../../../font/Cinzel,DM_Sans,Inter,Manrope,Montserrat,etc (7)/ivy-mode/IvyMode-SemiBoldItalic.woff2",
+      weight: "600",
+      style: "italic",
+    },
+    {
+      path: "../../../font/Cinzel,DM_Sans,Inter,Manrope,Montserrat,etc (7)/ivy-mode/IvyMode-Bold.woff2",
+      weight: "700",
+      style: "normal",
+    },
+    {
+      path: "../../../font/Cinzel,DM_Sans,Inter,Manrope,Montserrat,etc (7)/ivy-mode/IvyMode-BoldItalic.woff2",
+      weight: "700",
+      style: "italic",
+    },
+  ],
+  variable: "--font-ivy-mode",
+  display: "swap",
+});
+
 const Data = [
   {
     id: 1,
@@ -155,20 +205,27 @@ const UpcomingEventsData = [
   }
 ];
 
-type Product = {
+type Category = {
   _id: string;
   name: string;
-  price: number;
-  createdAt: string;
-  description?: string;
-  imageUrl?: string[];
-  videoUrl?: string;
+  slug: string;
+  imageUrl?: string;
+  isFeatured?: boolean;
 };
 
+type Event = {
+  _id: string;
+  title: string;
+  date: string;
+  day: string;
+  time: string;
+  imageUrl?: string;
+};
 
 const Index = () => {
   const [loading, setLoading] = useState(true);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
 
   const [selectedTestimonial, setSelectedTestimonial] = useState(1);
   const [isMuted, setIsMuted] = useState(true);
@@ -190,23 +247,57 @@ const Index = () => {
   };
 
 
-  const fetchProducts = async () => {
+  const fetchCategories = async () => {
     try {
-      const response = await fetch("/api/products");
+      const response = await fetch("/api/categories");
       const data = await response.json();
-      setProducts(data)
       if (data.success) {
-        setProducts(data.data);
+        // Filter only featured categories
+        const featuredCategories = data.data.filter((cat: Category) => cat.isFeatured === true);
+        setCategories(featuredCategories);
       }
     } catch (error) {
-      console.error("Failed to fetch products:", error);
+      console.error("Failed to fetch categories:", error);
     } finally {
       setLoading(false);
     }
   };
-  
+
+  const fetchUpcomingEvents = async () => {
+    try {
+      const response = await fetch("/api/events");
+      const data = await response.json();
+      if (data.success && data.data) {
+        // Filter events that are today or in the future
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const upcoming = data.data
+          .filter((event: Event) => {
+            try {
+              const eventDate = new Date(event.date);
+              eventDate.setHours(0, 0, 0, 0);
+              return eventDate >= today;
+            } catch {
+              return false;
+            }
+          })
+          .sort((a: Event, b: Event) => {
+            // Sort by date ascending (nearest first)
+            return new Date(a.date).getTime() - new Date(b.date).getTime();
+          })
+          .slice(0, 4); // Only take the first 4 upcoming events
+
+        setUpcomingEvents(upcoming);
+      }
+    } catch (error) {
+      console.error("Failed to fetch events:", error);
+    }
+  };
+
   useEffect(() => {
-    fetchProducts();
+    fetchCategories();
+    fetchUpcomingEvents();
   }, []);
 
   return (
@@ -230,7 +321,7 @@ const Index = () => {
           <Navbar />
 
           <div className="relative">
-            <h1 className="text-center pb-[60px] sm:pb-[80px] md:pb-[100px] lg:pb-[120px] px-4 text-[#D5B584] text-[28px] sm:text-[32px] md:text-[40px] lg:text-[50px] italic leading-tight">
+            <h1 className={`${ivyMode.className} text-center pb-[60px] sm:pb-[80px] md:pb-[100px] lg:pb-[120px] px-4 text-[#D5B584] text-[28px] sm:text-[32px] md:text-[40px] lg:text-[50px] italic leading-tight`}>
               The go-to crystal bowls for <br /> sound healers worldwide.
             </h1>
             
@@ -256,7 +347,7 @@ const Index = () => {
 
       {/* collection section  */}
 
-      <CollectionSection products={products}/>
+      <CollectionSection categories={categories} loading={loading}/>
 
       {/* service section  */}
 
@@ -437,10 +528,21 @@ const Index = () => {
           </h2>
           
           {/* Events Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-            {UpcomingEventsData.map((event) => (
-              <div key={event.id} className="flex flex-col group">
-                                    <Link href="/events" >
+          {upcomingEvents.length === 0 ? (
+            <div className="text-center py-12 text-[#1C3163]">
+              <p className="text-[16px]">No upcoming events at the moment</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+              {upcomingEvents.map((event) => {
+                const eventDate = new Date(event.date);
+                const formattedDate = `${eventDate.getDate().toString().padStart(2, '0')} ${event.day}`;
+                const imageUrl = event.imageUrl 
+                  ? (event.imageUrl.startsWith("data:") || event.imageUrl.startsWith("http") 
+                      ? event.imageUrl 
+                      : `data:image/jpeg;base64,${event.imageUrl}`)
+                  : Yoga1;
+
 
                 <div className="relative w-[193px] h-[128px] rounded-2xl overflow-hidden mb-4 group-hover:shadow-2xl transition-all duration-500">
                   <Image
@@ -462,6 +564,39 @@ const Index = () => {
               </div>
             ))}
           </div>
+                return (
+                  <div key={event._id} className="flex flex-col group">
+                    <Link href="/events">
+                      <div className="relative w-[193px] h-[128px] rounded-2xl overflow-hidden mb-4 group-hover:shadow-2xl transition-all duration-500">
+                        {typeof imageUrl === 'string' ? (
+                          <img
+                            src={imageUrl}
+                            alt={event.title}
+                            className="w-full h-full object-cover group-hover:scale-115 group-hover:-translate-y-2 group-hover:grayscale-0 grayscale transition-all duration-500 ease-out"
+                          />
+                        ) : (
+                          <Image
+                            src={imageUrl}
+                            alt={event.title}
+                            fill
+                            className="object-cover group-hover:scale-115 group-hover:-translate-y-2 group-hover:grayscale-0 grayscale transition-all duration-500 ease-out"
+                          />
+                        )}
+                      </div>
+                    </Link>
+                    <div className="flex flex-col gap-2">
+                      <p className="text-[#1C3163] text-[14px] sm:text-[15px] md:text-[24px] font-normal">
+                        {formattedDate}
+                      </p>
+                      <h3 className="text-[#1C3163] text-[12px] sm:text-[13px] md:text-[20px] font-light leading-tight">
+                        {event.title}
+                      </h3>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 

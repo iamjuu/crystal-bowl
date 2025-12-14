@@ -16,6 +16,7 @@ type Product = {
   price: number;
   createdAt: string;
   description?: string;
+  shortDescription?: string;
   imageUrl?: string[];
   videoUrl?: string | string[];
 };
@@ -109,7 +110,11 @@ const ProductDetailPage = () => {
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [buyingNow, setBuyingNow] = useState(false);
+
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+
+  const [showFullDescription, setShowFullDescription] = useState(false);
+
   const { addItem } = useCart();
 
   const fetchProduct = async () => {
@@ -198,8 +203,8 @@ const ProductDetailPage = () => {
     ? normalizeImageUrl(productImages[safeSelectedImage])
     : null;
   
-  // Convert price from cents to rupees
-  const priceInRupees = (product.price / 100).toFixed(2);
+  // Price is already in dollars
+  const priceInDollars = product.price.toFixed(2);
 
   // Handle Add to Cart
   const handleAddToCart = () => {
@@ -219,7 +224,7 @@ const ProductDetailPage = () => {
     addItem({
       id: product._id,
       name: product.name,
-      price: product.price, // Already in cents
+      price: product.price, // Price in dollars
       imageUrl: imageUrl,
     });
 
@@ -326,7 +331,7 @@ const ProductDetailPage = () => {
 
               <div className="mb-6">
                 <p className="text-[#1C3163] text-[24px] sm:text-[28px] lg:text-[32px] font-medium">
-                  ₹{priceInRupees}
+                  ${priceInDollars}
                 </p>
               </div>
 
@@ -365,19 +370,14 @@ const ProductDetailPage = () => {
                 <span>Secure payment powered by Stripe</span>
               </div>
 
-              {/* About Product */}
-              {product.description && (
-                <div className="w-full max-w-full px-0 sm:px-0">
-                  <h3 className="text-[#1C3163] text-[16px] sm:text-[18px] md:text-[20px] font-medium mb-2 sm:mb-3">
-                    About Product
+              {/* Short Description - Always show fully */}
+              {product.shortDescription && (
+                <div className="mb-6">
+                  <h3 className="text-[#1C3163] text-[18px] sm:text-[20px] font-medium mb-3">
+                    Product Summary
                   </h3>
-                  <p 
-                    className={`text-[#1C3163] text-[13px] sm:text-[14px] md:text-[15px] leading-relaxed mb-3 sm:mb-4 break-words overflow-wrap-break-word whitespace-pre-wrap ${
-                      !isDescriptionExpanded ? 'line-clamp-4' : ''
-                    }`}
-                    style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}
-                  >
-                    {product.description}
+                  <p className="text-[#1C3163] text-[14px] sm:text-[15px] leading-relaxed whitespace-pre-wrap">
+                    {product.shortDescription}
                   </p>
                   {product.description.length > 0 && (
                     <button
@@ -389,6 +389,46 @@ const ProductDetailPage = () => {
                   )}
                 </div>
               )}
+
+              {/* Full Description - Show truncated with Read More */}
+              {product.description && (
+                <div className="mb-6">
+                  <h3 className="text-[#1C3163] text-[18px] sm:text-[20px] font-medium mb-3">
+                    Full Description
+                  </h3>
+                  <div className="text-[#1C3163] text-[14px] sm:text-[15px] leading-relaxed">
+                    {showFullDescription || product.description.length <= 200 ? (
+                      <p className="whitespace-pre-wrap">{product.description}</p>
+                    ) : (
+                      <p className="whitespace-pre-wrap">{product.description.substring(0, 200)}...</p>
+                    )}
+                    {product.description.length > 200 && (
+                      <button
+                        onClick={() => setShowFullDescription(!showFullDescription)}
+                        className="text-[#D5B584] hover:text-[#C4A574] font-medium mt-2 underline"
+                      >
+                        {showFullDescription ? "Read Less" : "Read More"}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Product Information */}
+              <div className="bg-[#FEF9F5] border border-[#D5B584]/30 rounded-lg p-4 sm:p-6 space-y-3">
+                <div>
+                  <h4 className="text-[#1C3163] font-semibold text-[14px] sm:text-[15px] mb-1">Return Policy</h4>
+                  <p className="text-[#2C3E50] text-[13px] sm:text-[14px]">No Returns unless it's broken</p>
+                </div>
+                <div>
+                  <h4 className="text-[#1C3163] font-semibold text-[14px] sm:text-[15px] mb-1">Care Instructions</h4>
+                  <p className="text-[#2C3E50] text-[13px] sm:text-[14px]">Wipe with soft cloth, avoid water contact</p>
+                </div>
+                <div>
+                  <h4 className="text-[#1C3163] font-semibold text-[14px] sm:text-[15px] mb-1">Includes Accessories</h4>
+                  <p className="text-[#2C3E50] text-[13px] sm:text-[14px]">Rubber ring + suede mallet</p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -404,7 +444,7 @@ const ProductDetailPage = () => {
                   const itemImageUrl = item.imageUrl && item.imageUrl.length > 0 
                     ? normalizeImageUrl(item.imageUrl[0])
                     : null;
-                  const itemPriceInRupees = (item.price / 100).toFixed(2);
+                  const itemPriceInRupees = item.price.toFixed(2);
                   
                   return (
                     <div key={item._id} className="group">
@@ -440,7 +480,7 @@ const ProductDetailPage = () => {
                           </p>
                           <div className="flex items-center justify-between">
                             <p className="text-[#1C3163] text-[12px] sm:text-[14px]">
-                              ₹{itemPriceInRupees}
+                              ${itemPriceInRupees}
                             </p>
                             <button 
                               onClick={(e) => {

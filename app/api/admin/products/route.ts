@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
     await connectDB();
     
     const body = await req.json();
-    const { name, description, price, imageUrl, videoUrl } = body;
+    const { name, shortDescription, description, category, price, imageUrl, videoUrl } = body;
 
     // Validation
     if (!name || !description || !price) {
@@ -26,9 +26,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Price should be in smallest currency unit (cents/paise)
-    const priceInCents = Math.round(Number(price) * 100);
-    if (isNaN(priceInCents) || priceInCents <= 0) {
+    // Price should be in rupees/dollars (not cents/paise)
+    const priceString = String(price).trim();
+    const priceInRupees = parseFloat(priceString);
+    
+    console.log("=== PRODUCT CREATION DEBUG ===");
+    console.log("Raw price received:", price);
+    console.log("Price type:", typeof price);
+    console.log("Price string:", priceString);
+    console.log("Parsed price:", priceInRupees);
+    console.log("Is NaN?", isNaN(priceInRupees));
+    console.log("==============================");
+    
+    if (isNaN(priceInRupees) || priceInRupees <= 0) {
       return NextResponse.json(
         { success: false, message: "Invalid price" },
         { status: 400 }
@@ -47,8 +57,10 @@ export async function POST(req: NextRequest) {
 
     const product = await Product.create({
       name: String(name).trim(),
+      shortDescription: shortDescription ? String(shortDescription).trim() : "",
       description: String(description).trim(),
-      price: priceInCents,
+      category: category || undefined,
+      price: priceInRupees,
       imageUrl: imageUrl,
       videoUrl: processedVideoUrl.length > 0 ? processedVideoUrl : [],
     });

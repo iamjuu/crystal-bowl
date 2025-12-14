@@ -53,6 +53,7 @@ type Order = {
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [stats, setStats] = useState({
@@ -71,6 +72,8 @@ export default function OrdersPage() {
 
   const fetchOrders = async () => {
     try {
+      setError(null);
+      setLoading(true);
       const token = localStorage.getItem("adminToken");
       const url = statusFilter === "all" 
         ? "/api/admin/orders" 
@@ -82,11 +85,32 @@ export default function OrdersPage() {
         },
       });
 
+      if (!response.ok) {
+        // Handle HTTP error status codes
+        let errorMessage = "Failed to load orders";
+        if (response.status === 404) {
+          errorMessage = "Orders API endpoint not found. Please check if the API route exists.";
+          console.error("404 Error: Orders API endpoint not found -", url);
+        } else if (response.status === 401 || response.status === 403) {
+          errorMessage = "Unauthorized. Please log in again.";
+          console.error("Auth Error: Unauthorized access");
+        } else {
+          errorMessage = `Failed to load orders (Error ${response.status})`;
+          console.error(`HTTP Error: ${response.status}`);
+        }
+        setError(errorMessage);
+        toast.error(errorMessage);
+        setOrders([]);
+        setLoading(false);
+        return;
+      }
+
       const data = await response.json();
 
       if (data.success) {
-        const ordersList = data.data.orders || [];
+        const ordersList = data.data?.orders || [];
         setOrders(ordersList);
+        setError(null);
         
         // Calculate stats
         const stats = {
@@ -101,10 +125,20 @@ export default function OrdersPage() {
             .reduce((sum: number, o: Order) => sum + o.amount, 0),
         };
         setStats(stats);
+      } else {
+        // Handle API-level error (success: false)
+        const errorMessage = data.message || "Failed to load orders";
+        setError(errorMessage);
+        toast.error(errorMessage);
+        console.error("API Error:", data.message);
+        setOrders([]);
       }
     } catch (error) {
+      const errorMessage = "Failed to load orders. Please check your connection.";
+      setError(errorMessage);
       console.error("Failed to fetch orders:", error);
-      toast.error("Failed to load orders");
+      toast.error(errorMessage);
+      setOrders([]);
     } finally {
       setLoading(false);
     }
@@ -160,10 +194,10 @@ export default function OrdersPage() {
     );
   };
 
-  const formatCurrency = (amount: number, currency: string = "INR") => {
-    const amountInMainUnit = amount / 100;
-    if (currency === "INR") {
-      return `₹${amountInMainUnit.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const formatCurrency = (amount: number, currency: string = "USD") => {
+    const amountInMainUnit = amount; // Already in dollars
+    if (currency === "USD" || currency === "usd") {
+      return `$${amountInMainUnit.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
     return `${currency} ${amountInMainUnit.toFixed(2)}`;
   };
@@ -258,6 +292,24 @@ export default function OrdersPage() {
           </div>
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-4 mb-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-red-400 font-semibold mb-1">Error Loading Orders</h3>
+                <p className="text-red-300 text-sm">{error}</p>
+              </div>
+              <button
+                onClick={fetchOrders}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Orders Table */}
         <div className="bg-zinc-800 rounded-lg border border-zinc-700 overflow-hidden">
           <div className="overflow-x-auto">
@@ -291,10 +343,24 @@ export default function OrdersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-700">
-                {orders.length === 0 ? (
+                {orders.length === 0 && !loading && !error ? (
                   <tr>
                     <td colSpan={8} className="px-6 py-8 text-center text-zinc-400">
-                      No orders found
+                      <div className="flex flex-col items-center gap-2">
+                        <Package size={48} className="text-zinc-600" />
+                        <p className="text-lg font-medium">No orders found</p>
+                        <p className="text-sm text-zinc-500">
+                          {statusFilter === "all" 
+                            ? "You don't have any orders yet." 
+                            : `No orders with status "${statusFilter}" found.`}
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : orders.length === 0 && error ? (
+                  <tr>
+                    <td colSpan={8} className="px-6 py-8 text-center text-zinc-400">
+                      <p className="text-red-400">Unable to load orders. Please try again.</p>
                     </td>
                   </tr>
                 ) : (

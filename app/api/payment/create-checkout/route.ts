@@ -11,6 +11,26 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { items, amount, currency } = body;
 
+    // Get base URL from request or environment variable
+    let baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+    
+    if (!baseUrl) {
+      // Try to get from origin header (includes protocol)
+      const origin = req.headers.get('origin');
+      if (origin && (origin.startsWith('http://') || origin.startsWith('https://'))) {
+        baseUrl = origin;
+      } else {
+        // Fallback: construct from host header
+        const host = req.headers.get('host') || req.headers.get('x-forwarded-host');
+        const protocol = req.headers.get('x-forwarded-proto') || 
+                        req.headers.get('x-forwarded-protocol') ||
+                        (host?.includes('localhost') ? 'http' : 'https');
+        baseUrl = host ? `${protocol}://${host}` : 'http://localhost:3000';
+      }
+    }
+    
+    console.log('Stripe checkout baseUrl:', baseUrl);
+
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
         { success: false, message: "Invalid items" },
@@ -38,19 +58,19 @@ export async function POST(req: NextRequest) {
         
         return {
           price_data: {
-            currency: currency?.toLowerCase() || "inr",
+            currency: currency?.toLowerCase() || "usd",
             product_data: {
               name: item.name,
               images: validImageUrl ? [validImageUrl] : [],
             },
-            unit_amount: item.price, // Amount in smallest currency unit (paise for INR)
+            unit_amount: Math.round(item.price * 100), // Convert to smallest currency unit (cents for USD)
           },
           quantity: item.quantity,
         };
       }),
       mode: "payment",
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/cart/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/cart`,
+      success_url: `${baseUrl}/cart/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/cart`,
       metadata: {
         userId: user._id.toString(),
         items: JSON.stringify(items.map((item: any) => ({

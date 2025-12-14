@@ -12,6 +12,26 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { productId, quantity = 1 } = body;
 
+    // Get base URL from request or environment variable
+    let baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+    
+    if (!baseUrl) {
+      // Try to get from origin header (includes protocol)
+      const origin = req.headers.get('origin');
+      if (origin && (origin.startsWith('http://') || origin.startsWith('https://'))) {
+        baseUrl = origin;
+      } else {
+        // Fallback: construct from host header
+        const host = req.headers.get('host') || req.headers.get('x-forwarded-host');
+        const protocol = req.headers.get('x-forwarded-proto') || 
+                        req.headers.get('x-forwarded-protocol') ||
+                        (host?.includes('localhost') ? 'http' : 'https');
+        baseUrl = host ? `${protocol}://${host}` : 'http://localhost:3000';
+      }
+    }
+    
+    console.log('Stripe checkout baseUrl:', baseUrl);
+
     if (!productId || quantity <= 0) {
       return NextResponse.json(
         { success: false, message: "Invalid product or quantity" },
@@ -46,19 +66,19 @@ export async function POST(req: NextRequest) {
       payment_method_types: ["card"],
       line_items: [{
         price_data: {
-          currency: "inr",
+          currency: "usd",
           product_data: {
             name: product.name,
             description: product.description,
             images: validImageUrl ? [validImageUrl] : [],
           },
-          unit_amount: product.price, // Amount in smallest currency unit (paise)
+          unit_amount: Math.round(product.price * 100), // Convert to smallest currency unit (cents)
         },
         quantity: quantity,
       }],
       mode: "payment",
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/cart/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/shop/${productId}`,
+      success_url: `${baseUrl}/cart/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/shop/${productId}`,
       metadata: {
         userId: user._id.toString(),
         items: JSON.stringify([{

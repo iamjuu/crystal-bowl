@@ -3,7 +3,8 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface ICategory extends Document {
   name: string;
   slug: string;
-  description?: string;
+  imageUrl?: string;
+  isFeatured?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,9 +24,13 @@ const CategorySchema = new Schema<ICategory>(
       lowercase: true,
       sparse: true,  // Allow null values for unique index
     },
-    description: {
+    imageUrl: {
       type: String,
       trim: true,
+    },
+    isFeatured: {
+      type: Boolean,
+      default: false,
     },
   },
   {
@@ -67,5 +72,10 @@ CategorySchema.pre('save', function (next) {
   next();
 });
 
-export default mongoose.models.Category || mongoose.model<ICategory>('Category', CategorySchema);
+// Clear the model if it exists to force recompilation with new schema
+if (mongoose.models.Category) {
+  delete mongoose.models.Category;
+}
+
+export default mongoose.model<ICategory>('Category', CategorySchema);
 

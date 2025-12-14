@@ -173,7 +173,7 @@ const OrdersPageContent = () => {
                           {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                         </span>
                         <p className="text-sm text-gray-600">
-                          {new Date(order.createdAt).toLocaleDateString("en-IN", {
+                          {new Date(order.createdAt).toLocaleDateString("en-US", {
                             year: "numeric",
                             month: "long",
                             day: "numeric",
@@ -200,7 +200,7 @@ const OrdersPageContent = () => {
                             </p>
                           </div>
                           <p className="text-[#1C3163] font-medium">
-                            ₹{(item.price / 100).toLocaleString("en-IN")}
+                            ${item.price.toLocaleString("en-US")}
                           </p>
                         </div>
                       ))}
@@ -213,7 +213,7 @@ const OrdersPageContent = () => {
                           Total Amount
                         </p>
                         <p className="text-[#1C3163] font-semibold text-xl">
-                          ₹{(order.amount / 100).toLocaleString("en-IN")}
+                          ${order.amount.toLocaleString("en-US")}
                         </p>
                       </div>
                       {order.paymentProvider && (
