@@ -1,0 +1,21 @@
+version: '3.8'
+services:
+  web:
+    build:
+      context: .
+      args:
+        # These reference the "Environment Properties" in your AWS Console
+        - MONGODB_URI=${MONGODB_URI}
+        - JWT_SECRET=${JWT_SECRET}
+        - NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL}
+        - NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
+        - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+        - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+        - GMAIL_USER=${GMAIL_USER}
+        - GMAIL_APP_PASSWORD=${GMAIL_APP_PASSWORD}
+        - EMAIL_USER=${EMAIL_USER}
+        - EMAIL_PASS=${EMAIL_PASS}
+        - EMAIL_HOST=${EMAIL_HOST}
+        - EMAIL_PORT=${EMAIL_PORT}
+    ports:
+      - "80:3000"
