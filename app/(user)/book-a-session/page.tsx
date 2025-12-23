@@ -15,7 +15,7 @@ const BookASessionPage = () => {
             {/* Header */}
             <div className="mb-8 md:mb-12">
               <h1 className="text-[32px] sm:text-[36px] md:text-[40px] text-[#D5B584] font-light leading-tight mb-3">
-                Book a Session
+                Book a Call
               </h1>
               <p className="text-[14px] sm:text-[15px] md:text-[16px] text-[#5B7C99] font-light leading-relaxed max-w-2xl">
                 Choose from our available sessions and book your preferred

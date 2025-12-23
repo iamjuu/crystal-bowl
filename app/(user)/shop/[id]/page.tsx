@@ -424,9 +424,9 @@ const ProductDetailPage = () => {
               {/* Relative Product - Show after cart button if current product is NOT a relative product */}
               {relativeProduct && !product.relativeproduct && (
                 <>
-                <h1 className="text-[#1C3163] text-[14px] sm:text-[18px] lg:text-[20px] font-medium mb-4">
+                {/* <h1 className="text-[#1C3163] text-[14px] sm:text-[18px] lg:text-[20px] font-medium mb-4">
                 Learn how to play the crystal bowls
-                </h1>
+                </h1> */}
               
                   <h1 className="text-[#1C3163] text-[14px] sm:text-[18px] lg:text-[20px] font-medium mb-4">
                     Learn how to play the crystal bowls
@@ -591,7 +591,7 @@ const ProductDetailPage = () => {
                     className="w-full py-4 flex items-center justify-between text-left"
                   >
                     <h3 className="text-[#1C3163] text-[18px] sm:text-[20px] font-medium">
-                      Which tuning system are GLOW Bowls made in?
+                      Which tuning system are Our Bowls made in?
                     </h3>
                     <span className="text-[#1C3163] text-2xl">
                       {expandedSections.has("tuning") ? "−" : "+"}

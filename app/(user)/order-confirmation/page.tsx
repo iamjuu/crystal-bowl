@@ -467,7 +467,7 @@ function OrderConfirmationContent() {
                   Delivery Method
                 </label>
                 <div className="p-3 border border-zinc-300 rounded-md bg-zinc-50">
-                  <div className="font-medium text-[#1C3163]">Air Express</div>
+                  <div className="font-medium text-[#1C3163]">Air Economy</div>
                   <div className="text-sm text-zinc-600 mt-1">
                     1 Bowl: $65 • 2-3 Bowls: $111 • 4-7 Bowls: $155
                   </div>
@@ -535,7 +535,7 @@ function OrderConfirmationContent() {
               </div>
 
               <div className="flex justify-between text-sm">
-                <span className="text-zinc-600">Delivery ({deliveryMethod}):</span>
+                <span className="text-zinc-600">Delivery (Air Economy):</span>
                 <span className="font-medium text-[#1C3163]">${deliveryCharges.total}</span>
               </div>
 
