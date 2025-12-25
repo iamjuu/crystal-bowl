@@ -25,6 +25,7 @@ export async function POST(req: NextRequest) {
       price, // For private sessions only
       date, // Date for discovery/private
       startTime, // Start time for discovery/private
+      featured, // For private and corporate sessions
     } = body;
 
     // Validation
@@ -46,6 +47,29 @@ export async function POST(req: NextRequest) {
     const filteredBenefits = Array.isArray(benefits) 
       ? benefits.filter((b: string) => b && b.trim().length > 0).map((b: string) => String(b).trim())
       : [];
+
+    // Validate featured count for private and corporate sessions (separate limits for each type)
+    if (featured === true && sessionType === "private") {
+      const featuredPrivateCount = await PrivateSession.countDocuments({ featured: true });
+      
+      if (featuredPrivateCount >= 3) {
+        return NextResponse.json(
+          { success: false, message: "Maximum 3 featured sessions allowed for private sessions. Please unfeature another private session first." },
+          { status: 400 }
+        );
+      }
+    }
+    
+    if (featured === true && sessionType === "corporate") {
+      const featuredCorporateCount = await CorporateSession.countDocuments({ featured: true });
+      
+      if (featuredCorporateCount >= 3) {
+        return NextResponse.json(
+          { success: false, message: "Maximum 3 featured sessions allowed for corporate sessions. Please unfeature another corporate session first." },
+          { status: 400 }
+        );
+      }
+    }
 
     let session;
 
@@ -286,6 +310,7 @@ export async function POST(req: NextRequest) {
         videoUrl: videoUrl ? String(videoUrl).trim() : undefined,
         format: format ? String(format).trim() : undefined,
         benefits: filteredBenefits,
+        featured: featured === true || featured === "true" || featured === 1,
       });
     } else if (sessionType === "corporate") {
       // Corporate session - save to CorporateSession collection
@@ -296,6 +321,7 @@ export async function POST(req: NextRequest) {
         videoUrl: videoUrl ? String(videoUrl).trim() : undefined,
         format: format ? String(format).trim() : undefined,
         benefits: filteredBenefits,
+        featured: featured === true || featured === "true" || featured === 1,
         // Set default values for required fields (these will be updated when company books)
         companyName: "Pending",
         contactPerson: "TBD",

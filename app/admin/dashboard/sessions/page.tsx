@@ -25,6 +25,7 @@ type Session = {
   endTime?: string;
   duration?: number;
   price?: number;
+  featured?: boolean;
 };
 
 export default function SessionsPage() {
@@ -43,6 +44,7 @@ export default function SessionsPage() {
     price: "",
     date: "",
     startTime: "",
+    featured: false,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -439,6 +441,7 @@ export default function SessionsPage() {
       price: (session as any).price?.toString() || "",
       date: (session as any).date || "",
       startTime: (session as any).startTime || "",
+      featured: session.featured || false,
     });
     
     // Set media type based on what exists
@@ -493,6 +496,33 @@ export default function SessionsPage() {
       return;
     }
 
+    // Validate featured count for private and corporate sessions (separate limits for each type)
+    if (formData.featured && (activeTab === "private" || activeTab === "corporate")) {
+      try {
+        const response = await fetch("/api/sessions");
+        const data = await response.json();
+        
+        if (data.success && data.data) {
+          // Count existing featured sessions for the specific session type (excluding current session if editing)
+          const featuredSessions = data.data.filter((s: Session) => 
+            s.featured === true && 
+            s.sessionType === activeTab &&
+            s._id !== editingId
+          );
+          
+          if (featuredSessions.length >= 3) {
+            const sessionTypeLabel = activeTab === "private" ? "private" : "corporate";
+            setError(`Maximum 3 featured sessions allowed for ${sessionTypeLabel} sessions. Please unfeature another ${sessionTypeLabel} session first.`);
+            setLoading(false);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error("Failed to check featured sessions:", error);
+        // Continue with submission if check fails
+      }
+    }
+
     try {
       const isEdit = !!editingId;
       const url = isEdit 
@@ -515,6 +545,7 @@ export default function SessionsPage() {
         price?: number;
         date?: string;
         startTime?: string;
+        featured?: boolean;
       } = {
         title: formData.title.trim(),
         description: formData.description.trim(),
@@ -533,6 +564,11 @@ export default function SessionsPage() {
 
       if (activeTab === "private") {
         requestBody.price = Number(formData.price);
+      }
+
+      // Add featured field for private and corporate sessions
+      if (activeTab === "private" || activeTab === "corporate") {
+        requestBody.featured = formData.featured;
       }
 
       if (activeTab === "freeStudioVisit") {
@@ -591,6 +627,7 @@ export default function SessionsPage() {
         price: "",
         date: "",
         startTime: "",
+        featured: false,
       });
       setMediaType(null);
       setPreviewUrl("");
@@ -624,6 +661,7 @@ export default function SessionsPage() {
       price: "",
       date: "",
       startTime: "",
+      featured: false,
     });
     setMediaType(null);
     setPreviewUrl("");
@@ -659,6 +697,7 @@ export default function SessionsPage() {
                     price: "",
                     date: "",
                     startTime: "",
+                    featured: false,
                   });
                   setMediaType(null);
                   setPreviewUrl("");
@@ -1078,6 +1117,23 @@ export default function SessionsPage() {
                   className="w-full rounded-md border border-zinc-600 bg-zinc-900 px-3 py-2 text-sm text-white focus:border-white focus:outline-none"
                   placeholder="Enter price in dollars"
                 />
+              </div>
+            )}
+
+            {/* Featured - For Private and Corporate Only */}
+            {(activeTab === "private" || activeTab === "corporate") && (
+              <div className="space-y-1">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.featured}
+                    onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
+                    className="w-4 h-4 rounded border-zinc-600 bg-zinc-900 text-white focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-zinc-900"
+                  />
+                  <span className="text-sm font-medium text-white">
+                    Featured Session (Maximum 3 featured {activeTab} sessions allowed)
+                  </span>
+                </label>
               </div>
             )}
 

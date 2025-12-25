@@ -110,16 +110,16 @@ const Footer = () => {
 
 
       <div>
-        <div className="max-w-6xl flex flex-col md:flex-row py-[44px] mx-auto px-4 gap-8 md:gap-0">
+        <div className="max-w-6xl flex flex-col md:flex-row py-[44px] mx-auto px-4 gap-8 md:gap-0 relative">
           
-          <div className="w-full md:w-[50%] flex justify-center md:justify-start">
+          <div className="w-full md:w-[50%] flex justify-center items-center md:justify-start absolute inset-0 opacity-30 md:opacity-100 md:relative md:inset-auto z-0 md:z-auto pointer-events-none md:pointer-events-auto">
             <Image
               src={FooterIcon3}
               alt="footer icon"
               className="w-[180px] sm:w-[220px] md:w-auto"
             />
           </div>
-          <div className="w-full md:w-[50%] font-montserrat font-[200] text-[14px] md:text-[16px]">
+          <div className="w-full md:w-[50%] font-montserrat font-[200] text-[14px] md:text-[16px] relative z-10 md:z-auto">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-4">
               <div>
                 <ul className="space-y-2">

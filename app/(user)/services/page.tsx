@@ -262,7 +262,7 @@ const ServicesPage = () => {
                               {item.title || "Corporate Session"}
                             </h3>
                             <button 
-                              onClick={() => router.push('/form')}
+                              onClick={() => router.push('/corporate-session')}
                               className="flex items-center gap-2 text-white text-[14px] sm:text-[15px] font-light hover:gap-3 transition-all duration-300"
                             >
                               Enquire Now
@@ -330,7 +330,7 @@ const ServicesPage = () => {
                             </div>
 
                             <button 
-                              onClick={() => router.push('/form')}
+                              onClick={() => router.push('/corporate-session')}
                               className="flex items-center gap-2 text-white text-[14px] sm:text-[15px] font-light hover:gap-3 transition-all duration-300 mt-6"
                             >
                               Enquire Now

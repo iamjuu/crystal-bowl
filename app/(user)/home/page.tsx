@@ -237,10 +237,22 @@ type Event = {
   imageUrl?: string;
 };
 
+type Session = {
+  _id: string;
+  title?: string;
+  description?: string;
+  imageUrl?: string;
+  videoUrl?: string;
+  sessionType?: "regular" | "corporate" | "private" | "discovery" | "freeStudioVisit";
+  featured?: boolean;
+};
+
 const Index = () => {
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
+  const [featuredCorporateSessions, setFeaturedCorporateSessions] = useState<Session[]>([]);
+  const [featuredPrivateSessions, setFeaturedPrivateSessions] = useState<Session[]>([]);
 
   const [testimonialCurrentIndex, setTestimonialCurrentIndex] = useState(0);
   const [isMuted, setIsMuted] = useState(true);
@@ -311,9 +323,37 @@ const Index = () => {
     }
   };
 
+  const fetchFeaturedSessions = async () => {
+    try {
+      const response = await fetch("/api/sessions");
+      const data = await response.json();
+      if (data.success && data.data) {
+        // Filter featured corporate sessions (limit 3)
+        const corporate = data.data
+          .filter((session: Session) => 
+            session.sessionType === "corporate" && session.featured === true
+          )
+          .slice(0, 3);
+        
+        // Filter featured private sessions (limit 3)
+        const privateSessions = data.data
+          .filter((session: Session) => 
+            session.sessionType === "private" && session.featured === true
+          )
+          .slice(0, 3);
+
+        setFeaturedCorporateSessions(corporate);
+        setFeaturedPrivateSessions(privateSessions);
+      }
+    } catch (error) {
+      console.error("Failed to fetch featured sessions:", error);
+    }
+  };
+
   useEffect(() => {
     fetchCategories();
     fetchUpcomingEvents();
+    fetchFeaturedSessions();
   }, []);
 
   return (
@@ -383,45 +423,94 @@ const Index = () => {
               </p>
             </div>
 
-            {/* First Row - Private Sessions & Corporate Wellness */}
+            {/* First Row - Featured Corporate Sessions */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 md:gap-x-12 gap-y-8 md:gap-y-16 mb-12 md:mb-16">
-              {YogaImage.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex w-full items-end justify-between group"
-                >
-                  {/* Image Container - Left Side */}
-                  <div className="relative aspect-3/4 w-[50%] rounded-2xl md:rounded-3xl overflow-hidden shrink-0">
-                    <Image
-                      src={item.image}
-                      alt={item.title}
-                      fill
-                      className="object-cover group-hover:scale-110 group-hover:brightness-110 transition-all duration-500 ease-out"
-                    />
-                  </div>
+              {featuredCorporateSessions.length > 0 ? (
+                featuredCorporateSessions.map((session) => {
+                  const imageUrl = session.imageUrl
+                    ? session.imageUrl.startsWith("data:") || session.imageUrl.startsWith("http")
+                      ? session.imageUrl
+                      : `data:image/jpeg;base64,${session.imageUrl}`
+                    : ServiceImage1;
+                  
+                  return (
+                    <div
+                      key={session._id}
+                      className="flex w-full items-end justify-between group"
+                    >
+                      {/* Image Container - Left Side */}
+                      <div className="relative aspect-3/4 w-[50%] rounded-2xl md:rounded-3xl overflow-hidden shrink-0">
+                        <Image
+                          src={imageUrl}
+                          alt={session.title || "Corporate Session"}
+                          fill
+                          className="object-cover group-hover:scale-110 group-hover:brightness-110 transition-all duration-500 ease-out"
+                        />
+                      </div>
 
-                  {/* Content - Right Side */}
-                  <div className="flex w-[40%] h-full justify-between flex-col">
-                    <h3 className="text-black pt-4 sm:pt-6 md:pt-[30px] text-[10px] sm:text-[14px] md:text-[16px] lg:text-[18px] font-normal leading-tight">
-                      {item.title}
-                    </h3>
-                    <div className="flex-col gap-3 sm:gap-4 md:gap-[27px] flex">
-                      <p className="text-black text-[7px] sm:text-[8px] md:text-[9px] lg:text-[10px] font-light leading-relaxed">
-                        {item.description}
-                      </p>
-                      {/* Arrow Button */}
-                      <Link href="/services">
-                        <button className="size-[18px] sm:size-[20px] md:size-[22px] rounded-full border-1 border-[#1C3163] flex items-center justify-center hover:bg-[#1C3163] transition-colors group">
-                          <ArrowRight
-                            className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-black hover:text-white"
-                            strokeWidth={0.9}
-                          />
-                        </button>
-                      </Link>
+                      {/* Content - Right Side */}
+                      <div className="flex w-[40%] h-full justify-between flex-col">
+                        <h3 className="text-black pt-4 sm:pt-6 md:pt-[30px] text-[10px] sm:text-[14px] md:text-[16px] lg:text-[18px] font-normal leading-tight line-clamp-2">
+                          {session.title || "Corporate Session"}
+                        </h3>
+                        <div className="flex-col gap-3 sm:gap-4 md:gap-[27px] flex">
+                          <p className="text-black text-[7px] sm:text-[8px] md:text-[9px] lg:text-[10px] font-light leading-relaxed line-clamp-2">
+                            {session.description || ""}
+                          </p>
+                          {/* Arrow Button */}
+                          <Link href="/services">
+                            <button className="size-[18px] sm:size-[20px] md:size-[22px] rounded-full border-1 border-[#1C3163] flex items-center justify-center hover:bg-[#1C3163] transition-colors group">
+                              <ArrowRight
+                                className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-black hover:text-white"
+                                strokeWidth={0.9}
+                              />
+                            </button>
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                // Fallback to static data if no featured corporate sessions
+                YogaImage.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex w-full items-end justify-between group"
+                  >
+                    {/* Image Container - Left Side */}
+                    <div className="relative aspect-3/4 w-[50%] rounded-2xl md:rounded-3xl overflow-hidden shrink-0">
+                      <Image
+                        src={item.image}
+                        alt={item.title}
+                        fill
+                        className="object-cover group-hover:scale-110 group-hover:brightness-110 transition-all duration-500 ease-out"
+                      />
+                    </div>
+
+                      {/* Content - Right Side */}
+                      <div className="flex w-[40%] h-full justify-between flex-col">
+                        <h3 className="text-black pt-4 sm:pt-6 md:pt-[30px] text-[10px] sm:text-[14px] md:text-[16px] lg:text-[18px] font-normal leading-tight line-clamp-2">
+                          {item.title}
+                        </h3>
+                        <div className="flex-col gap-3 sm:gap-4 md:gap-[27px] flex">
+                          <p className="text-black text-[7px] sm:text-[8px] md:text-[9px] lg:text-[10px] font-light leading-relaxed line-clamp-2">
+                            {item.description}
+                          </p>
+                        {/* Arrow Button */}
+                        <Link href="/services">
+                          <button className="size-[18px] sm:size-[20px] md:size-[22px] rounded-full border-1 border-[#1C3163] flex items-center justify-center hover:bg-[#1C3163] transition-colors group">
+                            <ArrowRight
+                              className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-black hover:text-white"
+                              strokeWidth={0.9}
+                            />
+                          </button>
+                        </Link>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
 
             {/* Second Section Header */}
@@ -433,42 +522,88 @@ const Index = () => {
               </h2>
             </div>
 
-            {/* Second Row - Creative Journey */}
+            {/* Second Row - Featured Private Sessions */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 md:gap-x-12 gap-y-8 md:gap-y-16 mb-12 md:mb-16">
-              {CreativeJourneyData.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex w-full items-end justify-between group"
-                >
-                  {/* Image Container - Left Side */}
-                  <div className="relative aspect-3/4 w-[50%] rounded-2xl md:rounded-3xl overflow-hidden shrink-0">
-                    <Image
-                      src={item.image}
-                      alt={item.title}
-                      fill
-                      className="object-cover group-hover:scale-125 group-hover:rotate-2 group-hover:opacity-90 transition-all duration-700 ease-in-out"
-                    />
-                  </div>
+              {featuredPrivateSessions.length > 0 ? (
+                featuredPrivateSessions.map((session) => {
+                  const imageUrl = session.imageUrl
+                    ? session.imageUrl.startsWith("data:") || session.imageUrl.startsWith("http")
+                      ? session.imageUrl
+                      : `data:image/jpeg;base64,${session.imageUrl}`
+                    : YogaSection1;
+                  
+                  return (
+                    <div
+                      key={session._id}
+                      className="flex w-full items-end justify-between group"
+                    >
+                      {/* Image Container - Left Side */}
+                      <div className="relative aspect-3/4 w-[50%] rounded-2xl md:rounded-3xl overflow-hidden shrink-0">
+                        <Image
+                          src={imageUrl}
+                          alt={session.title || "Private Session"}
+                          fill
+                          className="object-cover group-hover:scale-125 group-hover:rotate-2 group-hover:opacity-90 transition-all duration-700 ease-in-out"
+                        />
+                      </div>
 
-                  {/* Content - Right Side */}
-                  <div className="flex w-[40%] h-full justify-between flex-col">
-                    <h3 className="text-black pt-4 sm:pt-6 md:pt-[30px] text-[10px] sm:text-[14px] md:text-[16px] lg:text-[18px] font-normal leading-tight">
-                      {item.title}
-                    </h3>
-                    <div className="flex-col gap-3 sm:gap-4 md:gap-[27px] flex">
-                      {/* Arrow Button */}
-                      <Link href="/services">
-                        <button className="size-[18px] sm:size-[20px] md:size-[22px] rounded-full border-1 border-[#1C3163] flex items-center justify-center hover:bg-[#1C3163] hover:text-white transition-colors group">
-                          <ArrowRight
-                            className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 hover:text-white"
-                            strokeWidth={0.9}
-                          />
-                        </button>
-                      </Link>
+                      {/* Content - Right Side */}
+                      <div className="flex w-[40%] h-full justify-between flex-col">
+                        <h3 className="text-black pt-4 sm:pt-6 md:pt-[30px] text-[10px] sm:text-[14px] md:text-[16px] lg:text-[18px] font-normal leading-tight line-clamp-2">
+                          {session.title || "Private Session"}
+                        </h3>
+                        <div className="flex-col gap-3 sm:gap-4 md:gap-[27px] flex">
+                          {/* Arrow Button */}
+                          <Link href="/services">
+                            <button className="size-[18px] sm:size-[20px] md:size-[22px] rounded-full border-1 border-[#1C3163] flex items-center justify-center hover:bg-[#1C3163] hover:text-white transition-colors group">
+                              <ArrowRight
+                                className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 hover:text-white"
+                                strokeWidth={0.9}
+                              />
+                            </button>
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                // Fallback to static data if no featured private sessions
+                CreativeJourneyData.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex w-full items-end justify-between group"
+                  >
+                    {/* Image Container - Left Side */}
+                    <div className="relative aspect-3/4 w-[50%] rounded-2xl md:rounded-3xl overflow-hidden shrink-0">
+                      <Image
+                        src={item.image}
+                        alt={item.title}
+                        fill
+                        className="object-cover group-hover:scale-125 group-hover:rotate-2 group-hover:opacity-90 transition-all duration-700 ease-in-out"
+                      />
+                    </div>
+
+                      {/* Content - Right Side */}
+                      <div className="flex w-[40%] h-full justify-between flex-col">
+                        <h3 className="text-black pt-4 sm:pt-6 md:pt-[30px] text-[10px] sm:text-[14px] md:text-[16px] lg:text-[18px] font-normal leading-tight line-clamp-2">
+                          {item.title}
+                        </h3>
+                        <div className="flex-col gap-3 sm:gap-4 md:gap-[27px] flex">
+                          {/* Arrow Button */}
+                        <Link href="/services">
+                          <button className="size-[18px] sm:size-[20px] md:size-[22px] rounded-full border-1 border-[#1C3163] flex items-center justify-center hover:bg-[#1C3163] hover:text-white transition-colors group">
+                            <ArrowRight
+                              className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 hover:text-white"
+                              strokeWidth={0.9}
+                            />
+                          </button>
+                        </Link>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </section>

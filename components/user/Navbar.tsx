@@ -12,7 +12,7 @@ import { useCart } from '@/stores/useCart'
 const navigationItems = [
   { href: '/', label: 'Home' },
   { href: '/shop', label: 'Shop', hasDropdown: true },
-  { href: '/services', label: 'Services' },
+  { href: '/services', label: 'Offering', hasOfferingDropdown: true },
   { href: '/about', label: 'About Us' },
   // { href: '/events', label: 'Events' },
   // { href: '/blog', label: 'Blog' },
@@ -37,9 +37,11 @@ const Navbar = () => {
   const [cartCount, setCartCount] = useState(0)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [isShopHovered, setIsShopHovered] = useState(false)
+  const [isOfferingHovered, setIsOfferingHovered] = useState(false)
   const navRef = useRef<HTMLElement>(null)
   const [dropdownTop, setDropdownTop] = useState(0)
   const shopHoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const offeringHoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [categories, setCategories] = useState<Category[]>([])
 
   // Fetch categories from API
@@ -203,7 +205,6 @@ const Navbar = () => {
                       }`}
                     >
                       <span className="relative z-10">{item.label}</span>
-                      <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-500 ease-in-out bg-gradient-to-r from-transparent via-white/30 to-transparent"></span>
                     </Link>
                     
                     {/* Shop Dropdown Menu - Narrow Vertical */}
@@ -257,6 +258,80 @@ const Navbar = () => {
                 )
               }
               
+              // Handle Offering with dropdown
+              if (item.hasOfferingDropdown) {
+                return (
+                  <div 
+                    key={item.href}
+                    className="relative"
+                    onMouseEnter={() => {
+                      if (offeringHoverTimeoutRef.current) {
+                        clearTimeout(offeringHoverTimeoutRef.current)
+                        offeringHoverTimeoutRef.current = null
+                      }
+                      setIsOfferingHovered(true)
+                    }}
+                    onMouseLeave={() => {
+                      offeringHoverTimeoutRef.current = setTimeout(() => {
+                        setIsOfferingHovered(false)
+                      }, 100)
+                    }}
+                  >
+                    <Link 
+                      href={item.href} 
+                      onClick={(e) => handleNavigation(e, item.href)}
+                      className={`group relative text-[#D5B584] hover:text-white transition-all duration-150 text-sm xl:text-base font-normal whitespace-nowrap hover:scale-110 overflow-hidden ${
+                        pathname === item.href || pathname.startsWith('/services') || pathname.startsWith('/events') ? 'text-white font-semibold scale-110' : ''
+                      }`}
+                    >
+                      <span className="relative z-10">{item.label}</span>
+                    </Link>
+                    
+                    {/* Offering Dropdown Menu */}
+                    {isOfferingHovered && (
+                      <div 
+                        className="absolute left-0 top-full mt-2 w-48 bg-white/80 backdrop-blur-sm shadow-lg border border-white/20 rounded-lg z-50 pointer-events-auto py-2" 
+                        onMouseEnter={() => {
+                          if (offeringHoverTimeoutRef.current) {
+                            clearTimeout(offeringHoverTimeoutRef.current)
+                            offeringHoverTimeoutRef.current = null
+                          }
+                          setIsOfferingHovered(true)
+                        }}
+                        onMouseLeave={() => {
+                          offeringHoverTimeoutRef.current = setTimeout(() => {
+                            setIsOfferingHovered(false)
+                          }, 100)
+                        }}
+                      >
+                        <div className="flex flex-col">
+                          <Link
+                            href="/events"
+                            onClick={(e) => {
+                              handleNavigation(e, '/events')
+                              setIsOfferingHovered(false)
+                            }}
+                            className="text-[#1C3163] hover:text-[#D5B584] transition-all duration-150 text-sm xl:text-base font-normal py-2 px-4 hover:translate-x-2 cursor-pointer"
+                          >
+                            Events
+                          </Link>
+                          <Link
+                            href="/services"
+                            onClick={(e) => {
+                              handleNavigation(e, '/services')
+                              setIsOfferingHovered(false)
+                            }}
+                            className="text-[#1C3163] hover:text-[#D5B584] transition-all duration-150 text-sm xl:text-base font-normal py-2 px-4 hover:translate-x-2 cursor-pointer"
+                          >
+                            Services
+                          </Link>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              }
+              
               // Regular navigation items
               return (
                 <Link 
@@ -268,19 +343,17 @@ const Navbar = () => {
                   }`}
                 >
                   <span className="relative z-10">{item.label}</span>
-                  <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-500 ease-in-out bg-gradient-to-r from-transparent via-white/30 to-transparent"></span>
                 </Link>
               )
             })}
             <Link 
               href="/book-a-session" 
               onClick={(e) => handleNavigation(e, '/book-a-session')}
-              className={`group relative text-[#D5B584] px-4 xl:px-6 py-2 rounded hover:bg-white/80 hover:backdrop-blur-sm hover:text-black transition-all duration-150 text-sm xl:text-base font-normal whitespace-nowrap hover:scale-105 hover:shadow-lg overflow-hidden ${
-                pathname === '/book-a-session' ? 'bg-white text-black scale-105 shadow-lg' : ''
+              className={`group relative text-[#D5B584] hover:text-white transition-all duration-150 text-sm xl:text-base font-normal whitespace-nowrap hover:scale-110 overflow-hidden ${
+                pathname === '/book-a-session' ? 'text-white font-semibold scale-110' : ''
               }`}
             >
               <span className="relative z-10">Book a Call</span>
-              <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-500 ease-in-out bg-gradient-to-r from-transparent via-white/30 to-transparent"></span>
             </Link>
             
             {/* Profile Icon - Always visible */}
@@ -396,25 +469,21 @@ const Navbar = () => {
                 href={item.href} 
                 onClick={(e) => handleNavigation(e, item.href)}
                 className={`group relative text-[#D5B584] hover:text-white transition-all duration-150 text-base font-normal py-2 px-4 hover:bg-white/5 rounded hover:translate-x-2 overflow-hidden ${
-                  pathname === item.href || (item.href === '/shop' && pathname.startsWith('/shop')) ? 'bg-white/10 text-white font-semibold translate-x-2' : ''
+                  pathname === item.href || (item.href === '/shop' && pathname.startsWith('/shop')) || (item.href === '/services' && (pathname.startsWith('/services') || pathname.startsWith('/events'))) ? 'bg-white/10 text-white font-semibold translate-x-2' : ''
                 }`}
               >
                 <span className="relative z-10">{item.label}</span>
-                <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-500 ease-in-out bg-gradient-to-r from-transparent via-white/30 to-transparent"></span>
               </Link>
             ))}
-            <div className='px-2 pt-2'>
-              <Link 
-                href="/book-a-session" 
-                onClick={(e) => handleNavigation(e, '/book-a-session')}
-                className={`group relative block text-[#D5B584] border border-[#D5B584] px-6 py-3 rounded hover:bg-white hover:text-black transition-all duration-150 text-base font-normal text-center hover:scale-105 hover:shadow-lg overflow-hidden ${
-                  pathname === '/book-a-session' ? 'bg-white text-black scale-105 shadow-lg' : ''
-                }`}
-              >
-                <span className="relative z-10">Book a Call</span>
-                <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-500 ease-in-out bg-gradient-to-r from-transparent via-white/30 to-transparent"></span>
-              </Link>
-            </div>
+            <Link 
+              href="/book-a-session" 
+              onClick={(e) => handleNavigation(e, '/book-a-session')}
+              className={`group relative text-[#D5B584] hover:text-white transition-all duration-150 text-base font-normal py-2 px-4 hover:bg-white/5 rounded hover:translate-x-2 overflow-hidden ${
+                pathname === '/book-a-session' ? 'bg-white/10 text-white font-semibold translate-x-2' : ''
+              }`}
+            >
+              <span className="relative z-10">Book a Call</span>
+            </Link>
           </div>
         </div>
       </div>

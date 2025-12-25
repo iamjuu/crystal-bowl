@@ -1,9 +1,9 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Navbar from "@/components/user/Navbar";
 import Footer from "@/components/user/Footer";
 import Image from "next/image";
-import { Plus } from "lucide-react";
+import { Plus, ChevronDown, X } from "lucide-react";
 import {
   Bucket1,
   FliterIcon,
@@ -54,8 +54,54 @@ const ShopPage = () => {
   });
   
   // Filter panel visibility
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(true);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const sortDropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Close filters when category changes
+  useEffect(() => {
+    setShowFilters(false);
+  }, [categoryParam]);
+  
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target as Node)) {
+        setShowSortDropdown(false);
+      }
+    };
+
+    if (showSortDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSortDropdown]);
+  
+  // Get sort label
+  const getSortLabel = () => {
+    if (filters.featured) return "FEATURED";
+    if (filters.newAddition) return "NEW ADDITION";
+    if (filters.sortBy === "price" && filters.sortOrder === "desc") return "PRICE, HIGH TO LOW";
+    if (filters.sortBy === "price" && filters.sortOrder === "asc") return "PRICE, LOW TO HIGH";
+    if (filters.sortBy === "name" && filters.sortOrder === "asc") return "ALPHABETICALLY, A-Z";
+    if (filters.sortBy === "name" && filters.sortOrder === "desc") return "ALPHABETICALLY, Z-A";
+    return "SORT PRODUCTS";
+  };
+  
+  const handleSortChange = (sortBy: string, sortOrder: string) => {
+    if (sortBy === "featured") {
+      setFilters({ ...filters, featured: true, newAddition: false, sortBy: "", sortOrder: "asc" });
+    } else if (sortBy === "newAddition") {
+      setFilters({ ...filters, newAddition: true, featured: false, sortBy: "", sortOrder: "asc" });
+    } else {
+      setFilters({ ...filters, sortBy, sortOrder, featured: false, newAddition: false });
+    }
+    setShowSortDropdown(false);
+  };
 
   // Parse URL on client side and listen for changes
   useEffect(() => {
@@ -269,10 +315,10 @@ const ShopPage = () => {
 
       <>
         <section className="w-full py-[40px] md:py-[68px] ">
-          <div className="max-w-6xl items-center flex flex-col mx-auto px-4">
+          <div className="max-w-6xl mx-auto px-4">
             {/* Header */}
-            <div className="mb-8 items-center   w-full md:mb-12 flex flex-col justify-between sm:flex-row gap-4 sm:gap-8 md:gap-[62px]">
-              <div className="flex  items-center gap-[50px]">
+            <div className="mb-8 md:mb-12">
+              <div className="flex items-center gap-[50px] mb-6">
                 <h2 className="text-[#D5B584] text-[28px] sm:text-[32px] md:text-[40px] font-normal">
                   {categoryName}
                 </h2>
@@ -282,174 +328,168 @@ const ShopPage = () => {
                     : "Browse our collection"}
                 </p>
               </div>
-              <div className="flex p-[6px] rounded-[6px] gap-4 border">
+              
+              {/* Top Bar with HIDE FILTERS and Sort */}
+              <div className="flex justify-between items-center bg-gray-100 p-2 mb-4">
                 <button 
                   onClick={() => setShowFilters(!showFilters)}
-                  className={`border-r border-r-gray-300 pr-4 ${showFilters ? 'bg-[#1C3163] rounded' : ''}`}
+                  className="flex items-center gap-2 text-sm font-medium text-[#1C3163] hover:opacity-80 transition-opacity"
                 >
-                  <Image src={FliterIcon} alt="filter" />
+                  <Image src={FliterIcon} alt="filter" className="w-4 h-4" />
+                  {showFilters ? "HIDE FILTERS" : "SHOW FILTERS"}
                 </button>
 
-                <button>
-                  <Image src={SortIcon} alt="sort" />
-                </button>
+                {/* Sort Dropdown */}
+                <div className="relative" ref={sortDropdownRef}>
+                  <button
+                    onClick={() => setShowSortDropdown(!showSortDropdown)}
+                    className="flex items-center gap-2 text-sm font-medium text-[#1C3163] hover:opacity-80 transition-opacity"
+                  >
+                    <Image src={SortIcon} alt="sort" className="w-4 h-4" />
+                    {getSortLabel()}
+                    <ChevronDown className={`w-4 h-4 transition-transform ${showSortDropdown ? 'rotate-180' : ''}`} />
+                  </button>
+                  
+                  {showSortDropdown && (
+                    <div className="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[220px]">
+                      <button
+                        onClick={() => handleSortChange("featured", "asc")}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors ${
+                          filters.featured ? 'underline' : ''
+                        }`}
+                      >
+                        FEATURED
+                      </button>
+                      <button
+                        onClick={() => handleSortChange("newAddition", "asc")}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors ${
+                          filters.newAddition ? 'underline' : ''
+                        }`}
+                      >
+                        NEW ADDITION
+                      </button>
+                      <button
+                        onClick={() => handleSortChange("name", "asc")}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors ${
+                          filters.sortBy === "name" && filters.sortOrder === "asc" ? 'underline' : ''
+                        }`}
+                      >
+                        ALPHABETICALLY, A-Z
+                      </button>
+                      <button
+                        onClick={() => handleSortChange("name", "desc")}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors ${
+                          filters.sortBy === "name" && filters.sortOrder === "desc" ? 'underline' : ''
+                        }`}
+                      >
+                        ALPHABETICALLY, Z-A
+                      </button>
+                      <button
+                        onClick={() => handleSortChange("price", "asc")}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors ${
+                          filters.sortBy === "price" && filters.sortOrder === "asc" ? 'underline' : ''
+                        }`}
+                      >
+                        PRICE, LOW TO HIGH
+                      </button>
+                      <button
+                        onClick={() => handleSortChange("price", "desc")}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors ${
+                          filters.sortBy === "price" && filters.sortOrder === "desc" ? 'underline' : ''
+                        }`}
+                      >
+                        PRICE, HIGH TO LOW
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             
-            {/* Filter Panel */}
-            {showFilters && (
-              <div className="w-full bg-white rounded-lg p-6 shadow-lg mb-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {/* Featured & New Addition Checkboxes */}
-                  <div className="space-y-3">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={filters.featured}
-                        onChange={(e) => setFilters({ ...filters, featured: e.target.checked })}
-                        className="w-4 h-4 text-[#1C3163] border-gray-300 rounded focus:ring-[#1C3163]"
-                      />
-                      <span className="text-[#1C3163] text-sm font-medium">Featured</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={filters.newAddition}
-                        onChange={(e) => setFilters({ ...filters, newAddition: e.target.checked })}
-                        className="w-4 h-4 text-[#1C3163] border-gray-300 rounded focus:ring-[#1C3163]"
-                      />
-                      <span className="text-[#1C3163] text-sm font-medium">New Addition</span>
-                    </label>
-                  </div>
-                  
-                  {/* Weight Filter */}
-                  <div>
-                    <label className="block text-sm font-medium text-[#1C3163] mb-2">Weight</label>
-                    <select
-                      value={filters.weight}
-                      onChange={(e) => setFilters({ ...filters, weight: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3163] text-sm"
-                    >
-                      <option value="">All Weights</option>
-                      <option value="less than 1kg">Less than 1kg</option>
-                      <option value="less than 6kg">Less than 6kg</option>
-                      <option value="between 1-3kg">Between 1-3kg</option>
-                      <option value="3-5kg">3-5kg</option>
-                    </select>
-                  </div>
-                  
-                  {/* Octave Filter */}
-                  <div>
-                    <label className="block text-sm font-medium text-[#1C3163] mb-2">Octave</label>
-                    <select
-                      value={filters.octave}
-                      onChange={(e) => setFilters({ ...filters, octave: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3163] text-sm"
-                    >
-                      <option value="">All Octaves</option>
-                      <option value="3rd octave">3rd Octave</option>
-                      <option value="4th octave">4th Octave</option>
-                    </select>
-                  </div>
-                  
-                  {/* Size Filter */}
-                  <div>
-                    <label className="block text-sm font-medium text-[#1C3163] mb-2">Size</label>
-                    <select
-                      value={filters.size}
-                      onChange={(e) => setFilters({ ...filters, size: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3163] text-sm"
-                    >
-                      <option value="">All Sizes</option>
-                      <option value="5-6">5-6</option>
-                      <option value="6-7">6-7</option>
-                      <option value="7-8">7-8</option>
-                      <option value="8">8</option>
-                    </select>
-                  </div>
-                  
-                  {/* Tuning Filter */}
-                  <div>
-                    <label className="block text-sm font-medium text-[#1C3163] mb-2">Tuning (Hz)</label>
-                    <select
-                      value={filters.tuning}
-                      onChange={(e) => setFilters({ ...filters, tuning: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3163] text-sm"
-                    >
-                      <option value="">All Tuning</option>
-                      <option value="432">432 Hz</option>
-                      <option value="440">440 Hz</option>
-                      <option value="528">528 Hz</option>
-                    </select>
-                  </div>
-                  
-                  {/* Sort By Price */}
-                  <div>
-                    <label className="block text-sm font-medium text-[#1C3163] mb-2">Sort by Price</label>
-                    <select
-                      value={filters.sortBy === "price" ? `price-${filters.sortOrder}` : ""}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (value === "") {
-                          setFilters({ ...filters, sortBy: "", sortOrder: "asc" });
-                        } else {
-                          const [sortBy, sortOrder] = value.split("-");
-                          setFilters({ ...filters, sortBy, sortOrder });
-                        }
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3163] text-sm"
-                    >
-                      <option value="">Default</option>
-                      <option value="price-asc">Price: Low to High</option>
-                      <option value="price-desc">Price: High to Low</option>
-                    </select>
-                  </div>
-                  
-                  {/* Sort Alphabetically */}
-                  <div>
-                    <label className="block text-sm font-medium text-[#1C3163] mb-2">Sort Alphabetically</label>
-                    <select
-                      value={filters.sortBy === "name" ? `name-${filters.sortOrder}` : ""}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (value === "") {
-                          setFilters({ ...filters, sortBy: "", sortOrder: "asc" });
-                        } else {
-                          const [sortBy, sortOrder] = value.split("-");
-                          setFilters({ ...filters, sortBy, sortOrder });
-                        }
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1C3163] text-sm"
-                    >
-                      <option value="">Default</option>
-                      <option value="name-asc">A-Z</option>
-                      <option value="name-desc">Z-A</option>
-                    </select>
+            {/* Main Content Layout */}
+            <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+              {/* Filter Sidebar - Left */}
+              {showFilters && (
+                <div className="w-full lg:w-64 shrink-0 bg-white rounded-lg p-6 shadow-lg">
+                  <div className="space-y-6">
+                    {/* All Collections Heading */}
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold text-[#1C3163]">ALL COLLECTIONS</h3>
+                      <ChevronDown className="w-5 h-5 text-[#1C3163]" />
+                    </div>
+                    
+                    {/* Filter Options */}
+                    <div className="space-y-3">
+                      {/* Weight Options */}
+                      <div className="space-y-2 pt-2">
+                        <h4 className="text-sm font-medium text-[#1C3163]">Weight</h4>
+                        {["less than 1kg", "less than 6kg", "between 1-3kg", "3-5kg"].map((weight) => (
+                          <label key={weight} className="flex items-center justify-between cursor-pointer py-1">
+                            <span className="text-sm text-[#1C3163]">{weight}</span>
+                            <input
+                              type="checkbox"
+                              checked={filters.weight === weight}
+                              onChange={(e) => setFilters({ ...filters, weight: e.target.checked ? weight : "" })}
+                              className="w-4 h-4 text-[#1C3163] border-gray-300 rounded focus:ring-[#1C3163]"
+                            />
+                          </label>
+                        ))}
+                      </div>
+                      
+                      {/* Octave Options */}
+                      <div className="space-y-2 pt-2">
+                        <h4 className="text-sm font-medium text-[#1C3163]">Octave</h4>
+                        {["3rd octave", "4th octave"].map((octave) => (
+                          <label key={octave} className="flex items-center justify-between cursor-pointer py-1">
+                            <span className="text-sm text-[#1C3163]">{octave}</span>
+                            <input
+                              type="checkbox"
+                              checked={filters.octave === octave}
+                              onChange={(e) => setFilters({ ...filters, octave: e.target.checked ? octave : "" })}
+                              className="w-4 h-4 text-[#1C3163] border-gray-300 rounded focus:ring-[#1C3163]"
+                            />
+                          </label>
+                        ))}
+                      </div>
+                      
+                      {/* Size Options */}
+                      <div className="space-y-2 pt-2">
+                        <h4 className="text-sm font-medium text-[#1C3163]">Size</h4>
+                        {["5-6", "6-7", "7-8", "8"].map((size) => (
+                          <label key={size} className="flex items-center justify-between cursor-pointer py-1">
+                            <span className="text-sm text-[#1C3163]">{size}</span>
+                            <input
+                              type="checkbox"
+                              checked={filters.size === size}
+                              onChange={(e) => setFilters({ ...filters, size: e.target.checked ? size : "" })}
+                              className="w-4 h-4 text-[#1C3163] border-gray-300 rounded focus:ring-[#1C3163]"
+                            />
+                          </label>
+                        ))}
+                      </div>
+                      
+                      {/* Tuning Options */}
+                      <div className="space-y-2 pt-2">
+                        <h4 className="text-sm font-medium text-[#1C3163]">Tuning</h4>
+                        {["432", "440", "528"].map((tuning) => (
+                          <label key={tuning} className="flex items-center justify-between cursor-pointer py-1">
+                            <span className="text-sm text-[#1C3163]">{tuning} HZ TUNING</span>
+                            <input
+                              type="checkbox"
+                              checked={filters.tuning === tuning}
+                              onChange={(e) => setFilters({ ...filters, tuning: e.target.checked ? tuning : "" })}
+                              className="w-4 h-4 text-[#1C3163] border-gray-300 rounded focus:ring-[#1C3163]"
+                            />
+                          </label>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
-                
-                {/* Clear Filters Button */}
-                <div className="mt-6 flex justify-end">
-                  <button
-                    onClick={() => setFilters({
-                      featured: false,
-                      newAddition: false,
-                      weight: "",
-                      octave: "",
-                      size: "",
-                      tuning: "",
-                      sortBy: "",
-                      sortOrder: "asc",
-                    })}
-                    className="px-4 py-2 text-sm text-[#1C3163] border border-[#1C3163] rounded-md hover:bg-[#1C3163] hover:text-white transition-colors"
-                  >
-                    Clear All Filters
-                  </button>
-                </div>
-              </div>
-            )}
-            
-            <div className="flex  w-full bg-amber-100flex-col gap-12 md:gap-16 lg:gap-[80px]">
+              )}
+              
+              {/* Products Grid - Right */}
+              <div className="flex-1">
               {loading ? (
                 <div className="text-center py-12 text-[#1C3163]">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-[#1C3163] mx-auto mb-4"></div>
@@ -526,6 +566,7 @@ const ShopPage = () => {
                   })}
                 </div>
               )}
+              </div>
             </div>
           </div>
         </section>

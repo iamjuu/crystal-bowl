@@ -46,7 +46,7 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
     await connectDB();
     const body = await req.json();
     const { id } = await context.params;
-    const { sessionType, date, startTime, duration, ...updateData } = body;
+    const { sessionType, date, startTime, duration, featured, ...updateData } = body;
 
     // Determine which collection to update
     let existingSession: any = null;
@@ -171,6 +171,43 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
     // Handle duration for freeStudioVisit (no date/time conflict checking needed)
     if (sessionType === "freeStudioVisit" && duration !== undefined) {
       updateData.duration = Number(duration);
+    }
+
+    // Handle featured field for private and corporate sessions with validation (separate limits for each type)
+    if (featured !== undefined && sessionType === "private") {
+      if (featured === true || featured === "true" || featured === 1) {
+        // Check if there are already 3 featured private sessions (excluding current session)
+        const featuredPrivateCount = await PrivateSession.countDocuments({ 
+          featured: true,
+          _id: { $ne: id } 
+        });
+        
+        if (featuredPrivateCount >= 3) {
+          return NextResponse.json(
+            { success: false, message: "Maximum 3 featured sessions allowed for private sessions. Please unfeature another private session first." },
+            { status: 400 }
+          );
+        }
+      }
+      updateData.featured = featured === true || featured === "true" || featured === 1;
+    }
+    
+    if (featured !== undefined && sessionType === "corporate") {
+      if (featured === true || featured === "true" || featured === 1) {
+        // Check if there are already 3 featured corporate sessions (excluding current session)
+        const featuredCorporateCount = await CorporateSession.countDocuments({ 
+          featured: true,
+          _id: { $ne: id } 
+        });
+        
+        if (featuredCorporateCount >= 3) {
+          return NextResponse.json(
+            { success: false, message: "Maximum 3 featured sessions allowed for corporate sessions. Please unfeature another corporate session first." },
+            { status: 400 }
+          );
+        }
+      }
+      updateData.featured = featured === true || featured === "true" || featured === 1;
     }
 
     const updated = await SessionModel.findByIdAndUpdate(id, updateData, { new: true });

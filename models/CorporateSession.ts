@@ -8,6 +8,7 @@ export interface CorporateSessionType extends Document {
   format?: string;
   benefits?: string[];
   sessionType: "corporate";
+  featured?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -21,6 +22,7 @@ const CorporateSessionSchema = new Schema<CorporateSessionType>(
     format: { type: String },
     benefits: { type: [String], default: [] },
     sessionType: { type: String, default: "corporate", immutable: true },
+    featured: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

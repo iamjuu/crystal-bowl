@@ -16,6 +16,7 @@ export interface PrivateSessionType extends Document {
   price?: number;
   totalSeats?: number;
   bookedSeats?: number;
+  featured?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -37,6 +38,7 @@ const PrivateSessionSchema = new Schema<PrivateSessionType>(
     price: { type: Number },
     totalSeats: { type: Number, default: 1 },
     bookedSeats: { type: Number, default: 0 },
+    featured: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
